@@ -192,19 +192,6 @@ Compile, verify, and benchmark:
     assert max_err < 0.05, f"FAIL: max_err={max_err}"
     print("PASS")
 
-
-.. raw:: latex
-
-   \diilbookstyleoutputcell
-
-.. parsed-literal::
-    :class: output
-
-    Fused GELU: batch_size=64, out_dim=4096
-    Max error vs numpy reference: 0.007812
-    PASS
-
-
 **Expected output**:
 
 - Time: 0.003–0.010 ms (varies by GPU load)

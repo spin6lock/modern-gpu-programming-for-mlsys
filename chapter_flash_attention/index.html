@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -161,12 +161,12 @@ Show Source
 Specialization) — specifically warp specialization, the 4-barrier
 producer-consumer pattern, PipelineState, and TMA/tcgen05 pipelining. If
 Step 7 still feels unclear, go back and re-read it before continuing.</em></p>
-<p><em>These chapters explain how the same TIRX patterns from GEMM generalize
-to other important kernels. The focus is on architecture and algorithm
-design rather than line-by-line code.</em></p>
+<p><em>This chapter explains how the same TIRX patterns from GEMM generalize
+to attention kernels. The focus is on architecture and algorithm design
+rather than line-by-line code.</em></p>
 <hr class="docutils" />
-<p>Flash Attention 4 is the latest generation of the Flash Attention 4
-family, designed specifically for Blackwell GPUs. It fuses the entire
+<p>Flash Attention 4 is the Blackwell-native implementation of Flash
+Attention, designed specifically for SM100a GPUs. It fuses the entire
 attention computation (<span class="math notranslate nohighlight">\(QK^T \to \text{softmax} \to \times V\)</span>)
 into a single kernel, avoiding materializing the full <span class="math notranslate nohighlight">\(N \times N\)</span>
 attention matrix. This chapter explores how Flash Attention 4 maps to
@@ -179,7 +179,7 @@ Blackwell hardware using TIRX.</p>
 warp-specialized architecture</p></li>
 <li><p>The two MMA phases (Score and Value) and the dataflow between them</p></li>
 <li><p>The barrier topology connecting 4 warpgroups (512 threads)</p></li>
-<li><p>Writeback, rescaling, and LSE computation</p></li>
+<li><p>Writeback and adaptive rescaling</p></li>
 <li><p>Causal masking and Grouped Query Attention (GQA)</p></li>
 </ul>
 </section>
@@ -217,12 +217,12 @@ ever multiply by values in <span class="math notranslate nohighlight">\([0, 1]\)
 </section>
 <section id="numeric-example">
 <h3><span class="section-number">9.2.2. </span>Numeric example<a class="headerlink" href="#numeric-example" title="Permalink to this heading">¶</a></h3>
-<p>Consider computing softmax over 4 elements <span class="math notranslate nohighlight">\([2, 5, 1, 8]\)</span>
-processed in two chunks of size 2.</p>
-<p><strong>Chunk 1: :math:`[2, 5]`</strong></p>
+<p>Consider computing softmax over 4 elements <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">5,</span> <span class="pre">1,</span> <span class="pre">8]</span></code> processed in
+two chunks of size 2.</p>
+<p><strong>Chunk 1:</strong> [2, 5]</p>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-1">
 <span class="eqno">(9.2.2)<a class="headerlink" href="#equation-chapter-flash-attention-index-1" title="Permalink to this equation">¶</a></span>\[m = 5, \quad \ell = e^{2-5} + e^{5-5} = e^{-3} + 1 \approx 0.050 + 1.0 = 1.050\]</div>
-<p><strong>Chunk 2: :math:`[1, 8]`</strong></p>
+<p><strong>Chunk 2:</strong> [1, 8]</p>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-2">
 <span class="eqno">(9.2.3)<a class="headerlink" href="#equation-chapter-flash-attention-index-2" title="Permalink to this equation">¶</a></span>\[m_{\text{new}} = \max(5, 8) = 8\]</div>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-3">
@@ -265,11 +265,6 @@ the BLK_M rows maintains its own running state independently.</p>
 <p>The Blackwell Flash Attention 4 kernel uses 4 warpgroups (512 threads)
 with full warp specialization:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 37%" />
-<col style="width: 19%" />
-<col style="width: 44%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Warpgroup</p></th>
 <th class="head"><p>Role</p></th>
@@ -277,25 +272,32 @@ with full warp specialization:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>WG3</strong></p></td>
-<td><p>TMA
-Producer</p></td>
-<td><p>Loads Q, K, V tiles via TMA;
-stores O via TMA</p></td>
+<tr class="row-even"><td><p><strong>WG3, warp 0</strong></p></td>
+<td><p>MMA warp</p></td>
+<td><p>Issues <strong>both</strong> Score MMA
+(<a class="reference external" href="mailto:Q&#37;&#52;&#48;K^T">Q<span>&#64;</span>K^T</a>) and Value MMA (P&#64;V)
+via <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>WG1</strong></p></td>
-<td><p>Softmax +
-MMA (<a class="reference external" href="mailto:Q&#37;&#52;&#48;K^T">Q<span>&#64;</span>K^T</a>)</p></td>
-<td><p>Computes attention scores
-via Score MMA, runs softmax,
-writes P to TMEM</p></td>
+<tr class="row-odd"><td><p><strong>WG3, warp 1</strong></p></td>
+<td><p>TMA Load</p></td>
+<td><p>Loads Q, K, V tiles from
+GMEM to SMEM via TMA</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>WG0</strong></p></td>
-<td><p>Softmax +
-MMA (<a class="reference external" href="mailto:Q&#37;&#52;&#48;K^T">Q<span>&#64;</span>K^T</a>)</p></td>
-<td><p>Same as WG1 but handles a
-different Q stage
-(double-buffered Q)</p></td>
+<tr class="row-even"><td><p><strong>WG3, warp 2</strong></p></td>
+<td><p>TMA Store</p></td>
+<td><p>Stores O tiles from SMEM to
+GMEM via TMA</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>WG0</strong></p></td>
+<td><p>Softmax</p></td>
+<td><p>Runs online softmax on
+scores (Q stage 0), writes P
+to TMEM</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>WG1</strong></p></td>
+<td><p>Softmax</p></td>
+<td><p>Same as WG0 but handles Q
+stage 1 (double-buffered Q)</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>WG2</strong></p></td>
 <td><p>Correction
@@ -306,13 +308,14 @@ SMEM</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>All MMA instructions are issued by WG3’s warp 0</strong> — this is different
+from the warp role table description in some papers. WG0 and WG1 are
+purely softmax warpgroups: they read scores from TMEM, compute softmax
+(row_max, row_sum, exp), and write the probability matrix P back to
+TMEM. They do <strong>not</strong> issue any MMA instructions.</p>
 <p>WG0 and WG1 each handle one of two Q pipeline stages. While WG0
 processes Q stage 0 through softmax, WG1 processes Q stage 1. This is a
 form of <strong>Q double-buffering</strong> at the warpgroup level.</p>
-<p><strong>Key distinction from GEMM</strong>: In GEMM, the MMA warpgroup only does
-matrix multiply. In Flash Attention 4, WG0/WG1 do Score MMA <em>and</em>
-softmax <em>and</em> write P back to TMEM. The MMA for P&#64;V is issued by WG3’s
-MMA warp (warp 0 within WG3), not by the softmax warpgroups.</p>
 <p><strong>Key constants</strong> (from <code class="docutils literal notranslate"><span class="pre">flash_attention4.py</span></code>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="n">BLK_K</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span>    <span class="c1"># Tile dimensions</span>
 <span class="n">WG_NUMBER</span> <span class="o">=</span> <span class="mi">4</span>                           <span class="c1"># 4 warpgroups = 512 threads</span>
@@ -334,10 +337,14 @@ single-MMA pattern.</p>
 <p>The first MMA computes attention scores:</p>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-6">
 <span class="eqno">(9.4.1)<a class="headerlink" href="#equation-chapter-flash-attention-index-6" title="Permalink to this equation">¶</a></span>\[S = Q_{\text{block}} \times K_{\text{block}}^T \quad [\text{BLK}_M \times \text{BLK}_N]\]</div>
-<p>This writes the score matrix <span class="math notranslate nohighlight">\(S\)</span> into TMEM. Each of WG0/WG1 issues
-the Score MMA for its Q stage, then the <code class="docutils literal notranslate"><span class="pre">bar_s_full</span></code> barrier signals
-that scores are ready.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># WG3, warp 0: Issues Score MMA for both Q stages</span>
+<p>This writes the score matrix <span class="math notranslate nohighlight">\(S\)</span> into TMEM. WG3’s MMA warp (warp
+0) issues the Score MMA for both Q stages sequentially, then the
+<code class="docutils literal notranslate"><span class="pre">bar_s_full</span></code> barrier signals that scores are ready for WG0/WG1 to run
+softmax.</p>
+<p>Simplified excerpt (the real implementation wraps <code class="docutils literal notranslate"><span class="pre">arrive</span></code> in an
+<code class="docutils literal notranslate"><span class="pre">elect_sync</span></code> guard and handles both Q stages in an unrolled loop — see
+<code class="docutils literal notranslate"><span class="pre">flash_attention4.py</span></code> for full details):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># WG3, warp 0: Issues Score MMA (simplified)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">gemm_qk</span><span class="p">(</span><span class="n">q_stage</span><span class="p">,</span> <span class="n">kv_stage</span><span class="p">,</span> <span class="n">tmem_col_s</span><span class="p">,</span> <span class="n">bar_s_full</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warp</span><span class="p">():</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
@@ -346,6 +353,7 @@ that scores are ready.</p>
             <span class="n">K_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">BLK_N</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
             <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
         <span class="p">)</span>
+    <span class="c1"># In the real code: wrapped in elect_sync()</span>
     <span class="n">bar_s_full</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">q_stage</span><span class="p">)</span>  <span class="c1"># Signal: scores ready in TMEM</span>
 </pre></div>
 </div>
@@ -384,28 +392,29 @@ and adjusts the scale factor accordingly
 <p>This is issued by WG3’s MMA warp (warp 0). P lives in TMEM as float16
 (written there by WG0/WG1), while V lives in SMEM. The result
 accumulates into O in TMEM as float32.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># WG3, warp 0: Issues Value MMA</span>
+<p>Simplified excerpt (barrier waits and elect_sync guards omitted — see
+<code class="docutils literal notranslate"><span class="pre">flash_attention4.py:gemm_pv</span></code> for the full version):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># WG3, warp 0: Issues Value MMA (simplified)</span>
 <span class="c1"># P is read from TMEM (A operand), V from SMEM (B operand, transposed)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">gemm_pv</span><span class="p">(</span><span class="n">i_q</span><span class="p">,</span> <span class="n">kv_stage</span><span class="p">,</span> <span class="n">tmem_col_o</span><span class="p">,</span> <span class="n">tmem_col_p</span><span class="p">,</span> <span class="n">should_accumulate</span><span class="p">,</span> <span class="n">bar_p_full_2</span><span class="p">):</span>
-    <span class="n">K_SPLIT</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">MMA_K</span>  <span class="c1"># 96 — first 6 MMA iterations</span>
-    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warp</span><span class="p">():</span>
-        <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
-            <span class="n">tmem</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_o</span> <span class="p">:</span> <span class="n">tmem_col_o</span> <span class="o">+</span> <span class="n">MMA_N</span><span class="p">],</span>
-            <span class="n">tmem_as_f16</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="p">:</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">K_SPLIT</span><span class="p">],</span>
-            <span class="n">V_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K_SPLIT</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
-            <span class="n">transB</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="n">should_accumulate</span><span class="p">,</span>
-            <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="c1"># Wait for last quarter of P, then issue remaining MMA iterations</span>
-    <span class="n">bar_p_full_2</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warp</span><span class="p">():</span>
-        <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
-            <span class="n">tmem</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_o</span> <span class="p">:</span> <span class="n">tmem_col_o</span> <span class="o">+</span> <span class="n">MMA_N</span><span class="p">],</span>
-            <span class="n">tmem_as_f16</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">K_SPLIT</span> <span class="p">:</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">BLK_N</span><span class="p">],</span>
-            <span class="n">V_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="n">K_SPLIT</span><span class="p">:</span><span class="n">BLK_N</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
-            <span class="n">transB</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
-        <span class="p">)</span>
+<span class="n">K_SPLIT</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">MMA_K</span>  <span class="c1"># 96 — first 6 of 8 MMA iterations</span>
+
+<span class="c1"># Part 1: P columns 0..95 x V rows 0..95 (can start before softmax finishes last quarter)</span>
+<span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
+    <span class="n">tmem</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_o</span> <span class="p">:</span> <span class="n">tmem_col_o</span> <span class="o">+</span> <span class="n">MMA_N</span><span class="p">],</span>
+    <span class="n">tmem_as_f16</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="p">:</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">K_SPLIT</span><span class="p">],</span>
+    <span class="n">V_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K_SPLIT</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
+    <span class="n">transB</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="n">should_accumulate</span><span class="p">,</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Wait for softmax to finish writing last quarter of P (barrier omitted here)</span>
+
+<span class="c1"># Part 2: P columns 96..127 x V rows 96..127</span>
+<span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
+    <span class="n">tmem</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_o</span> <span class="p">:</span> <span class="n">tmem_col_o</span> <span class="o">+</span> <span class="n">MMA_N</span><span class="p">],</span>
+    <span class="n">tmem_as_f16</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">128</span><span class="p">,</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">K_SPLIT</span> <span class="p">:</span> <span class="n">tmem_col_p</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">BLK_N</span><span class="p">],</span>
+    <span class="n">V_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="n">K_SPLIT</span><span class="p">:</span><span class="n">BLK_N</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
+    <span class="n">transB</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>Notice the split: P&#64;V is broken into two parts (first 96 columns, then
@@ -436,13 +445,6 @@ every barrier in the kernel.</p>
 <section id="barrier-table">
 <h3><span class="section-number">9.5.1. </span>Barrier Table<a class="headerlink" href="#barrier-table" title="Permalink to this heading">¶</a></h3>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 34%" />
-<col style="width: 12%" />
-<col style="width: 18%" />
-<col style="width: 21%" />
-<col style="width: 15%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Barrier</p></th>
 <th class="head"><p>Type</p></th>
@@ -664,20 +666,21 @@ the maximum did not change), the entire TMEM read-modify-write is
 skipped.</p>
 <p><strong>Adaptive rescaling threshold</strong>: Unlike earlier Flash Attention
 versions that rescale O every time a new maximum appears, Flash
-Attention 4 only applies the rescaling when the maximum changes enough
-to threaten numerical stability. In practice, the running maximum
-stabilizes quickly after the first few KV blocks, so most iterations
-skip rescaling entirely. This reportedly reduces correction operations
-by a factor of ~10, which is a significant contributor to the overall
-~20% speedup over cuDNN.</p>
+Attention 4 only applies the rescaling when the maximum changes by more
+than <code class="docutils literal notranslate"><span class="pre">rescale_threshold</span></code> (set to 8.0 in the implementation). In
+practice, the running maximum stabilizes quickly after the first few KV
+blocks, so most iterations skip rescaling entirely. This reduces the
+number of expensive TMEM read-modify-write correction operations.</p>
 </section>
 <section id="lse-for-backward-pass">
 <h3><span class="section-number">9.6.5. </span>LSE for backward pass<a class="headerlink" href="#lse-for-backward-pass" title="Permalink to this heading">¶</a></h3>
-<p>The log-sum-exp <span class="math notranslate nohighlight">\(\text{LSE} = \log(\ell) + m\)</span> is stored for the
-backward pass. This is not shown in the forward kernel above but follows
-directly: after the last KV block,
+<p>In a full training pipeline, the log-sum-exp
+<span class="math notranslate nohighlight">\(\text{LSE} = \log(\ell) + m\)</span> would be stored as an auxiliary
+output for the backward pass. After the last KV block,
 <span class="math notranslate nohighlight">\(\text{LSE}_i = \log(\text{row\_sum}_i) + \text{row\_max}_i\)</span> for
-each row <span class="math notranslate nohighlight">\(i\)</span>.</p>
+each row <span class="math notranslate nohighlight">\(i\)</span>. <strong>The current tutorial kernel does not output LSE</strong>
+— it only computes the forward attention output O. A backward kernel
+would need an additional output buffer for LSE.</p>
 </section>
 </section>
 <section id="pipelining-structure">
@@ -773,17 +776,23 @@ view to pack the GQA heads:</p>
 </section>
 <section id="tile-scheduling">
 <h2><span class="section-number">9.10. </span>Tile Scheduling<a class="headerlink" href="#tile-scheduling" title="Permalink to this heading">¶</a></h2>
-<p>The kernel uses a persistent kernel design with a tile scheduler. Two
-scheduler variants are available:</p>
+<p>The kernel supports two scheduling modes with different CTA launch
+strategies:</p>
 <ul class="simple">
-<li><p><strong>LinearScheduler</strong> (non-causal): CTAs cycle through
-<code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">kv_head,</span> <span class="pre">m_block)</span></code> tasks round-robin. Each CTA picks up the
-next available task in linear order.</p></li>
-<li><p><strong>LPTScheduler</strong> (causal): Longest Processing Time first. Because
-causal attention gives later Q blocks more KV blocks to process, LPT
-scheduling balances the workload by assigning heavier tasks first. An
-L2 swizzle factor optimizes cache reuse for KV heads that fit in L2.</p></li>
+<li><p><strong>Non-causal (persistent)</strong>: Launches <code class="docutils literal notranslate"><span class="pre">min(148,</span> <span class="pre">num_tasks)</span></code> CTAs
+that cycle through <code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">kv_head,</span> <span class="pre">m_block)</span></code> tasks round-robin
+using a <code class="docutils literal notranslate"><span class="pre">LinearScheduler</span></code>. Each CTA picks up the next available
+task.</p></li>
+<li><p><strong>Causal (non-persistent)</strong>: Launches one CTA per task
+(<code class="docutils literal notranslate"><span class="pre">cta_count</span> <span class="pre">=</span> <span class="pre">num_tasks</span></code>). Because causal attention gives later Q
+blocks fewer KV blocks to process, the workload is naturally
+unbalanced. An <code class="docutils literal notranslate"><span class="pre">LPTScheduler</span></code> (Longest Processing Time first)
+assigns heavier tasks first to balance load. An L2 swizzle factor
+optimizes cache reuse.</p></li>
 </ul>
+<p>This distinction matters: causal mode does <strong>not</strong> use a persistent
+kernel, since the varying workload per tile makes persistent scheduling
+less effective.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scheduler</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">FlashAttentionLPTScheduler</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_causal</span>
     <span class="k">else</span> <span class="n">FlashAttentionLinearScheduler</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
@@ -800,11 +809,6 @@ L2 swizzle factor optimizes cache reuse for KV heads that fit in L2.</p></li>
 <section id="key-differences-from-gemm">
 <h2><span class="section-number">9.11. </span>Key Differences from GEMM<a class="headerlink" href="#key-differences-from-gemm" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 20%" />
-<col style="width: 54%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
 <th class="head"><p>GEMM</p></th>
@@ -884,7 +888,7 @@ would happen if it waited for all of P before starting?</p></li>
 the softmax warpgroups (WG0/WG1) that computed the rescaling factor?</p></li>
 </ol>
 <blockquote>
-<div><p><strong>Try with Claude</strong>: Describe your Flash Attention 4 kernel’s
+<div><p><strong>Try with your agent</strong>: Describe your Flash Attention 4 kernel’s
 pipeline structure (barrier types, warp roles, pipeline depths) and
 ask: <em>“Is there a deadlock scenario in this pipeline topology? Check
 that every wait has a matching arrive, and that no circular
@@ -897,9 +901,15 @@ dependency exists between barrier groups.”</em></p>
 <code class="docutils literal notranslate"><span class="pre">tirx_tutorial/flash_attention4.py</span></code>. Below we compile it, verify
 correctness against PyTorch’s scaled dot-product attention, and
 benchmark.</p>
+<p>Note: The kernel signature has 5 arguments
+<code class="docutils literal notranslate"><span class="pre">(Q,</span> <span class="pre">K,</span> <span class="pre">V,</span> <span class="pre">O,</span> <span class="pre">profiler_buffer)</span></code> — the extra <code class="docutils literal notranslate"><span class="pre">profiler_buffer</span></code> is
+used for optional profiling instrumentation and must always be provided.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tvm</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tirx_tutorial.flash_attention4</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_flash_attention4_kernel</span><span class="p">,</span> <span class="n">prepare_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tirx_tutorial.flash_attention4</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_flash_attention4_kernel</span><span class="p">,</span> <span class="n">prepare_data</span><span class="p">,</span> <span class="n">PROFILER_BUFFER_SIZE</span>
+<span class="p">)</span>
 
 <span class="c1"># Configuration</span>
 <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">4</span>
@@ -917,15 +927,18 @@ benchmark.</p>
 <span class="k">with</span> <span class="n">target</span><span class="p">:</span>
     <span class="n">lib</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">tvm</span><span class="o">.</span><span class="n">IRModule</span><span class="p">({</span><span class="s2">&quot;main&quot;</span><span class="p">:</span> <span class="n">kernel</span><span class="p">}),</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">tir_pipeline</span><span class="o">=</span><span class="s2">&quot;tirx&quot;</span><span class="p">)</span>
 
-<span class="c1"># Prepare data</span>
+<span class="c1"># Prepare data (Q, K, V, O are CPU tensors)</span>
 <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">O</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">num_qo_heads</span><span class="p">,</span> <span class="n">num_kv_heads</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">)</span>
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
 <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">O</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">K</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">V</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">O</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">profiler_buf</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">PROFILER_BUFFER_SIZE</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">cuda</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
 
-<span class="c1"># Run</span>
+<span class="c1"># Run — note the 5th argument (profiler_buffer)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">lib</span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">]</span>
 <span class="n">f</span><span class="p">(</span><span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">Q</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">K</span><span class="p">),</span>
-  <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">O</span><span class="p">))</span>
+  <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">O</span><span class="p">),</span> <span class="n">profiler_buf</span><span class="p">)</span>
 
 <span class="c1"># Verify against PyTorch SDPA</span>
 <span class="n">Q_ref</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>  <span class="c1"># [batch, heads, seq, dim]</span>
@@ -939,12 +952,12 @@ benchmark.</p>
 <span class="n">max_err</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">O</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span> <span class="o">-</span> <span class="n">O_ref</span><span class="o">.</span><span class="n">cpu</span><span class="p">())</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Flash Attention 4: batch=</span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">, seq=</span><span class="si">{</span><span class="n">seq_len</span><span class="si">}</span><span class="s2">, heads=</span><span class="si">{</span><span class="n">num_qo_heads</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_kv_heads</span><span class="si">}</span><span class="s2">, dim=</span><span class="si">{</span><span class="n">head_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max error vs PyTorch SDPA: </span><span class="si">{</span><span class="n">max_err</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">max_err</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;FAIL: max_err=</span><span class="si">{</span><span class="n">max_err</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">assert</span> <span class="n">max_err</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;FAIL: max_err=</span><span class="si">{</span><span class="n">max_err</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PASS&quot;</span><span class="p">)</span>
 
 <span class="c1"># Benchmark</span>
 <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">Q</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">K</span><span class="p">),</span>
-        <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">O</span><span class="p">)]</span>
+        <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="n">tvm</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">from_dlpack</span><span class="p">(</span><span class="n">O</span><span class="p">),</span> <span class="n">profiler_buf</span><span class="p">]</span>
 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
     <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 <span class="n">start</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">enable_timing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

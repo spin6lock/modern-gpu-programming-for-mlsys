@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -173,11 +173,6 @@ intrinsics under <code class="docutils literal notranslate"><span class="pre">Tx
 <section id="core-apis-at-a-glance">
 <h2><span class="section-number">2.2. </span>Core APIs at a Glance<a class="headerlink" href="#core-apis-at-a-glance" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 24%" />
-<col style="width: 51%" />
-<col style="width: 24%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Category</p></th>
 <th class="head"><p>API</p></th>
@@ -287,11 +282,6 @@ initialization</p></li>
 <p>TIRX uses a hierarchical scope system to control which threads execute a
 block of code:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 37%" />
-<col style="width: 29%" />
-<col style="width: 33%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Scope</p></th>
 <th class="head"><p>Threads</p></th>
@@ -385,7 +375,7 @@ looks like in raw PTX:</p>
 </pre></div>
 </div>
 <p>In TIRX, the same operation is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># TIRX: 3 lines</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># TIRX: 2 lines</span>
 <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span><span class="n">tmem</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">128</span><span class="p">],</span> <span class="n">Asmem</span><span class="p">[:],</span> <span class="n">Bsmem</span><span class="p">[:],</span>
               <span class="n">accum</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -426,11 +416,6 @@ each dimension to a named hardware axis”:</p>
 </div>
 <p><strong>Quick reference — layouts used in the GEMM kernels:</strong></p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 55%" />
-<col style="width: 23%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Buffer type</p></th>
 <th class="head"><p>Layout</p></th>

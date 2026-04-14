@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -169,8 +169,8 @@ cuBLAS — the industry gold standard — from scratch.</strong></p>
 <li><p><strong>Ch 3 (Setup)</strong> — Install TIRX and run your first GPU kernel in
 under 5 minutes</p></li>
 <li><p><strong>Ch 4 (Fused GELU)</strong> — Write your first real operator kernel</p></li>
-<li><p><strong>Ch 6 (GEMM Steps 1–3)</strong> — Start the GEMM optimization journey:
-714ms → 0.9ms</p></li>
+<li><p><strong>Ch 6 (GEMM Steps 1–3)</strong> — Start the GEMM optimization journey: 70ms
+→ 0.11ms</p></li>
 </ol>
 </section>
 <section id="who-is-this-for">
@@ -195,7 +195,7 @@ programming model, and environment setup.</p></li>
 two self-contained operators: Fused GELU (elementwise + fusion) and
 RMSNorm (warp reduction + shared memory).</p></li>
 <li><p><strong>Part III: GEMM Deep Dive</strong> (Ch 6–8) — A single GEMM kernel,
-optimized step by step from 714ms to 0.9ms in 10 steps across 3
+optimized step by step from 70ms to 0.11ms in 9 steps across 3
 chapters.</p></li>
 <li><p><strong>Part IV: Advanced Kernels</strong> (Ch 9) — Flash Attention on Blackwell.</p></li>
 <li><p><strong>Part V: AI-Assisted Development</strong> (Ch 10) — Using LLMs to generate
@@ -252,11 +252,10 @@ boilerplate, debug kernels, and produce test harnesses.</p></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_basics/index.html#step-2-k-loop-accumulation">6.4. Step 2: K-Loop Accumulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_basics/index.html#step-3-spatial-tiling-multi-cta">6.5. Step 3: Spatial Tiling (Multi-CTA)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_basics/index.html#exercises">6.6. Exercises</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_gemm_basics/index.html#debugging-inspecting-generated-cuda-source">6.7. Debugging: Inspecting Generated CUDA Source</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_gemm_async/index.html">7. GEMM Steps 4–6: TMA, Pipelining, and Persistent Kernels</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_gemm_async/index.html#step-4-tma-async-load-123x-speedup">7.1. Step 4: TMA Async Load — 123x Speedup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter_gemm_async/index.html#step-4-tma-async-load">7.1. Step 4: TMA Async Load</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_async/index.html#step-5-software-pipeline-pipe-depth-2">7.2. Step 5: Software Pipeline (PIPE_DEPTH=2)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_async/index.html#step-6-persistent-kernel-tile-scheduler">7.3. Step 6: Persistent Kernel + Tile Scheduler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_gemm_async/index.html#exercises">7.4. Exercises</a></li>

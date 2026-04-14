@@ -409,19 +409,6 @@ Compile and verify:
     assert max_err < 0.05, f"FAIL: max_err={max_err}"
     print("PASS")
 
-
-.. raw:: latex
-
-   \diilbookstyleoutputcell
-
-.. parsed-literal::
-    :class: output
-
-    RMSNorm: batch_size=64, hidden_size=4096
-    Max error vs numpy reference: 0.001953
-    PASS
-
-
 **Expected output**: - Time: 0.004–0.010 ms - Max error: < 0.005
 
 **If something goes wrong**: - ``max_err > 0.1``: Check fp16->fp32 cast
@@ -458,7 +445,7 @@ Exercises
 4. How would you modify this kernel to compute LayerNorm instead of
    RMSNorm? What additional computation is needed?
 
-**Try with Claude**: Paste your RMSNorm kernel and ask: *“Trace the warp
-shuffle reduction for a warp of 32 threads. After each XOR-shuffle step,
-which threads hold partial results? Why does every thread end up with
-the same final sum?”*
+**Try with your agent**: Paste your RMSNorm kernel and ask: *“Trace the
+warp shuffle reduction for a warp of 32 threads. After each XOR-shuffle
+step, which threads hold partial results? Why does every thread end up
+with the same final sum?”*

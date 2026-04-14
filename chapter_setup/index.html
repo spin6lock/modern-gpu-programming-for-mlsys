@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -170,7 +170,8 @@ running a real GPU kernel.</p>
 </section>
 <section id="install-packages">
 <h3><span class="section-number">3.1.2. </span>Install Packages<a class="headerlink" href="#install-packages" title="Permalink to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--pre<span class="w"> </span>-U<span class="w"> </span>-f<span class="w"> </span>https://mlc.ai/wheels<span class="w"> </span><span class="s2">&quot;mlc-ai-tirx-cu130==0.0.1b2&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--pre<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;https://github.com/mlc-ai/package/releases/download/v0.9.dev0/mlc_ai_tirx_nightly_cu130-0.24.dev0-py3-none-manylinux_2_28_x86_64.whl&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>apache-tvm-ffi<span class="o">==</span><span class="m">0</span>.1.9rc2
 pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.9.1+cu130<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu130
 pip<span class="w"> </span>install<span class="w"> </span>numpy
 </pre></div>
@@ -218,13 +219,6 @@ GPU:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Match:  </span><span class="si">{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">match</span><span class="p">,</span> <span class="s2">&quot;FAIL: output does not match a * 2&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Setup verified! Your TIRX environment is working correctly.&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="output highlight-default notranslate"><div class="highlight"><pre><span></span>Input:  [-0.3754003942012787, -0.003883419558405876, 0.5272215008735657, -0.5815533399581909, 0.15387625992298126]
-Output: [-0.7508007884025574, -0.007766839116811752, 1.0544430017471313, -1.1631066799163818, 0.3077525198459625]
-Match:  True
-
-Setup verified! Your TIRX environment is working correctly.
 </pre></div>
 </div>
 <p>If you see <code class="docutils literal notranslate"><span class="pre">Setup</span> <span class="pre">verified!</span></code>, you’re ready to start the tutorial. If
