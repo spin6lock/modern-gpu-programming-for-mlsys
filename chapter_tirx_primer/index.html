@@ -242,7 +242,7 @@ it steps along. For example <code class="docutils literal notranslate"><span cla
 logical dim 0 runs along the <code class="docutils literal notranslate"><span class="pre">TLane</span></code> (TMEM row) axis with stride 1,
 and logical dim 1 runs along <code class="docutils literal notranslate"><span class="pre">TCol</span></code> (TMEM column) with stride 1.</p></li>
 <li><p><strong>R (Replica).</strong> A <em>set</em> of iters that enumerate broadcast offsets
-independent of the logical index. <code class="docutils literal notranslate"><span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">1&#64;warp]</span></code> replicates the
+independent of the logical index. <code class="docutils literal notranslate"><span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">1&#64;warpid]</span></code> replicates the
 same data across 4 consecutive warps. This is what makes Blackwell
 scale-factor tiles, cluster-wide multicast buffers, and distributed
 tensors expressible without shape hacks.</p></li>
@@ -263,21 +263,25 @@ each axis name:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">m</span></code></p></td>
-<td><p>ordinary memory offset (SMEM /
-GMEM / RF element stride)</p></td>
+<td><p>default memory offset (SMEM /
+GMEM / RF element stride); used
+when a stride has no <code class="docutils literal notranslate"><span class="pre">&#64;axis</span></code>
+suffix</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tid</span></code>, <code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code>, <code class="docutils literal notranslate"><span class="pre">lane</span></code>,
-<code class="docutils literal notranslate"><span class="pre">warp</span></code>, <code class="docutils literal notranslate"><span class="pre">warp_in_wg</span></code>,
-<code class="docutils literal notranslate"><span class="pre">wg_id</span></code></p></td>
-<td><p>thread-hierarchy axes</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code>, <code class="docutils literal notranslate"><span class="pre">warpid</span></code>,
+<code class="docutils literal notranslate"><span class="pre">laneid</span></code></p></td>
+<td><p>thread-hierarchy axes (warpgroup
+thread, warp within CTA, lane
+within warp)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TLane</span></code>, <code class="docutils literal notranslate"><span class="pre">TCol</span></code></p></td>
-<td><p>Blackwell TMEM 2D axes</p></td>
+<td><p>Blackwell TMEM 2D axes (0…127
+rows × 0…511 cols)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cta</span></code>, <code class="docutils literal notranslate"><span class="pre">cbx</span></code>, <code class="docutils literal notranslate"><span class="pre">cby</span></code></p></td>
-<td><p>CTA and cluster axes (for TMA
-multicast, DSMEM, cluster-wide
-tiles)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cbx</span></code>, <code class="docutils literal notranslate"><span class="pre">cby</span></code></p></td>
+<td><p>CTA axes within a cluster (for
+TMA multicast, DSMEM,
+cluster-wide tiles)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pid</span></code></p></td>
 <td><p>device-mesh axis for multi-GPU
@@ -427,10 +431,11 @@ depending on the scope and the operand layouts:</p>
 <tr class="row-even"><td><p>thread
 (elected),
 <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code></p></td>
-<td><p>SMEM with cluster
-axes (<code class="docutils literal notranslate"><span class="pre">1&#64;cbx</span></code>
-shard +
-<code class="docutils literal notranslate"><span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">1&#64;cby]</span></code>)</p></td>
+<td><p>SMEM whose receiver
+set covers more than
+one CTA of the cluster
+(e.g. <code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;cbx]</span></code>
+for a 2-CTA broadcast)</p></td>
 <td><p>GMEM tile</p></td>
 <td><p><strong>TMA multicast</strong>
 (<code class="docutils literal notranslate"><span class="pre">cp.async.bulk.tensor.multicast</span></code>)</p></td>
@@ -487,11 +492,14 @@ lives in TMEM, so choose a <code class="docutils literal notranslate"><span clas
 <li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span></code> / <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> SMEM layouts (including swizzle mode) → build
 the SMEM matrix descriptors and set transpose flags required by
 <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code> → single-CTA instance. Passing <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>,
-together with SMEM layouts that carry <code class="docutils literal notranslate"><span class="pre">1&#64;cbx</span></code> + <code class="docutils literal notranslate"><span class="pre">R[...</span> <span class="pre">:</span> <span class="pre">1&#64;cby]</span></code>,
-produces the 2-CTA cooperative form that reaches up to <span class="math notranslate nohighlight">\(M=256\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code> → single-CTA instance. Passing <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code> on a
+clustered launch (<code class="docutils literal notranslate"><span class="pre">Tx.cta_id([2,</span> <span class="pre">1],</span> <span class="pre">parent=&quot;cluster&quot;)</span></code>) produces
+the 2-CTA cooperative form, in which the MMA proxy reads the peer
+CTA’s SMEM via cross-CTA access; the <code class="docutils literal notranslate"><span class="pre">M</span></code> axis doubles to up to
+<span class="math notranslate nohighlight">\(256\)</span>.</p></li>
 <li><p>Tile shape inferred from the layouts → select a valid <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>
-M-N-K shape (<span class="math notranslate nohighlight">\(M \in \{64, 128, 256\}\)</span>, <span class="math notranslate nohighlight">\(N\)</span> multiple of 8
+M-N-K shape (<span class="math notranslate nohighlight">\(M \in \{64, 128\}\)</span> for single-CTA or
+<span class="math notranslate nohighlight">\(\{128, 256\}\)</span> with <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>, <span class="math notranslate nohighlight">\(N\)</span> any multiple of 8
 up to 256, <span class="math notranslate nohighlight">\(K\)</span> set by element type).</p></li>
 </ul>
 <p>A single primitive call emits one — or, for large tiles, a short loop of
@@ -511,8 +519,9 @@ between unicast and multicast — is a layout edit, not a rewrite of the
 operation.</p></li>
 <li><p><strong>Layout selects the instruction family.</strong> <code class="docutils literal notranslate"><span class="pre">cbx</span></code> / <code class="docutils literal notranslate"><span class="pre">cby</span></code> axes →
 cluster instructions; <code class="docutils literal notranslate"><span class="pre">TLane</span></code> / <code class="docutils literal notranslate"><span class="pre">TCol</span></code> → <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions;
-<code class="docutils literal notranslate"><span class="pre">tid</span></code> / <code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code> + <code class="docutils literal notranslate"><span class="pre">m</span></code> → ordinary per-thread LDG / STS / STG.
-The named-axis vocabulary is the user’s way to <em>select</em> a lowering.</p></li>
+<code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code> / <code class="docutils literal notranslate"><span class="pre">warpid</span></code> / <code class="docutils literal notranslate"><span class="pre">laneid</span></code> + <code class="docutils literal notranslate"><span class="pre">m</span></code> → ordinary per-thread
+LDG / STS / STG. The named-axis vocabulary is the user’s way to
+<em>select</em> a lowering.</p></li>
 <li><p><strong>Scope gates which primitives are legal.</strong> Some primitives only make
 sense under a specific team kind — e.g. <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> requires a
 warpgroup-cooperative read, so calling it from <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread():</span></code>

@@ -161,8 +161,9 @@ Show Source
 <span id="chap-gemm-basics"></span><h1><span class="section-number">7. </span>GEMM Steps 1–3: From Single Tile to Spatial Tiling<a class="headerlink" href="#gemm-steps-13-from-single-tile-to-spatial-tiling" title="Permalink to this heading">¶</a></h1>
 <p><em>This is the start of Part III: GEMM Deep Dive. Unlike Part II’s
 standalone operators, the next 3 chapters (9 steps) tell a single
-continuous story — one GEMM kernel, progressively optimized from 70ms to
-0.11ms. Each step builds on the previous one.</em></p>
+continuous story — one GEMM kernel, progressively optimized from 70 ms
+down to ~0.12 ms, within 10% of cuBLAS (0.11 ms). Each step builds on
+the previous one.</em></p>
 <blockquote>
 <div><p><strong>Layout recap.</strong> Every step in Part III uses three recurring layout
 patterns: a swizzled <code class="docutils literal notranslate"><span class="pre">tma_shared_layout</span></code> for SMEM,
@@ -287,7 +288,7 @@ accumulate).</p>
 </section>
 <section id="writeback">
 <h4><span class="section-number">7.3.3.4. </span>Writeback<a class="headerlink" href="#writeback" title="Permalink to this heading">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">TileLayout</span><span class="p">(([</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="nd">@tid_in_wg</span><span class="p">,</span> <span class="mi">1</span><span class="p">])))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@tid_in_wg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]))</span>
 <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warpgroup</span><span class="p">():</span>          <span class="c1"># All 128 threads cooperate on TMEM read</span>
     <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Dreg_wg</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">tmem</span><span class="p">[:,</span> <span class="p">:</span><span class="n">BLK_N</span><span class="p">])</span>
 <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">():</span>             <span class="c1"># Each thread writes its row</span>
@@ -332,17 +333,24 @@ etc. Each thread’s row is <code class="docutils literal notranslate"><span cla
 <p>GEMM kernels use the full thread hierarchy from
 <a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-numref">Section 1</span></a> (CTA → Warpgroup → Warp → Thread). Unlike
 the earlier elementwise kernels that only needed <code class="docutils literal notranslate"><span class="pre">cta_id</span></code> +
-<code class="docutils literal notranslate"><span class="pre">thread_id</span></code>, GEMM requires all three levels because tcgen05 MMA
-operates at the <strong>warpgroup</strong> level — all 128 threads must cooperate to
-read TMEM results:</p>
+<code class="docutils literal notranslate"><span class="pre">thread_id</span></code>, GEMM touches every level: a single elected thread
+<em>issues</em> each <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>, but the resulting TMEM tile spans 128
+rows — a full warpgroup cooperates to read it back via <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>,
+and per-warp / per-lane IDs partition the writeback rows across threads:</p>
 <ul class="simple">
-<li><p><strong>``wg_id = Tx.warpgroup_id([1])``</strong> — Which warpgroup (Step 1 uses
-only 1). Later steps use 2 warpgroups for warp specialization.</p></li>
-<li><p><strong>``warp_id = Tx.warp_id([4])``</strong> — Which warp within the warpgroup
-(0-3).</p></li>
-<li><p><strong>``lane_id = Tx.thread_id([32])``</strong> — Which thread within the warp
-(0-31).</p></li>
+<li><p><strong>``wg_id = Tx.warpgroup_id([1], parent=”cta”)``</strong> — Which warpgroup
+(Step 1 uses only 1). Later steps use 2 warpgroups for warp
+specialization.</p></li>
+<li><p><strong>``warp_id = Tx.warp_id([4], parent=”warpgroup”)``</strong> — Which warp
+within the warpgroup (0-3).</p></li>
+<li><p><strong>``lane_id = Tx.thread_id([32], parent=”warp”)``</strong> — Which thread
+within the warp (0-31).</p></li>
 </ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">parent=</span></code> argument is mandatory: it names the enclosing scope from
+which this coordinate is drawn (so <code class="docutils literal notranslate"><span class="pre">warp_id</span></code> with
+<code class="docutils literal notranslate"><span class="pre">parent=&quot;warpgroup&quot;</span></code> enumerates the 4 warps inside each warpgroup,
+while <code class="docutils literal notranslate"><span class="pre">parent=&quot;cta&quot;</span></code> would enumerate all 16 warps of a 4-warpgroup
+CTA).</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">warp_id</span></code> and <code class="docutils literal notranslate"><span class="pre">lane_id</span></code> are used for thread-level operations
 like data loading and writeback (each thread handles a different row:
 <code class="docutils literal notranslate"><span class="pre">row</span> <span class="pre">=</span> <span class="pre">warp_id</span> <span class="pre">*</span> <span class="pre">32</span> <span class="pre">+</span> <span class="pre">lane_id</span></code>).</p>
@@ -354,6 +362,9 @@ like data loading and writeback (each thread handles a different row:
     <span class="n">D</span><span class="p">:</span> <span class="n">Tx</span><span class="o">.</span><span class="n">Buffer</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">d_type</span><span class="p">),</span>
 <span class="p">):</span>
     <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">kernel</span><span class="p">():</span>
+        <span class="c1"># Step 1 is a single-tile kernel: M = BLK_M and N = BLK_N, so the grid</span>
+        <span class="c1"># is 1x1. Starting with a 1x1 grid keeps the per-CTA tile offsets</span>
+        <span class="c1"># (m_st, n_st) trivially zero; Steps 3+ generalise this to larger M / N.</span>
         <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">M</span> <span class="o">//</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="n">BLK_N</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;kernel&quot;</span><span class="p">)</span>
         <span class="n">wg_id</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warpgroup_id</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;cta&quot;</span><span class="p">)</span>
         <span class="n">warp_id</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warp_id</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warpgroup&quot;</span><span class="p">)</span>
@@ -388,10 +399,12 @@ like data loading and writeback (each thread handles a different row:
         <span class="n">phase_mma</span><span class="p">:</span> <span class="n">Tx</span><span class="o">.</span><span class="n">int32</span>
         <span class="n">phase_mma</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="c1"># --- Load: all threads copy global -&gt; shared (synchronous) ---</span>
+        <span class="c1"># --- Load: all threads copy global -&gt; shared (synchronous).</span>
+        <span class="c1"># With M=BLK_M and N=BLK_N the slices below cover the full matrices;</span>
+        <span class="c1"># the slice form is kept so the diff to Step 3 (multi-tile) is minimal.</span>
         <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="p">():</span>
-            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">A</span><span class="p">[:,</span> <span class="p">:])</span>
-            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">B</span><span class="p">[:,</span> <span class="p">:])</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">A</span><span class="p">[</span><span class="n">m_st</span><span class="p">:</span><span class="n">m_st</span> <span class="o">+</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="p">:])</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">B</span><span class="p">[</span><span class="n">n_st</span><span class="p">:</span><span class="n">n_st</span> <span class="o">+</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="p">:])</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
 
         <span class="c1"># --- Compute: single elected thread issues MMA ---</span>

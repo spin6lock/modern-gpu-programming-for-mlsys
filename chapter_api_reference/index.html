@@ -319,8 +319,11 @@ mbarrier access)</p></td>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cast(dst,</span> <span class="pre">src)</span></code></p></td>
 <td><p>Element-wise type cast</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(C,</span> <span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">accum,</span> <span class="pre">dispatch=&quot;tcgen05&quot;,</span> <span class="pre">cta_group)</span></code></p></td>
-<td><p>tcgen05 MMA</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(C,</span> <span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">*,</span> <span class="pre">transA=False,</span> <span class="pre">transB=False,</span> <span class="pre">accum=False,</span> <span class="pre">dispatch=&quot;tcgen05&quot;,</span> <span class="pre">**kwargs)</span></code></p></td>
+<td><p>tcgen05 MMA. <code class="docutils literal notranslate"><span class="pre">accum</span></code> is keyword-only (default
+<code class="docutils literal notranslate"><span class="pre">False</span></code>); backend-specific options such as
+<code class="docutils literal notranslate"><span class="pre">cta_group=</span></code> flow through <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> into the
+op config.</p></td>
 </tr>
 </tbody>
 </table>
@@ -423,8 +426,10 @@ used through Step 9.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bar.wait(stage,</span> <span class="pre">phase)</span></code></p></td>
 <td><p>Wait for barrier at given stage and phase</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar.arrive(stage,</span> <span class="pre">bytes)</span></code></p></td>
-<td><p>Arrive with expected byte count (TMA load)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar.arrive(stage,</span> <span class="pre">tx_count)</span></code></p></td>
+<td><p>Arrive with expected transaction-byte count (TMA
+load). <code class="docutils literal notranslate"><span class="pre">tx_count</span></code> is the total bytes the TMA
+engine will deposit into SMEM for this stage.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCGen05Bar.arrive(stage,</span> <span class="pre">cta_group=,</span> <span class="pre">cta_mask=)</span></code></p></td>
 <td><p>Arrive via tcgen05 commit</p></td>
@@ -480,13 +485,16 @@ memory like TMEM.</p></li>
 <li><p><strong>TMA store must be followed by ``commit_group()`` +
 ``wait_group(0)``</strong>: Without waiting, the next iteration may overwrite
 Dsmem.</p></li>
-<li><p><strong>``fence.after_thread_sync()`` is only needed in the epilogue</strong>: In
-the writeback path, after <code class="docutils literal notranslate"><span class="pre">mma2ld.wait(phase)</span></code> and immediately
-before the first <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>, call <code class="docutils literal notranslate"><span class="pre">fence.after_thread_sync()</span></code> to
-order prior MMA writes to TMEM against the upcoming thread-proxy
-reads. Do <em>not</em> add it on the TMA→MMA edge; the TMA-completion
-mbarrier already orders SMEM writes against the subsequent MMA, and
-the same applies to <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> after a synchronous SMEM copy.</p></li>
+<li><p><strong>``fence.after_thread_sync()`` is rarely needed</strong>: The MMA-completion
+mbarrier already carries release→acquire semantics, so most kernels —
+including the early Steps in this tutorial and most of CUTLASS — omit
+it entirely. The <code class="docutils literal notranslate"><span class="pre">tirx-kernels</span></code> reference kernels take a more
+conservative stance and insert it in the writeback path, after
+<code class="docutils literal notranslate"><span class="pre">mma2ld.wait(phase)</span></code> and immediately before the first
+<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>, to make the ordering between prior tcgen05 writes to
+TMEM and the upcoming thread-proxy reads explicit. It is <strong>never</strong>
+needed on the TMA→MMA edge — the TMA-completion mbarrier and
+<code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> after a synchronous SMEM copy already cover that case.</p></li>
 <li><p><strong>Constants must be defined outside ``&#64;Tx.prim_func``</strong>: Variables
 like <code class="docutils literal notranslate"><span class="pre">EPI_N</span></code>, <code class="docutils literal notranslate"><span class="pre">TMEM_LD_N</span></code>, <code class="docutils literal notranslate"><span class="pre">MMA_N</span></code> must be Python constants.</p></li>
 <li><p><strong>``pool.move_base_to(1024)``</strong>: Reserves the first 1024 bytes for
@@ -525,7 +533,7 @@ over outer kernel variables, which is useful for packaging repeated load
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Tx</span><span class="o">.</span><span class="n">inline</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">tma_load</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warp&quot;</span><span class="p">)[</span><span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">()]:</span>
-        <span class="n">tma_bar</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="n">total_bytes</span><span class="p">)</span>
+        <span class="n">tma_bar</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">tx_count</span><span class="o">=</span><span class="n">total_bytes</span><span class="p">)</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">m_st</span> <span class="p">:</span> <span class="n">m_st</span> <span class="o">+</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">BLK_K</span><span class="p">],</span>
                       <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">,</span> <span class="n">mbar</span><span class="o">=</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="n">stage</span><span class="p">]))</span>
 </pre></div>

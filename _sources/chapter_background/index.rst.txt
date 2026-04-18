@@ -162,8 +162,9 @@ and complement each other:
 |                       |                       | descriptors) and/or TMEM    |
 +-----------------------+-----------------------+-----------------------------+
 | Accumulator in        | Register file         | **TMEM** on Blackwell       |
-|                       |                       | (off-chip-register          |
-|                       |                       | scratchpad)                 |
+|                       |                       | (on-chip SM-local           |
+|                       |                       | scratchpad, separate from   |
+|                       |                       | the register file)          |
 +-----------------------+-----------------------+-----------------------------+
 | Typical dtypes        | fp32 / fp64 / int32 — | fp16 / bf16 / fp8 / fp4 /   |
 |                       | general-purpose       | tf32 — low-precision        |
@@ -562,8 +563,9 @@ synchronization:
 | TMA writes SMEM → MMA reads SMEM  | ``mbarrier.try_wait`` on the TMA     |
 | (async copy)                      | completion barrier                   |
 +-----------------------------------+--------------------------------------+
-| MMA writes TMEM → Threads read    | ``mbarrier.try_wait`` +              |
-| TMEM (epilogue)                   | ``fence.after_thread_sync()``        |
+| MMA writes TMEM → Threads read    | ``mbarrier.try_wait`` (optionally    |
+| TMEM (epilogue)                   | followed by                          |
+|                                   | ``fence.after_thread_sync()``)       |
 +-----------------------------------+--------------------------------------+
 | Threads write SMEM → TMA reads    | ``fence.proxy_async("shared::cta")`` |
 | SMEM (store)                      |                                      |
@@ -582,12 +584,16 @@ the subsequent MMA issued by the same CTA sees earlier SMEM writes. An
 mbarrier arrival from an async engine (TMA completion, or
 ``tcgen05.commit`` from an MMA) likewise carries release→acquire
 semantics: once ``try_wait`` returns, the waiter sees all of the
-producer’s memory effects. The one remaining case where we need an
-explicit fence is the writeback path: ``fence.after_thread_sync()``
-after the MMA-completion wait orders the prior tcgen05 writes to TMEM
-against the upcoming thread-proxy reads (``tcgen05.ld``).
-``fence.proxy_async("shared::cta")`` plays the analogous role on the
-thread→TMA-store edge in SMEM.
+producer’s memory effects — including MMA writes to TMEM. In practice
+the mbarrier alone is enough to make the early-step kernels in this
+tutorial (and most of CUTLASS) correct without any explicit fence.
+``fence.after_thread_sync()`` is a conservative extra between the
+MMA-completion wait and the first ``tcgen05.ld``, added in some
+reference kernels (the ``tirx-kernels`` writeback path used from Step 8
+onward) to make the ordering between prior tcgen05 writes and the
+upcoming thread-proxy reads explicit; it is not needed on the TMA→MMA
+edge. ``fence.proxy_async("shared::cta")`` plays the analogous role on
+the thread→TMA-store edge in SMEM, where no mbarrier is involved.
 
 Before deallocating TMEM, all CTAs that may still read or write it must
 be finished. For a single-CTA kernel, ``cta_sync()`` is sufficient; for
@@ -649,7 +655,7 @@ kernel fast?” a calculation you can do in your head.
 |                       |                       | actually live after   |
 |                       |                       | warm-up               |
 +-----------------------+-----------------------+-----------------------+
-| HBM cold-miss         | ~280 FLOP/B           | only binds if L2      |
+| HBM cold-miss         | ~281 FLOP/B           | only binds if L2      |
 | break-even AI         |                       | reuse fails           |
 +-----------------------+-----------------------+-----------------------+
 | One fp16 128×64 tile  | 16 KB                 | TMA transfer          |

@@ -557,7 +557,7 @@ followed by <code class="docutils literal notranslate"><span class="pre">commit_
 <li><p><strong>``.shape``</strong> determines how many bits per element. For fp32
 accumulators, each cell is 32 bits.</p></li>
 <li><p><strong>``.num``</strong> determines how many <code class="docutils literal notranslate"><span class="pre">.shape</span></code>-sized entries fit. The
-TIRx compiler maps these to TMEM columns.</p></li>
+TIRX compiler maps these to TMEM columns.</p></li>
 </ul>
 <p>When you declare
 <code class="docutils literal notranslate"><span class="pre">tmem</span> <span class="pre">=</span> <span class="pre">Tx.decl_buffer((128,</span> <span class="pre">512),</span> <span class="pre">&quot;float32&quot;,</span> <span class="pre">scope=&quot;tmem&quot;,</span> <span class="pre">...)</span></code>,

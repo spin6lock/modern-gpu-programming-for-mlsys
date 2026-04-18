@@ -436,7 +436,7 @@ TMEM (Tensor Memory) is a special memory owned by each warpgroup, with
 - **``.shape``** determines how many bits per element. For fp32
   accumulators, each cell is 32 bits.
 - **``.num``** determines how many ``.shape``-sized entries fit. The
-  TIRx compiler maps these to TMEM columns.
+  TIRX compiler maps these to TMEM columns.
 
 When you declare
 ``tmem = Tx.decl_buffer((128, 512), "float32", scope="tmem", ...)``,

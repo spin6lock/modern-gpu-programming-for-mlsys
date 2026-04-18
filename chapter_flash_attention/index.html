@@ -169,8 +169,8 @@ rather than line-by-line code.</em></p>
 <hr class="docutils" />
 <p>Flash Attention 4 is the Blackwell-native implementation of Flash
 Attention, designed specifically for SM100a GPUs. It fuses the entire
-attention computation (<span class="math notranslate nohighlight">\(QK^T \to \text{softmax} \to \times V\)</span>)
-into a single kernel, avoiding materializing the full <span class="math notranslate nohighlight">\(N \times N\)</span>
+attention computation <span class="math notranslate nohighlight">\(O = \text{softmax}(QK^{\top})\,V\)</span> into a
+single kernel, avoiding materializing the full <span class="math notranslate nohighlight">\(N \times N\)</span>
 attention matrix. This chapter explores how Flash Attention 4 maps to
 Blackwell hardware using TIRX.</p>
 <section id="what-you-will-learn">
@@ -240,7 +240,7 @@ element, which matches the two-pass result.</p>
 output accumulator <span class="math notranslate nohighlight">\(O\)</span>. When the maximum changes, <span class="math notranslate nohighlight">\(O\)</span> must
 be rescaled by the same factor:</p>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-5">
-<span class="eqno">(10.2.6)<a class="headerlink" href="#equation-chapter-flash-attention-index-5" title="Permalink to this equation">¶</a></span>\[O = O \cdot e^{m_{\text{old}} - m_{\text{new}}} + P_{\text{new}} \times V_{\text{block}}\]</div>
+<span class="eqno">(10.2.6)<a class="headerlink" href="#equation-chapter-flash-attention-index-5" title="Permalink to this equation">¶</a></span>\[O = O \cdot e^{m_{\text{old}} - m_{\text{new}}} + P_{\text{new}} V_{\text{block}}\]</div>
 <p>where <span class="math notranslate nohighlight">\(P_{\text{new}} = e^{S_{\text{block}} - m_{\text{new}}}\)</span> are
 the softmax weights for the current block. After processing all KV
 blocks, the final output is <span class="math notranslate nohighlight">\(O / \ell\)</span> (dividing each row by its
@@ -265,10 +265,11 @@ the BLK_M rows maintains its own running state independently.</p>
 <section id="kernel-architecture">
 <h2><span class="section-number">10.3. </span>Kernel Architecture<a class="headerlink" href="#kernel-architecture" title="Permalink to this heading">¶</a></h2>
 <p>The Blackwell Flash Attention 4 kernel uses 4 warpgroups (512 threads)
-with full warp specialization:</p>
+with full warp specialization. WG3 is further specialized into three
+single-warp roles; WG0 / WG1 / WG2 each occupy a whole warpgroup:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Warpgroup</p></th>
+<tr class="row-odd"><th class="head"><p>Owner</p></th>
 <th class="head"><p>Role</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
@@ -277,36 +278,38 @@ with full warp specialization:</p>
 <tr class="row-even"><td><p><strong>WG3, warp 0</strong></p></td>
 <td><p>MMA warp</p></td>
 <td><p>Issues <strong>both</strong> Score MMA
-(<a class="reference external" href="mailto:Q&#37;&#52;&#48;K^T">Q<span>&#64;</span>K^T</a>) and Value MMA (P&#64;V)
-via <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code></p></td>
+(<span class="math notranslate nohighlight">\(QK^{\top}\)</span>) and Value MMA
+(<span class="math notranslate nohighlight">\(PV\)</span>) via <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>WG3, warp 1</strong></p></td>
-<td><p>TMA Load</p></td>
-<td><p>Loads Q, K, V tiles from
-GMEM to SMEM via TMA</p></td>
+<td><p>TMA Load warp</p></td>
+<td><p>Loads Q, K, V tiles from GMEM to
+SMEM via TMA</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>WG3, warp 2</strong></p></td>
-<td><p>TMA Store</p></td>
-<td><p>Stores O tiles from SMEM to
-GMEM via TMA</p></td>
+<td><p>TMA Store
+warp</p></td>
+<td><p>Stores O tiles from SMEM to GMEM
+via TMA</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>WG0</strong></p></td>
+<tr class="row-odd"><td><p><strong>WG0 (full
+warpgroup)</strong></p></td>
 <td><p>Softmax</p></td>
-<td><p>Runs online softmax on
-scores (Q stage 0), writes P
-to TMEM</p></td>
+<td><p>Runs online softmax on scores (Q
+stage 0), writes P to TMEM</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>WG1</strong></p></td>
+<tr class="row-even"><td><p><strong>WG1 (full
+warpgroup)</strong></p></td>
 <td><p>Softmax</p></td>
-<td><p>Same as WG0 but handles Q
-stage 1 (double-buffered Q)</p></td>
+<td><p>Same as WG0 but handles Q stage 1
+(double-buffered Q)</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>WG2</strong></p></td>
-<td><p>Correction
-+ Epilogue</p></td>
-<td><p>Rescales O accumulator in
-TMEM, normalizes, writes to
-SMEM</p></td>
+<tr class="row-odd"><td><p><strong>WG2 (full
+warpgroup)</strong></p></td>
+<td><p>Correction +
+Epilogue</p></td>
+<td><p>Rescales O accumulator in TMEM,
+normalizes, writes to SMEM</p></td>
 </tr>
 </tbody>
 </table>
@@ -392,7 +395,7 @@ and adjusts the scale factor accordingly
 <h3><span class="section-number">10.4.3. </span>Phase 2: Value MMA (P &#64; V -&gt; O)<a class="headerlink" href="#phase-2-value-mma-p-v-o" title="Permalink to this heading">¶</a></h3>
 <p>The second MMA accumulates the weighted values:</p>
 <div class="math notranslate nohighlight" id="equation-chapter-flash-attention-index-7">
-<span class="eqno">(10.4.2)<a class="headerlink" href="#equation-chapter-flash-attention-index-7" title="Permalink to this equation">¶</a></span>\[O = O + P_{\text{block}} \times V_{\text{block}} \quad [\text{BLK}_M \times \text{HEAD}_{\text{DIM}}]\]</div>
+<span class="eqno">(10.4.2)<a class="headerlink" href="#equation-chapter-flash-attention-index-7" title="Permalink to this equation">¶</a></span>\[O = O + P_{\text{block}} V_{\text{block}} \quad [\text{BLK}_M \times \text{HEAD}_{\text{DIM}}]\]</div>
 <p>This is issued by WG3’s MMA warp (warp 0). P lives in TMEM as float16
 (written there by WG0/WG1), while V lives in SMEM. The result
 accumulates into O in TMEM as float32.</p>
@@ -830,8 +833,7 @@ less effective.</p>
 </tr>
 <tr class="row-even"><td><p>State across
 tiles</p></td>
-<td><p>Sum
-accumulation</p></td>
+<td><p>Sum accumulation</p></td>
 <td><p>(max, sum, O) triple</p></td>
 </tr>
 <tr class="row-odd"><td><p>Masking</p></td>
@@ -844,28 +846,26 @@ accumulation</p></td>
 </tr>
 <tr class="row-odd"><td><p>Pipeline
 structure</p></td>
-<td><p>Uniform
-depth</p></td>
+<td><p>Uniform depth</p></td>
 <td><p>Heterogeneous (Q depth 2, KV depth
 3, TMEM depth 2)</p></td>
 </tr>
 <tr class="row-even"><td><p>Barrier count</p></td>
-<td><p>4
-(full/empty
-x 2)</p></td>
+<td><p>4 named mbarriers
+(producer-consumer
+chain)</p></td>
 <td><p>12+ barriers with mixed types</p></td>
 </tr>
 <tr class="row-odd"><td><p>Epilogue
 complexity</p></td>
-<td><p>O = TMEM -&gt;
-SMEM -&gt; TMA</p></td>
+<td><p>O = TMEM -&gt; SMEM
+-&gt; TMA</p></td>
 <td><p>Rescale O, normalize by sum, then
 TMEM -&gt; SMEM -&gt; TMA</p></td>
 </tr>
 <tr class="row-even"><td><p>Warp roles</p></td>
-<td><p>TMA
-producer,
-MMA consumer</p></td>
+<td><p>TMA producer, MMA
+consumer</p></td>
 <td><p>TMA, Score MMA, Softmax, Value MMA,
 Correction, Writeback</p></td>
 </tr>

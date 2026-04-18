@@ -81,7 +81,7 @@ map onto **named hardware axes**.
   logical dim 0 runs along the ``TLane`` (TMEM row) axis with stride 1,
   and logical dim 1 runs along ``TCol`` (TMEM column) with stride 1.
 - **R (Replica).** A *set* of iters that enumerate broadcast offsets
-  independent of the logical index. ``R[4 : 1@warp]`` replicates the
+  independent of the logical index. ``R[4 : 1@warpid]`` replicates the
   same data across 4 consecutive warps. This is what makes Blackwell
   scale-factor tiles, cluster-wide multicast buffers, and distributed
   tensors expressible without shape hacks.
@@ -99,18 +99,21 @@ each axis name:
 +-----------------------------------+-----------------------------------+
 | Axis                              | Meaning                           |
 +===================================+===================================+
-| ``m``                             | ordinary memory offset (SMEM /    |
-|                                   | GMEM / RF element stride)         |
+| ``m``                             | default memory offset (SMEM /     |
+|                                   | GMEM / RF element stride); used   |
+|                                   | when a stride has no ``@axis``    |
+|                                   | suffix                            |
 +-----------------------------------+-----------------------------------+
-| ``tid``, ``tid_in_wg``, ``lane``, | thread-hierarchy axes             |
-| ``warp``, ``warp_in_wg``,         |                                   |
-| ``wg_id``                         |                                   |
+| ``tid_in_wg``, ``warpid``,        | thread-hierarchy axes (warpgroup  |
+| ``laneid``                        | thread, warp within CTA, lane     |
+|                                   | within warp)                      |
 +-----------------------------------+-----------------------------------+
-| ``TLane``, ``TCol``               | Blackwell TMEM 2D axes            |
+| ``TLane``, ``TCol``               | Blackwell TMEM 2D axes (0…127     |
+|                                   | rows × 0…511 cols)                |
 +-----------------------------------+-----------------------------------+
-| ``cta``, ``cbx``, ``cby``         | CTA and cluster axes (for TMA     |
-|                                   | multicast, DSMEM, cluster-wide    |
-|                                   | tiles)                            |
+| ``cbx``, ``cby``                  | CTA axes within a cluster (for    |
+|                                   | TMA multicast, DSMEM,             |
+|                                   | cluster-wide tiles)               |
 +-----------------------------------+-----------------------------------+
 | ``pid``                           | device-mesh axis for multi-GPU    |
 |                                   | tensors                           |
@@ -264,24 +267,25 @@ Example A: one ``Tx.copy``, four different lowerings
 The same ``Tx.copy(dst, src)`` call is dispatched to different PTX
 depending on the scope and the operand layouts:
 
-+-----------------+----------------------+-----------------------+--------------------------------------+
-| Team kind       | ``dst`` layout       | ``src`` layout        | Lowered to                           |
-+=================+======================+=======================+======================================+
-| thread          | SMEM with cluster    | GMEM tile             | **TMA multicast**                    |
-| (elected),      | axes (``1@cbx``      |                       | (``cp.async.bulk.tensor.multicast``) |
-| ``cta_group=2`` | shard +              |                       |                                      |
-|                 | ``R[4 : 1@cby]``)    |                       |                                      |
-+-----------------+----------------------+-----------------------+--------------------------------------+
-| thread          | SMEM tile (swizzled) | GMEM tile             | **TMA unicast**                      |
-| (elected),      |                      |                       | (``cp.async.bulk.tensor``)           |
-| single CTA      |                      |                       |                                      |
-+-----------------+----------------------+-----------------------+--------------------------------------+
-| warpgroup       | RF warpgroup view    | TMEM tile             | **``tcgen05.ld``**                   |
-|                 | ``(1@tid_in_wg, 1)`` | ``(1@TLane, 1@TCol)`` | (warpgroup-cooperative TMEM → RF)    |
-+-----------------+----------------------+-----------------------+--------------------------------------+
-| thread          | RF per-thread flat   | GMEM / SMEM flat      | plain vectorised **LDG / LDS / STS / |
-|                 |                      |                       | STG**                                |
-+-----------------+----------------------+-----------------------+--------------------------------------+
++-----------------+------------------------+-----------------------+--------------------------------------+
+| Team kind       | ``dst`` layout         | ``src`` layout        | Lowered to                           |
++=================+========================+=======================+======================================+
+| thread          | SMEM whose receiver    | GMEM tile             | **TMA multicast**                    |
+| (elected),      | set covers more than   |                       | (``cp.async.bulk.tensor.multicast``) |
+| ``cta_group=2`` | one CTA of the cluster |                       |                                      |
+|                 | (e.g. ``R[2 : 1@cbx]`` |                       |                                      |
+|                 | for a 2-CTA broadcast) |                       |                                      |
++-----------------+------------------------+-----------------------+--------------------------------------+
+| thread          | SMEM tile (swizzled)   | GMEM tile             | **TMA unicast**                      |
+| (elected),      |                        |                       | (``cp.async.bulk.tensor``)           |
+| single CTA      |                        |                       |                                      |
++-----------------+------------------------+-----------------------+--------------------------------------+
+| warpgroup       | RF warpgroup view      | TMEM tile             | **``tcgen05.ld``**                   |
+|                 | ``(1@tid_in_wg, 1)``   | ``(1@TLane, 1@TCol)`` | (warpgroup-cooperative TMEM → RF)    |
++-----------------+------------------------+-----------------------+--------------------------------------+
+| thread          | RF per-thread flat     | GMEM / SMEM flat      | plain vectorised **LDG / LDS / STS / |
+|                 |                        |                       | STG**                                |
++-----------------+------------------------+-----------------------+--------------------------------------+
 
 From the user’s point of view the code in each row is essentially the
 same:
@@ -323,11 +327,14 @@ consults:
 - ``Asmem`` / ``Bsmem`` SMEM layouts (including swizzle mode) → build
   the SMEM matrix descriptors and set transpose flags required by
   ``tcgen05.mma``.
-- ``cta_group=1`` → single-CTA instance. Passing ``cta_group=2``,
-  together with SMEM layouts that carry ``1@cbx`` + ``R[... : 1@cby]``,
-  produces the 2-CTA cooperative form that reaches up to :math:`M=256`.
+- ``cta_group=1`` → single-CTA instance. Passing ``cta_group=2`` on a
+  clustered launch (``Tx.cta_id([2, 1], parent="cluster")``) produces
+  the 2-CTA cooperative form, in which the MMA proxy reads the peer
+  CTA’s SMEM via cross-CTA access; the ``M`` axis doubles to up to
+  :math:`256`.
 - Tile shape inferred from the layouts → select a valid ``tcgen05.mma``
-  M-N-K shape (:math:`M \in \{64, 128, 256\}`, :math:`N` multiple of 8
+  M-N-K shape (:math:`M \in \{64, 128\}` for single-CTA or
+  :math:`\{128, 256\}` with ``cta_group=2``, :math:`N` any multiple of 8
   up to 256, :math:`K` set by element type).
 
 A single primitive call emits one — or, for large tiles, a short loop of
@@ -347,8 +354,9 @@ What to internalise
   operation.
 - **Layout selects the instruction family.** ``cbx`` / ``cby`` axes →
   cluster instructions; ``TLane`` / ``TCol`` → ``tcgen05`` instructions;
-  ``tid`` / ``tid_in_wg`` + ``m`` → ordinary per-thread LDG / STS / STG.
-  The named-axis vocabulary is the user’s way to *select* a lowering.
+  ``tid_in_wg`` / ``warpid`` / ``laneid`` + ``m`` → ordinary per-thread
+  LDG / STS / STG. The named-axis vocabulary is the user’s way to
+  *select* a lowering.
 - **Scope gates which primitives are legal.** Some primitives only make
   sense under a specific team kind — e.g. ``tcgen05.ld`` requires a
   warpgroup-cooperative read, so calling it from ``with Tx.thread():``

@@ -256,9 +256,12 @@ CTA</p></td>
 cluster</p></td>
 <td><p>Cross-CTA SMEM</p></td>
 </tr>
-<tr class="row-even"><td><p><em>(unnamed)</em></p></td>
-<td><p>Logical memory offset
-(default axis <code class="docutils literal notranslate"><span class="pre">m</span></code>)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">m</span></code></p></td>
+<td><p>Logical memory
+offset; the default
+axis used when a
+stride has no
+<code class="docutils literal notranslate"><span class="pre">&#64;axis</span></code> suffix</p></td>
 <td><p>GMEM, SMEM, RF</p></td>
 </tr>
 </tbody>
@@ -469,21 +472,31 @@ at a time in a loop, so that each iteration fits comfortably in the
 </section>
 <section id="where-replicas-show-up">
 <h3><span class="section-number">4.3.4. </span>Where Replicas Show Up<a class="headerlink" href="#where-replicas-show-up" title="Permalink to this heading">¶</a></h3>
-<p>You rarely write <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> from scratch — two places in this tutorial
-use it, both composed by helpers:</p>
+<p>You rarely write <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> from scratch — the tutorial uses it in one
+place, and in one more place it is conceptually implicit:</p>
 <ul class="simple">
-<li><p><strong>TMA multicast</strong> across a CTA cluster: the 2-CTA cooperative GEMM
-(<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-numref">Section 9</span></a>) broadcasts one tile to 4 receiver
-CTAs with a layout like <code class="docutils literal notranslate"><span class="pre">S[...</span> <span class="pre">:</span> <span class="pre">(...,</span> <span class="pre">1&#64;cbx,</span> <span class="pre">...)]</span> <span class="pre">+</span> <span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">1&#64;cby]</span></code>.
-A single TMA instruction feeds all receivers.</p></li>
-<li><p><strong>Scale/scalar broadcasts</strong>: the softmax scale vector in Flash
+<li><p><strong>Scale / scalar broadcasts.</strong> The softmax scale vector in Flash
 Attention (<a class="reference internal" href="../chapter_flash_attention/index.html#chap-flash-attention"><span class="std std-numref">Section 10</span></a>) is a length-<code class="docutils literal notranslate"><span class="pre">N</span></code> buffer
 broadcast to all 128 warpgroup threads via
-<code class="docutils literal notranslate"><span class="pre">S[(N,):(1,)]</span> <span class="pre">+</span> <span class="pre">R[128</span> <span class="pre">:</span> <span class="pre">1&#64;tid_in_wg]</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">S[(N,):(1,)]</span> <span class="pre">+</span> <span class="pre">R[128</span> <span class="pre">:</span> <span class="pre">1&#64;tid_in_wg]</span></code>. This is the one explicit
+replica you will read in user code.</p></li>
+<li><p><strong>TMA multicast across a CTA cluster</strong> (feature-level, not used by the
+kernels in this tutorial). A single TMA instruction can deliver the
+same tile to every CTA in the cluster; TIRX expresses the receiver set
+as a replica on a cluster axis such as <code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;cbx]</span></code>, and lowers
+the copy to <code class="docutils literal notranslate"><span class="pre">cp.async.bulk.tensor.multicast</span></code>. In practice the user
+passes a cluster mask like <code class="docutils literal notranslate"><span class="pre">cta_mask=3</span></code> to
+<code class="docutils literal notranslate"><span class="pre">Tx.copy_async(...,</span> <span class="pre">dispatch=&quot;tma&quot;,</span> <span class="pre">...)</span></code> and the dispatcher
+synthesises the layout; the clustered GEMM in
+<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-numref">Section 9</span></a> (Step 8) uses <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code> for
+cooperative MMA but does <em>not</em> multicast the A / B tiles, so this
+layout pattern does not appear in its code.</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">Tx.copy_async(...,</span> <span class="pre">cta_group=2)</span></code> and
-<code class="docutils literal notranslate"><span class="pre">smem_pipe.full.remote_view(...)</span></code> compose these layouts for you; you
-only need to read them when debugging.</p>
+<p>The explicit replica you will actually see is therefore the
+Flash-Attention scale vector. For the clustered GEMM,
+<code class="docutils literal notranslate"><span class="pre">Tx.copy_async(...,</span> <span class="pre">cta_group=2)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">smem_pipe.full.remote_view(...)</span></code> compose any cluster-aware layouts
+for you.</p>
 </section>
 </section>
 <section id="summary">

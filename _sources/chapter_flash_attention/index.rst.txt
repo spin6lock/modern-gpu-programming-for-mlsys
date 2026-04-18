@@ -18,8 +18,8 @@ rather than line-by-line code.*
 
 Flash Attention 4 is the Blackwell-native implementation of Flash
 Attention, designed specifically for SM100a GPUs. It fuses the entire
-attention computation (:math:`QK^T \to \text{softmax} \to \times V`)
-into a single kernel, avoiding materializing the full :math:`N \times N`
+attention computation :math:`O = \text{softmax}(QK^{\top})\,V` into a
+single kernel, avoiding materializing the full :math:`N \times N`
 attention matrix. This chapter explores how Flash Attention 4 maps to
 Blackwell hardware using TIRX.
 
@@ -103,7 +103,7 @@ In Flash Attention 4, we track not just :math:`(m, \ell)` but also an
 output accumulator :math:`O`. When the maximum changes, :math:`O` must
 be rescaled by the same factor:
 
-.. math:: O = O \cdot e^{m_{\text{old}} - m_{\text{new}}} + P_{\text{new}} \times V_{\text{block}}
+.. math:: O = O \cdot e^{m_{\text{old}} - m_{\text{new}}} + P_{\text{new}} V_{\text{block}}
 
 where :math:`P_{\text{new}} = e^{S_{\text{block}} - m_{\text{new}}}` are
 the softmax weights for the current block. After processing all KV
@@ -132,32 +132,31 @@ Kernel Architecture
 -------------------
 
 The Blackwell Flash Attention 4 kernel uses 4 warpgroups (512 threads)
-with full warp specialization:
+with full warp specialization. WG3 is further specialized into three
+single-warp roles; WG0 / WG1 / WG2 each occupy a whole warpgroup:
 
-+-------------------------+-------------+------------------------------+
-| Warpgroup               | Role        | Description                  |
-+=========================+=============+==============================+
-| **WG3, warp 0**         | MMA warp    | Issues **both** Score MMA    |
-|                         |             | (Q@K^T) and Value MMA (P@V)  |
-|                         |             | via ``tcgen05.mma``          |
-+-------------------------+-------------+------------------------------+
-| **WG3, warp 1**         | TMA Load    | Loads Q, K, V tiles from     |
-|                         |             | GMEM to SMEM via TMA         |
-+-------------------------+-------------+------------------------------+
-| **WG3, warp 2**         | TMA Store   | Stores O tiles from SMEM to  |
-|                         |             | GMEM via TMA                 |
-+-------------------------+-------------+------------------------------+
-| **WG0**                 | Softmax     | Runs online softmax on       |
-|                         |             | scores (Q stage 0), writes P |
-|                         |             | to TMEM                      |
-+-------------------------+-------------+------------------------------+
-| **WG1**                 | Softmax     | Same as WG0 but handles Q    |
-|                         |             | stage 1 (double-buffered Q)  |
-+-------------------------+-------------+------------------------------+
-| **WG2**                 | Correction  | Rescales O accumulator in    |
-|                         | + Epilogue  | TMEM, normalizes, writes to  |
-|                         |             | SMEM                         |
-+-------------------------+-------------+------------------------------+
++------------------+---------------+-----------------------------------+
+| Owner            | Role          | Description                       |
++==================+===============+===================================+
+| **WG3, warp 0**  | MMA warp      | Issues **both** Score MMA         |
+|                  |               | (:math:`QK^{\top}`) and Value MMA |
+|                  |               | (:math:`PV`) via ``tcgen05.mma``  |
++------------------+---------------+-----------------------------------+
+| **WG3, warp 1**  | TMA Load warp | Loads Q, K, V tiles from GMEM to  |
+|                  |               | SMEM via TMA                      |
++------------------+---------------+-----------------------------------+
+| **WG3, warp 2**  | TMA Store     | Stores O tiles from SMEM to GMEM  |
+|                  | warp          | via TMA                           |
++------------------+---------------+-----------------------------------+
+| **WG0 (full      | Softmax       | Runs online softmax on scores (Q  |
+| warpgroup)**     |               | stage 0), writes P to TMEM        |
++------------------+---------------+-----------------------------------+
+| **WG1 (full      | Softmax       | Same as WG0 but handles Q stage 1 |
+| warpgroup)**     |               | (double-buffered Q)               |
++------------------+---------------+-----------------------------------+
+| **WG2 (full      | Correction +  | Rescales O accumulator in TMEM,   |
+| warpgroup)**     | Epilogue      | normalizes, writes to SMEM        |
++------------------+---------------+-----------------------------------+
 
 **All MMA instructions are issued from WG3’s warp 0** — strictly one
 elected thread in that warp (via ``elect.sync``) issues each
@@ -260,7 +259,7 @@ Phase 2: Value MMA (P @ V -> O)
 
 The second MMA accumulates the weighted values:
 
-.. math:: O = O + P_{\text{block}} \times V_{\text{block}} \quad [\text{BLK}_M \times \text{HEAD}_{\text{DIM}}]
+.. math:: O = O + P_{\text{block}} V_{\text{block}} \quad [\text{BLK}_M \times \text{HEAD}_{\text{DIM}}]
 
 This is issued by WG3’s MMA warp (warp 0). P lives in TMEM as float16
 (written there by WG0/WG1), while V lives in SMEM. The result
@@ -676,34 +675,33 @@ less effective.
 Key Differences from GEMM
 -------------------------
 
-+------------------+--------------+-------------------------------------+
-| Aspect           | GEMM         | Flash Attention 4                   |
-+==================+==============+=====================================+
-| MMA operations   | 1 type (A@B) | 2 types (Q@K^T, P@V)                |
-+------------------+--------------+-------------------------------------+
-| Between-MMA work | None         | Softmax (exp, max, sum, rescale)    |
-+------------------+--------------+-------------------------------------+
-| State across     | Sum          | (max, sum, O) triple                |
-| tiles            | accumulation |                                     |
-+------------------+--------------+-------------------------------------+
-| Masking          | None         | Causal block skipping + R2P masking |
-+------------------+--------------+-------------------------------------+
-| Thread count     | 128-256      | 512 (4 warpgroups)                  |
-+------------------+--------------+-------------------------------------+
-| Pipeline         | Uniform      | Heterogeneous (Q depth 2, KV depth  |
-| structure        | depth        | 3, TMEM depth 2)                    |
-+------------------+--------------+-------------------------------------+
-| Barrier count    | 4            | 12+ barriers with mixed types       |
-|                  | (full/empty  |                                     |
-|                  | x 2)         |                                     |
-+------------------+--------------+-------------------------------------+
-| Epilogue         | O = TMEM ->  | Rescale O, normalize by sum, then   |
-| complexity       | SMEM -> TMA  | TMEM -> SMEM -> TMA                 |
-+------------------+--------------+-------------------------------------+
-| Warp roles       | TMA          | TMA, Score MMA, Softmax, Value MMA, |
-|                  | producer,    | Correction, Writeback               |
-|                  | MMA consumer |                                     |
-+------------------+--------------+-------------------------------------+
++------------------+--------------------+-------------------------------------+
+| Aspect           | GEMM               | Flash Attention 4                   |
++==================+====================+=====================================+
+| MMA operations   | 1 type (A@B)       | 2 types (Q@K^T, P@V)                |
++------------------+--------------------+-------------------------------------+
+| Between-MMA work | None               | Softmax (exp, max, sum, rescale)    |
++------------------+--------------------+-------------------------------------+
+| State across     | Sum accumulation   | (max, sum, O) triple                |
+| tiles            |                    |                                     |
++------------------+--------------------+-------------------------------------+
+| Masking          | None               | Causal block skipping + R2P masking |
++------------------+--------------------+-------------------------------------+
+| Thread count     | 128-256            | 512 (4 warpgroups)                  |
++------------------+--------------------+-------------------------------------+
+| Pipeline         | Uniform depth      | Heterogeneous (Q depth 2, KV depth  |
+| structure        |                    | 3, TMEM depth 2)                    |
++------------------+--------------------+-------------------------------------+
+| Barrier count    | 4 named mbarriers  | 12+ barriers with mixed types       |
+|                  | (producer-consumer |                                     |
+|                  | chain)             |                                     |
++------------------+--------------------+-------------------------------------+
+| Epilogue         | O = TMEM -> SMEM   | Rescale O, normalize by sum, then   |
+| complexity       | -> TMA             | TMEM -> SMEM -> TMA                 |
++------------------+--------------------+-------------------------------------+
+| Warp roles       | TMA producer, MMA  | TMA, Score MMA, Softmax, Value MMA, |
+|                  | consumer           | Correction, Writeback               |
++------------------+--------------------+-------------------------------------+
 
 Exercises
 ---------
