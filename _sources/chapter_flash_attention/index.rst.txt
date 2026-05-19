@@ -7,7 +7,7 @@ Flash Attention 4
 
 *Prerequisites: You should be comfortable with Step 7 (Warp
 Specialization) — specifically warp specialization, the 4-barrier
-producer-consumer pattern, PipelineState, and TMA/tcgen05 pipelining. If
+producer-consumer pattern, RingState, and TMA/tcgen05 pipelining. If
 Step 7 still feels unclear, go back and re-read it before continuing.*
 
 *This chapter explains how the same TIRX patterns from GEMM generalize
@@ -748,68 +748,70 @@ used for optional profiling instrumentation and must always be provided.
 
 .. code:: python
 
-   import torch
-   import numpy as np
-   import tvm
-   from tirx_tutorial.flash_attention4 import (
-       get_flash_attention4_kernel, prepare_data, PROFILER_BUFFER_SIZE
-   )
-
-   # Configuration
-   batch_size = 4
-   seq_len = 2048
-   num_qo_heads = 32
-   num_kv_heads = 8
-   head_dim = 128
-   is_causal = False
-
-   # Compile
-   kernel = get_flash_attention4_kernel(
-       batch_size, seq_len, seq_len, num_qo_heads, num_kv_heads, head_dim, is_causal
-   )
-   target = tvm.target.Target("cuda -arch=sm_100a")
-   with target:
-       lib = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
-
-   # Prepare data (Q, K, V, O are CPU tensors)
-   Q, K, V, O = prepare_data(batch_size, seq_len, seq_len, num_qo_heads, num_kv_heads, head_dim)
-   device = torch.device('cuda')  # gpu(0)
-   Q, K, V, O = Q.to(device), K.to(device), V.to(device), O.to(device)
-   profiler_buf = tvm.runtime.tensor(
-       np.zeros(PROFILER_BUFFER_SIZE, dtype=np.uint64), tvm.cuda(0)
-   )
-
-   # Run — note the 5th argument (profiler_buffer)
-   f = lib["main"]
-   f(tvm.runtime.from_dlpack(Q), tvm.runtime.from_dlpack(K),
-     tvm.runtime.from_dlpack(V), tvm.runtime.from_dlpack(O), profiler_buf)
-
-   # Verify against PyTorch SDPA
-   Q_ref = Q.transpose(1, 2).float()  # [batch, heads, seq, dim]
-   K_ref = K.transpose(1, 2).float()
-   K_ref = K_ref.repeat_interleave(num_qo_heads // num_kv_heads, dim=1)
-   V_ref = V.transpose(1, 2).float()
-   V_ref = V_ref.repeat_interleave(num_qo_heads // num_kv_heads, dim=1)
-   O_ref = torch.nn.functional.scaled_dot_product_attention(Q_ref, K_ref, V_ref, is_causal=is_causal)
-   O_ref = O_ref.transpose(1, 2).half()
-
-   max_err = float((O.cpu() - O_ref.cpu()).abs().max())
-   print(f"Flash Attention 4: batch={batch_size}, seq={seq_len}, heads={num_qo_heads}/{num_kv_heads}, dim={head_dim}")
-   print(f"Max error vs PyTorch SDPA: {max_err:.6f}")
-   assert max_err < 0.05, f"FAIL: max_err={max_err}"
-   print("PASS")
-
-   # Benchmark
-   args = [tvm.runtime.from_dlpack(Q), tvm.runtime.from_dlpack(K),
-           tvm.runtime.from_dlpack(V), tvm.runtime.from_dlpack(O), profiler_buf]
-   for _ in range(10):
-       f(*args)
-   start = torch.cuda.Event(enable_timing=True)
-   end = torch.cuda.Event(enable_timing=True)
-   start.record()
-   for _ in range(100):
-       f(*args)
-   end.record()
-   torch.cuda.synchronize()
-   ms = start.elapsed_time(end) / 100
-   print(f"Performance: {ms:.3f} ms")
+    import numpy as np
+    import torch
+    import tvm
+    from tirx_tutorial.flash_attention4 import (PROFILER_BUFFER_SIZE,
+                                                get_flash_attention4_kernel,
+                                                prepare_data)
+    
+    # Configuration
+    batch_size = 4
+    seq_len = 2048
+    num_qo_heads = 32
+    num_kv_heads = 8
+    head_dim = 128
+    is_causal = False
+    
+    # Compile
+    kernel = get_flash_attention4_kernel(
+        batch_size, seq_len, seq_len, num_qo_heads, num_kv_heads, head_dim, is_causal
+    )
+    target = tvm.target.Target("cuda")
+    with target:
+        lib = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
+    
+    # Prepare data (Q, K, V, O are CPU tensors)
+    Q, K, V, O = prepare_data(batch_size, seq_len, seq_len, num_qo_heads, num_kv_heads, head_dim)
+    device = torch.device('cuda')  # gpu(0)
+    Q, K, V, O = Q.to(device), K.to(device), V.to(device), O.to(device)
+    profiler_buf = tvm.runtime.tensor(
+        np.zeros(PROFILER_BUFFER_SIZE, dtype=np.uint64), tvm.cuda(0)
+    )
+    
+    # Run — note the 5th argument (profiler_buffer)
+    f = lib["main"]
+    f(tvm.runtime.from_dlpack(Q), tvm.runtime.from_dlpack(K),
+      tvm.runtime.from_dlpack(V), tvm.runtime.from_dlpack(O), profiler_buf)
+    
+    # Verify against PyTorch SDPA
+    Q_ref = Q.transpose(1, 2).float()  # [batch, heads, seq, dim]
+    K_ref = K.transpose(1, 2).float()
+    K_ref = K_ref.repeat_interleave(num_qo_heads // num_kv_heads, dim=1)
+    V_ref = V.transpose(1, 2).float()
+    V_ref = V_ref.repeat_interleave(num_qo_heads // num_kv_heads, dim=1)
+    O_ref = torch.nn.functional.scaled_dot_product_attention(Q_ref, K_ref, V_ref, is_causal=is_causal)
+    O_ref = O_ref.transpose(1, 2).half()
+    
+    max_err = float((O.cpu() - O_ref.cpu()).abs().max())
+    print(f"Flash Attention 4: batch={batch_size}, seq={seq_len}, heads={num_qo_heads}/{num_kv_heads}, dim={head_dim}")
+    print(f"Max error vs PyTorch SDPA: {max_err:.6f}")
+    assert max_err < 0.05, f"FAIL: max_err={max_err}"
+    print("PASS")
+    
+    # Benchmark
+    args = [tvm.runtime.from_dlpack(Q), tvm.runtime.from_dlpack(K),
+            tvm.runtime.from_dlpack(V), tvm.runtime.from_dlpack(O), profiler_buf]
+    ITERS = 10
+    for _ in range(3):
+        f(*args)
+    torch.cuda.synchronize()
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
+    for _ in range(ITERS):
+        f(*args)
+    end.record()
+    torch.cuda.synchronize()
+    ms = start.elapsed_time(end) / ITERS
+    print(f"Performance: {ms:.3f} ms")

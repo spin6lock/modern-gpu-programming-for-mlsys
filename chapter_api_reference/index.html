@@ -95,8 +95,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -134,8 +134,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -168,46 +168,73 @@ in this tutorial.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.prim_func(tirx=True)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;Tx.prim_func</span></code></p></td>
 <td><p>Declare a TIRX primitive function</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.kernel()</span></code></p></td>
 <td><p>Kernel execution scope</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.cta():</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cluster()</span></code></p></td>
+<td><p>Cluster execution scope (clustered launches only)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.cta():</span></code></p></td>
 <td><p>Scope: all threads in the CTA execute this block</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warpgroup():</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warpgroup():</span></code></p></td>
 <td><p>Scope: all 128 threads in the warpgroup execute
 this block</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warp():</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warp():</span></code></p></td>
 <td><p>Scope: all 32 threads in the warp execute this
 block</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread():</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread():</span></code></p></td>
 <td><p>Scope: each thread executes independently</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread(parent=&quot;warp&quot;)[cond]:</span></code></p></td>
-<td><p>Scope: only threads where <code class="docutils literal notranslate"><span class="pre">cond</span></code> is true
-execute</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread(cond):</span></code></p></td>
+<td><p>Scope: only threads where <code class="docutils literal notranslate"><span class="pre">cond</span></code> is true execute</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cta_id(shape,</span> <span class="pre">parent=...)</span></code></p></td>
-<td><p>CTA index in grid or cluster</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.filter(var,</span> <span class="pre">lo,</span> <span class="pre">hi)</span></code> /
+<code class="docutils literal notranslate"><span class="pre">Tx.filter(var,</span> <span class="pre">cond)</span></code></p></td>
+<td><p>Active-thread filter — narrow the current scope to
+<code class="docutils literal notranslate"><span class="pre">var</span> <span class="pre">∈</span> <span class="pre">[lo,</span> <span class="pre">hi)</span></code> or <code class="docutils literal notranslate"><span class="pre">cond</span></code> true. Use as the
+scope argument:
+<code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warp(Tx.filter(warp_id,</span> <span class="pre">0,</span> <span class="pre">1)):</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.warpgroup_id(shape,</span> <span class="pre">parent=...)</span></code></p></td>
-<td><p>Warpgroup index within CTA</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cta_id([Gx,</span> <span class="pre">Gy,</span> <span class="pre">...])</span></code></p></td>
+<td><p>CTA index in the grid (kernel → cta)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.warp_id(shape,</span> <span class="pre">parent=...)</span></code></p></td>
-<td><p>Warp index within warpgroup</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cta_id_in_cluster([Cx,</span> <span class="pre">Cy])</span></code></p></td>
+<td><p>CTA index within the cluster (cluster → cta)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.thread_id(shape,</span> <span class="pre">parent=...)</span></code></p></td>
-<td><p>Thread index within the scope specified by
-<code class="docutils literal notranslate"><span class="pre">parent</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">parent=&quot;warp&quot;</span></code> gives lane ID
-0-31; <code class="docutils literal notranslate"><span class="pre">parent=&quot;cta&quot;</span></code> gives CTA-level thread ID
-0-127)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.warpgroup_id([Nw])</span></code></p></td>
+<td><p>Warpgroup index within the CTA (cta → warpgroup)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.elect_sync()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.warp_id([Nw])</span></code></p></td>
+<td><p>Warp index within the CTA (cta → warp)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.warp_id_in_wg([4])</span></code></p></td>
+<td><p>Warp index within the warpgroup (warpgroup → warp;
+always 4)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.thread_id([Nt])</span></code></p></td>
+<td><p>Thread index within the CTA (cta → thread)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.thread_id_in_wg([128])</span></code></p></td>
+<td><p>Thread index within the warpgroup (warpgroup →
+thread; always 128)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.lane_id([32])</span></code></p></td>
+<td><p>Thread index within a warp (warp → thread; always
+32)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.thread_rank()</span></code></p></td>
+<td><p>Linear thread index within the CTA (i.e.,
+<code class="docutils literal notranslate"><span class="pre">threadIdx.x</span> <span class="pre">+</span> <span class="pre">threadIdx.y</span> <span class="pre">*</span> <span class="pre">blockDim.x</span> <span class="pre">+</span> <span class="pre">...</span></code>).
+Used as the default <code class="docutils literal notranslate"><span class="pre">leader</span></code> predicate for
+one-thread-per-CTA work such as <code class="docutils literal notranslate"><span class="pre">MBarrier.init</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.elect_sync()</span></code></p></td>
 <td><p>Elect one thread in a warp (for single-thread
 dispatch)</p></td>
 </tr>
@@ -256,46 +283,53 @@ shape.</p></td>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.PoolAllocator()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.SMEMPool()</span></code></p></td>
 <td><p>Shared memory pool allocator</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pool.alloc(shape,</span> <span class="pre">dtype,</span> <span class="pre">layout=...)</span></code></p></td>
 <td><p>Allocate buffer from pool</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pool.move_base_to(offset)</span></code></p></td>
-<td><p>Set next allocation offset (for overlapping
-buffers)</p></td>
+<td><p>Set next allocation offset (for overlapping buffers)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pool.commit()</span></code></p></td>
 <td><p>Finalize all allocations</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.alloc_local(shape,</span> <span class="pre">dtype)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.TMEMPool(smem_pool,</span> <span class="pre">total_cols,</span> <span class="pre">cta_group,</span> <span class="pre">tmem_addr)</span></code></p></td>
+<td><p>TMEM pool. Wraps one <code class="docutils literal notranslate"><span class="pre">tcgen05.alloc</span></code> of
+<code class="docutils literal notranslate"><span class="pre">total_cols</span></code> columns whose returned base address
+is written to <code class="docutils literal notranslate"><span class="pre">tmem_addr[0]</span></code>; subsequent
+<code class="docutils literal notranslate"><span class="pre">alloc(shape,</span> <span class="pre">dtype,</span> <span class="pre">layout=...)</span></code> calls hand out
+<code class="docutils literal notranslate"><span class="pre">Tx.decl_buffer(scope=&quot;tmem&quot;,</span> <span class="pre">allocated_addr=...)</span></code>
+slices into that region.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.alloc_local(shape,</span> <span class="pre">dtype)</span></code></p></td>
 <td><p>Allocate per-thread register buffer</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">buf.view(shape,</span> <span class="pre">layout=...)</span></code></p></td>
-<td><p>Create a view of a register buffer with a
-different layout</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">buf.view(shape,</span> <span class="pre">layout=...)</span></code></p></td>
+<td><p>Create a view of a register buffer with a different
+layout</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.decl_buffer(shape,</span> <span class="pre">dtype,</span> <span class="pre">scope=&quot;tmem&quot;,</span> <span class="pre">...)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.decl_buffer(shape,</span> <span class="pre">dtype,</span> <span class="pre">scope=&quot;tmem&quot;,</span> <span class="pre">...)</span></code></p></td>
 <td><p>Declare a TMEM buffer</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.address_of(buf)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.address_of(buf)</span></code></p></td>
 <td><p>Get address of a buffer (used for TMEM alloc)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">buf.ptr_to([idx])</span></code></p></td>
-<td><p>Get pointer to the idx-th element (used for
-mbarrier access)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">buf.ptr_to([idx])</span></code></p></td>
+<td><p>Get pointer to the idx-th element (used for mbarrier
+access)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tma_shared_layout(dtype,</span> <span class="pre">SwizzleMode,</span> <span class="pre">shape)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tma_shared_layout(dtype,</span> <span class="pre">SwizzleMode,</span> <span class="pre">shape)</span></code></p></td>
 <td><p>Create TMA-compatible swizzled layout for SMEM</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.alloc(addr,</span> <span class="pre">n_cols,</span> <span class="pre">cta_group)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.alloc(addr,</span> <span class="pre">n_cols,</span> <span class="pre">cta_group)</span></code></p></td>
 <td><p>Allocate TMEM</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.relinquish_alloc_permit(cta_group)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.relinquish_alloc_permit(cta_group)</span></code></p></td>
 <td><p>Release TMEM allocation permit</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.dealloc(addr,</span> <span class="pre">n_cols,</span> <span class="pre">cta_group)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.dealloc(addr,</span> <span class="pre">n_cols,</span> <span class="pre">cta_group)</span></code></p></td>
 <td><p>Deallocate TMEM</p></td>
 </tr>
 </tbody>
@@ -311,15 +345,20 @@ mbarrier access)</p></td>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.copy(dst,</span> <span class="pre">src)</span></code></p></td>
-<td><p>Synchronous copy</p></td>
+<td><p>Synchronous copy (LDG / STG / LDS / STS variants)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.copy_async(dst,</span> <span class="pre">src,</span> <span class="pre">dispatch=&quot;tma&quot;,</span> <span class="pre">...)</span></code></p></td>
 <td><p>TMA async copy (load or store)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cast(dst,</span> <span class="pre">src)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.copy_async(reg,</span> <span class="pre">tmem)</span></code> / <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(tmem,</span> <span class="pre">reg)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> / <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> (warpgroup
+scope); follow with <code class="docutils literal notranslate"><span class="pre">Tx.ptx.tcgen05.wait.ld()</span></code>
+/ <code class="docutils literal notranslate"><span class="pre">wait.st()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cast(dst,</span> <span class="pre">src)</span></code></p></td>
 <td><p>Element-wise type cast</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(C,</span> <span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">*,</span> <span class="pre">transA=False,</span> <span class="pre">transB=False,</span> <span class="pre">accum=False,</span> <span class="pre">dispatch=&quot;tcgen05&quot;,</span> <span class="pre">**kwargs)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(C,</span> <span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">*,</span> <span class="pre">transA=False,</span> <span class="pre">transB=False,</span> <span class="pre">accum=False,</span> <span class="pre">dispatch=&quot;tcgen05&quot;,</span> <span class="pre">**kwargs)</span></code></p></td>
 <td><p>tcgen05 MMA. <code class="docutils literal notranslate"><span class="pre">accum</span></code> is keyword-only (default
 <code class="docutils literal notranslate"><span class="pre">False</span></code>); backend-specific options such as
 <code class="docutils literal notranslate"><span class="pre">cta_group=</span></code> flow through <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> into the
@@ -328,8 +367,33 @@ op config.</p></td>
 </tbody>
 </table>
 </section>
+<section id="math">
+<h2><span class="section-number">12.5. </span>Math<a class="headerlink" href="#math" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>API</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.tanh(x)</span></code></p></td>
+<td><p>Element-wise tanh; preserves dtype of <code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.rsqrt(x)</span></code></p></td>
+<td><p>Element-wise reciprocal square root,
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">sqrt(x)</span></code>; preserves dtype of <code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.exp(x)</span></code> /
+<code class="docutils literal notranslate"><span class="pre">Tx.log(x)</span></code> /
+<code class="docutils literal notranslate"><span class="pre">Tx.sqrt(x)</span></code></p></td>
+<td><p>Standard transcendentals lowered to their fast
+CUDA intrinsics</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="control-flow">
-<h2><span class="section-number">12.5. </span>Control Flow<a class="headerlink" href="#control-flow" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">12.6. </span>Control Flow<a class="headerlink" href="#control-flow" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>API</p></th>
@@ -352,7 +416,7 @@ section at the end of this chapter — they are not part of the
 programming model.</p>
 </section>
 <section id="synchronization">
-<h2><span class="section-number">12.6. </span>Synchronization<a class="headerlink" href="#synchronization" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">12.7. </span>Synchronization<a class="headerlink" href="#synchronization" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>API</p></th>
@@ -388,20 +452,28 @@ TMEM against subsequent <code class="docutils literal notranslate"><span class="
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.cp_async.bulk.wait_group(n)</span></code></p></td>
 <td><p>Wait until at most <code class="docutils literal notranslate"><span class="pre">n</span></code> TMA store groups remain</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.cta_sync()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.bar.sync(barrier_id,</span> <span class="pre">thread_count)</span></code></p></td>
+<td><p>Named-barrier <code class="docutils literal notranslate"><span class="pre">__syncthreads</span></code>. Synchronizes
+exactly <code class="docutils literal notranslate"><span class="pre">thread_count</span></code> threads on barrier
+<code class="docutils literal notranslate"><span class="pre">barrier_id</span></code> (0–15). Useful when only a subset
+of the CTA participates — e.g., a <code class="docutils literal notranslate"><span class="pre">bdx</span> <span class="pre">*</span> <span class="pre">bdy</span></code>
+grid that does not fill 128/256 threads — where
+plain <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> would hang.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.cta_sync()</span></code></p></td>
 <td><p>CTA-wide barrier (like <code class="docutils literal notranslate"><span class="pre">__syncthreads</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.warpgroup_sync(barrier_id)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.warpgroup_sync(barrier_id)</span></code></p></td>
 <td><p>Warpgroup-level barrier</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.cluster_sync()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.cuda.cluster_sync()</span></code></p></td>
 <td><p>Cluster-wide barrier</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="high-level-abstractions">
-<h2><span class="section-number">12.7. </span>High-Level Abstractions<a class="headerlink" href="#high-level-abstractions" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">12.8. </span>High-Level Abstractions<a class="headerlink" href="#high-level-abstractions" title="Permalink to this heading">¶</a></h2>
 <p>These abstractions are introduced in Step 7 (Warp Specialization) and
 used through Step 9.</p>
 <table class="docutils align-default">
@@ -411,14 +483,15 @@ used through Step 9.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar(pool,</span> <span class="pre">depth,</span> <span class="pre">name)</span></code></p></td>
-<td><p>TMA barrier array (auto-arrive via byte counting)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar(pool,</span> <span class="pre">depth)</span></code></p></td>
+<td><p>Barrier signaled by TMA
+(<code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TCGen05Bar(pool,</span> <span class="pre">depth,</span> <span class="pre">name)</span></code></p></td>
-<td><p>tcgen05 barrier array (auto-arrive via commit)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TCGen05Bar(pool,</span> <span class="pre">depth)</span></code></p></td>
+<td><p>Barrier signaled by <code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MBarrier(pool,</span> <span class="pre">depth,</span> <span class="pre">name)</span></code></p></td>
-<td><p>Manual mbarrier array (threads arrive explicitly)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MBarrier(pool,</span> <span class="pre">depth,</span> <span class="pre">phase_offset=0,</span> <span class="pre">leader=None)</span></code></p></td>
+<td><p>Plain mbarrier — threads arrive explicitly</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bar.init(count)</span></code></p></td>
 <td><p>Initialize barrier with expected arrival count</p></td>
@@ -426,13 +499,14 @@ used through Step 9.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bar.wait(stage,</span> <span class="pre">phase)</span></code></p></td>
 <td><p>Wait for barrier at given stage and phase</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar.arrive(stage,</span> <span class="pre">tx_count)</span></code></p></td>
-<td><p>Arrive with expected transaction-byte count (TMA
-load). <code class="docutils literal notranslate"><span class="pre">tx_count</span></code> is the total bytes the TMA
-engine will deposit into SMEM for this stage.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar.arrive(stage,</span> <span class="pre">tx_count=,</span> <span class="pre">cta_id=,</span> <span class="pre">pred=)</span></code></p></td>
+<td><p>Arrive with expected transaction-byte count.
+<code class="docutils literal notranslate"><span class="pre">tx_count</span></code> is the total bytes TMA will deposit
+for this stage.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCGen05Bar.arrive(stage,</span> <span class="pre">cta_group=,</span> <span class="pre">cta_mask=)</span></code></p></td>
-<td><p>Arrive via tcgen05 commit</p></td>
+<td><p>Arrive via <code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code>. Must run under
+<code class="docutils literal notranslate"><span class="pre">elect_sync</span></code> (commit is per-thread).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MBarrier.arrive(stage,</span> <span class="pre">cta_id=,</span> <span class="pre">pred=)</span></code></p></td>
 <td><p>Thread-level arrive</p></td>
@@ -440,29 +514,130 @@ engine will deposit into SMEM for this stage.</p></td>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bar.ptr_to([stage])</span></code></p></td>
 <td><p>Get pointer to barrier at given stage</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar.remote_view(cta_id)</span></code></p></td>
-<td><p>Access another CTA’s barrier (cross-CTA)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MBarrier.remote_view(rank)</span></code> / <code class="docutils literal notranslate"><span class="pre">TMABar.remote_view(rank)</span></code></p></td>
+<td><p>View a barrier mapped to another CTA’s SMEM
+(cluster kernels)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PipelineState(name,</span> <span class="pre">depth)</span></code></p></td>
-<td><p>Manages pipeline stage index and phase</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Pipe(pool,</span> <span class="pre">stages,</span> <span class="pre">full_type=,</span> <span class="pre">empty_type=,</span> <span class="pre">init_full=,</span> <span class="pre">init_empty=,</span> <span class="pre">...)</span></code></p></td>
+<td><p>Full+empty barrier pair for a software-pipelined
+data flow</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PipelineState.init(is_producer=)</span></code></p></td>
-<td><p>Initialize phase tracking</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Pipe.tma(pool,</span> <span class="pre">stages,</span> <span class="pre">...)</span></code> / <code class="docutils literal notranslate"><span class="pre">Pipe.tcgen05(...)</span></code> / <code class="docutils literal notranslate"><span class="pre">Pipe.mbar(...)</span></code></p></td>
+<td><p>Factory shortcuts for the three common pipe
+topologies</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PipelineState.stage</span></code> / <code class="docutils literal notranslate"><span class="pre">.phase</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pipe.producer()</span></code> / <code class="docutils literal notranslate"><span class="pre">pipe.consumer()</span></code></p></td>
+<td><p>Return a <code class="docutils literal notranslate"><span class="pre">_PipeEndpoint</span></code> with <code class="docutils literal notranslate"><span class="pre">.wait()</span></code> /
+<code class="docutils literal notranslate"><span class="pre">.signal()</span></code> / <code class="docutils literal notranslate"><span class="pre">.advance()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RingState(depth,</span> <span class="pre">phase=)</span></code></p></td>
+<td><p>Tracks stage index and phase for a ring buffer
+(no barrier inside)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RingState.init(phase)</span></code></p></td>
+<td><p>Initialize phase tracking (1 for producer, 0 for
+consumer)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RingState.stage</span></code> / <code class="docutils literal notranslate"><span class="pre">.phase</span></code></p></td>
 <td><p>Current stage index and phase value</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PipelineState.move_to_next_stage()</span></code></p></td>
-<td><p>Advance to next pipeline stage</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RingState.advance()</span></code></p></td>
+<td><p>Advance to next stage; flip phase when wrapping</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D(...)</span></code></p></td>
-<td><p>L2-friendly tile scheduler for persistent kernels</p></td>
+</tbody>
+</table>
+</section>
+<section id="tile-scheduling">
+<h2><span class="section-number">12.9. </span>Tile Scheduling<a class="headerlink" href="#tile-scheduling" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>API</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D(name,</span> <span class="pre">num_m_tiles,</span> <span class="pre">num_n_tiles,</span> <span class="pre">l2_group_size=,</span> <span class="pre">num_clusters=)</span></code></p></td>
+<td><p>L2-friendly persistent scheduler — assigns
+<code class="docutils literal notranslate"><span class="pre">(m_idx,</span> <span class="pre">n_idx)</span></code> blocks round-robin across
+<code class="docutils literal notranslate"><span class="pre">num_clusters</span></code> CTAs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scheduler.init(cta_id)</span></code></p></td>
+<td><p>Bind this CTA’s starting tile</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scheduler.valid()</span></code></p></td>
+<td><p>True while this CTA still has tiles</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scheduler.m_idx</span></code> / <code class="docutils literal notranslate"><span class="pre">scheduler.n_idx</span></code> / <code class="docutils literal notranslate"><span class="pre">scheduler.tile_idx</span></code></p></td>
+<td><p>Current tile coordinates (mutable local scalars)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scheduler.next_tile()</span></code></p></td>
+<td><p>Advance to this CTA’s next tile</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FlashAttentionLinearScheduler(...)</span></code></p></td>
+<td><p>Per-task linear schedule for non-causal FA</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FlashAttentionLPTScheduler(...)</span></code></p></td>
+<td><p>Longest-processing-time-first for causal FA</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="layout">
+<h2><span class="section-number">12.10. </span>Layout<a class="headerlink" href="#layout" title="Permalink to this heading">¶</a></h2>
+<p>The layout namespace is <code class="docutils literal notranslate"><span class="pre">tvm.tirx.layout</span></code> (also re-exported on <code class="docutils literal notranslate"><span class="pre">Tx</span></code>
+for the common helpers used in this tutorial).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>API</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TileLayout(spec)</span></code></p></td>
+<td><p>Build a layout from <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> / <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> /
+<code class="docutils literal notranslate"><span class="pre">O[...]</span></code> segments</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">S[(extents...)</span> <span class="pre">:</span> <span class="pre">(strides...)]</span></code></p></td>
+<td><p>Sharded segment — distribute extents across the
+axes given by the stride list</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">R[N</span> <span class="pre">:</span> <span class="pre">axis]</span></code></p></td>
+<td><p>Replica — broadcast across <code class="docutils literal notranslate"><span class="pre">N</span></code> lanes of <code class="docutils literal notranslate"><span class="pre">axis</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">O[offset]</span></code></p></td>
+<td><p>Offset segment (rare; used inside <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>
+to skip leading bytes)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TLane</span></code>, <code class="docutils literal notranslate"><span class="pre">TCol</span></code></p></td>
+<td><p>Named TMEM hardware axes (rows × columns of tensor
+memory)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code>, <code class="docutils literal notranslate"><span class="pre">laneid</span></code>, <code class="docutils literal notranslate"><span class="pre">warpid</span></code></p></td>
+<td><p>Named axes for the warpgroup-level thread
+coordinate, the in-warp lane, and the warp-in-CTA
+index</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cbx</span></code>, <code class="docutils literal notranslate"><span class="pre">cby</span></code></p></td>
+<td><p>Named cluster axes (cluster block x / y)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wg_local_layout(cols,</span> <span class="pre">rows=128)</span></code></p></td>
+<td><p>Shorthand for
+<code class="docutils literal notranslate"><span class="pre">TileLayout(S[(rows,</span> <span class="pre">cols)</span> <span class="pre">:</span> <span class="pre">(1&#64;tid_in_wg,</span> <span class="pre">1)])</span></code>
+— a warpgroup-wide RF tile</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tma_shared_layout(dtype,</span> <span class="pre">swizzle_mode,</span> <span class="pre">shape)</span></code></p></td>
+<td><p>Produce a TMA-compatible swizzled SMEM layout.
+Wrapper around <code class="docutils literal notranslate"><span class="pre">tma_utils</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SwizzleMode.SWIZZLE_128B_ATOM</span></code> /
+<code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B_ATOM</span></code> / etc.</p></td>
+<td><p>TMA swizzle modes for SMEM atoms</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="common-pitfalls">
-<h2><span class="section-number">12.8. </span>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">12.11. </span>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><strong>``accum`` must be boolean-compatible</strong>: Use <code class="docutils literal notranslate"><span class="pre">False</span></code> (not <code class="docutils literal notranslate"><span class="pre">0</span></code>)
 for the first MMA iteration.</p></li>
@@ -496,14 +671,16 @@ and switch to an idle GPU.</p></li>
 </ul>
 </section>
 <section id="syntactic-sugar">
-<h2><span class="section-number">12.9. </span>Syntactic Sugar<a class="headerlink" href="#syntactic-sugar" title="Permalink to this heading">¶</a></h2>
-<p><em>The constructs in this section are</em> <strong>not</strong> <em>part of the TIRX
-programming model</em> (see <a class="reference internal" href="../chapter_tirx_primer/index.html#chap-tirx-primer"><span class="std std-numref">Section 3</span></a> for the three
-pillars). They are convenience — removing them changes how the code
-looks, not what it means. They show up in Part III because real kernels
-use them to stay readable.</p>
+<h2><span class="section-number">12.12. </span>Syntactic Sugar<a class="headerlink" href="#syntactic-sugar" title="Permalink to this heading">¶</a></h2>
+<p><em>The constructs in this section are</em> <strong>not</strong> <em>part of the TIRX tile
+primitive layer</em> (see <a class="reference internal" href="../chapter_layouts/index.html#chap-layouts"><span class="std std-numref">Section 4</span></a> for execution scope,
+tensor layout, and tile primitive dispatch). They are parser-time
+convenience — removing them changes how the code looks, not what it
+means. They show up in Part III because real kernels use them to stay
+readable. A brief introduction to the metaprogramming trio lives in
+<a class="reference internal" href="../chapter_tirx_primer/index.html#chap-tirx-primer"><span class="std std-numref">Section 3</span></a>; this section is the full reference.</p>
 <section id="tx-meta-var-compile-time-alias">
-<h3><span class="section-number">12.9.1. </span><code class="docutils literal notranslate"><span class="pre">Tx.meta_var</span></code>: compile-time alias<a class="headerlink" href="#tx-meta-var-compile-time-alias" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">12.12.1. </span><code class="docutils literal notranslate"><span class="pre">Tx.meta_var</span></code>: compile-time alias<a class="headerlink" href="#tx-meta-var-compile-time-alias" title="Permalink to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">Tx.meta_var(expr)</span></code> names a compile-time expression so it can be
 reused in buffer slicing without becoming a TIR dynamic variable:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m_st</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">bx</span> <span class="o">*</span> <span class="n">BLK_M</span><span class="p">)</span>
@@ -517,16 +694,21 @@ with <code class="docutils literal notranslate"><span class="pre">meta_var</span
 defined outside the function.</p>
 </section>
 <section id="tx-inline-compile-time-helper">
-<h3><span class="section-number">12.9.2. </span><code class="docutils literal notranslate"><span class="pre">&#64;Tx.inline</span></code>: compile-time helper<a class="headerlink" href="#tx-inline-compile-time-helper" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">12.12.2. </span><code class="docutils literal notranslate"><span class="pre">&#64;Tx.inline</span></code>: compile-time helper<a class="headerlink" href="#tx-inline-compile-time-helper" title="Permalink to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">&#64;Tx.inline</span></code> marks a helper as inlined at compile time. It can close
 over outer kernel variables, which is useful for packaging repeated load
-/ MMA / writeback boilerplate:</p>
+/ MMA / writeback boilerplate. The conventional order in a TMA load is
+<strong>issue the copies, then arrive with the byte count</strong> — the TMA engine
+increments the barrier as bytes land, and <code class="docutils literal notranslate"><span class="pre">expect_tx</span></code> only sets the
+target count:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Tx</span><span class="o">.</span><span class="n">inline</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">tma_load</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warp&quot;</span><span class="p">)[</span><span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">()]:</span>
-        <span class="n">tma_bar</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">tx_count</span><span class="o">=</span><span class="n">total_bytes</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">Tx</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">lane_id</span><span class="p">,</span> <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">())):</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">m_st</span> <span class="p">:</span> <span class="n">m_st</span> <span class="o">+</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">BLK_K</span><span class="p">],</span>
                       <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">,</span> <span class="n">mbar</span><span class="o">=</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="n">stage</span><span class="p">]))</span>
+        <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span> <span class="n">B</span><span class="p">[</span><span class="n">n_st</span> <span class="p">:</span> <span class="n">n_st</span> <span class="o">+</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">BLK_K</span><span class="p">],</span>
+                      <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">,</span> <span class="n">mbar</span><span class="o">=</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="n">stage</span><span class="p">]))</span>
+        <span class="n">tma_bar</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">tx_count</span><span class="o">=</span><span class="n">total_bytes</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>There is no runtime function-call overhead and no new semantics — just a
@@ -549,13 +731,16 @@ reusable code region.</p>
 <li><a class="reference internal" href="#function-parameters">12.2. Function Parameters</a></li>
 <li><a class="reference internal" href="#memory">12.3. Memory</a></li>
 <li><a class="reference internal" href="#data-movement">12.4. Data Movement</a></li>
-<li><a class="reference internal" href="#control-flow">12.5. Control Flow</a></li>
-<li><a class="reference internal" href="#synchronization">12.6. Synchronization</a></li>
-<li><a class="reference internal" href="#high-level-abstractions">12.7. High-Level Abstractions</a></li>
-<li><a class="reference internal" href="#common-pitfalls">12.8. Common Pitfalls</a></li>
-<li><a class="reference internal" href="#syntactic-sugar">12.9. Syntactic Sugar</a><ul>
-<li><a class="reference internal" href="#tx-meta-var-compile-time-alias">12.9.1. <code class="docutils literal notranslate"><span class="pre">Tx.meta_var</span></code>: compile-time alias</a></li>
-<li><a class="reference internal" href="#tx-inline-compile-time-helper">12.9.2. <code class="docutils literal notranslate"><span class="pre">&#64;Tx.inline</span></code>: compile-time helper</a></li>
+<li><a class="reference internal" href="#math">12.5. Math</a></li>
+<li><a class="reference internal" href="#control-flow">12.6. Control Flow</a></li>
+<li><a class="reference internal" href="#synchronization">12.7. Synchronization</a></li>
+<li><a class="reference internal" href="#high-level-abstractions">12.8. High-Level Abstractions</a></li>
+<li><a class="reference internal" href="#tile-scheduling">12.9. Tile Scheduling</a></li>
+<li><a class="reference internal" href="#layout">12.10. Layout</a></li>
+<li><a class="reference internal" href="#common-pitfalls">12.11. Common Pitfalls</a></li>
+<li><a class="reference internal" href="#syntactic-sugar">12.12. Syntactic Sugar</a><ul>
+<li><a class="reference internal" href="#tx-meta-var-compile-time-alias">12.12.1. <code class="docutils literal notranslate"><span class="pre">Tx.meta_var</span></code>: compile-time alias</a></li>
+<li><a class="reference internal" href="#tx-inline-compile-time-helper">12.12.2. <code class="docutils literal notranslate"><span class="pre">&#64;Tx.inline</span></code>: compile-time helper</a></li>
 </ul>
 </li>
 </ul>

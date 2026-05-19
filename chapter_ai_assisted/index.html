@@ -96,8 +96,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -135,8 +135,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -352,7 +352,7 @@ There is one deliberate bug:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Broken MMA loop -- one bug</span>
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_TILES</span><span class="p">):</span>
     <span class="n">tma2mma</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">,</span> <span class="n">mma_ps</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warp&quot;</span><span class="p">)[</span><span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">()]:</span>
+    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">Tx</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">lane_id</span><span class="p">,</span> <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">())):</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
             <span class="n">tmem</span><span class="p">[:,</span> <span class="p">:</span><span class="n">BLK_N</span><span class="p">],</span>
             <span class="n">Asmem</span><span class="p">[</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">],</span>
@@ -363,7 +363,7 @@ There is one deliberate bug:</p>
         <span class="p">)</span>
     <span class="c1"># BUG: arrive is outside the elected-thread scope</span>
     <span class="n">mma2tma</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cta_mask</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">mma_ps</span><span class="o">.</span><span class="n">move_to_next_stage</span><span class="p">()</span>
+    <span class="n">mma_ps</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
 </pre></div>
 </div>
 <p><strong>Symptom:</strong> Output is all zeros or random garbage,
@@ -392,7 +392,7 @@ commit-group issue with this level of context.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fixed MMA loop</span>
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_TILES</span><span class="p">):</span>
     <span class="n">tma2mma</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">,</span> <span class="n">mma_ps</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warp&quot;</span><span class="p">)[</span><span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">()]:</span>
+    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">Tx</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">lane_id</span><span class="p">,</span> <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">())):</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
             <span class="n">tmem</span><span class="p">[:,</span> <span class="p">:</span><span class="n">BLK_N</span><span class="p">],</span>
             <span class="n">Asmem</span><span class="p">[</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">],</span>
@@ -403,50 +403,48 @@ commit-group issue with this level of context.</p>
         <span class="p">)</span>
         <span class="c1"># Now only the elected thread (with a non-empty commit group) arrives</span>
         <span class="n">mma2tma</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">mma_ps</span><span class="o">.</span><span class="n">stage</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cta_mask</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">mma_ps</span><span class="o">.</span><span class="n">move_to_next_stage</span><span class="p">()</span>
+    <span class="n">mma_ps</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>This is a very common bug pattern in Blackwell kernel development. It is
 also one of the easier cases for an LLM to catch, because the task is
 closer to recognizing a familiar structural mismatch than to reasoning
 through full phase-state behavior.</p>
-<section id="real-comparison-weak-prompt-vs-strong-prompt">
-<h3><span class="section-number">11.4.1. </span>Real comparison: weak prompt vs strong prompt<a class="headerlink" href="#real-comparison-weak-prompt-vs-strong-prompt" title="Permalink to this heading">¶</a></h3>
-<p>We tested the same bug with two different prompts using Claude Opus 4.6.
-The results illustrate why context matters.</p>
+<section id="weak-prompt-vs-strong-prompt">
+<h3><span class="section-number">11.4.1. </span>Weak prompt vs strong prompt<a class="headerlink" href="#weak-prompt-vs-strong-prompt" title="Permalink to this heading">¶</a></h3>
+<p>The same bug typically produces very different LLM responses depending
+on how it is asked. Two extremes:</p>
 <p><strong>Weak prompt</strong> (code only, vague question):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">My</span> <span class="n">GEMM</span> <span class="n">kernel</span> <span class="n">output</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">zeros</span><span class="o">.</span> <span class="n">Here</span><span class="s1">&#39;s the MMA loop:</span>
 <span class="p">[</span><span class="n">paste</span> <span class="n">code</span><span class="p">]</span>
 <span class="n">What</span><span class="s1">&#39;s wrong?</span>
 </pre></div>
 </div>
-<p><strong>Model response</strong> (incorrect): The model guessed that <code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code>
-was wrong and suggested changing it to <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>. It never
-identified that <code class="docutils literal notranslate"><span class="pre">mma2tma.arrive()</span></code> was outside the <code class="docutils literal notranslate"><span class="pre">elect_sync</span></code>
-scope — the actual bug.</p>
-<p><strong>Strong prompt</strong> (with hardware constraints template from this
-chapter):</p>
+<p>The common failure mode is the model guessing at high-frequency knobs it
+has seen elsewhere — flipping <code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code> to <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>,
+tweaking <code class="docutils literal notranslate"><span class="pre">accum</span></code>, adjusting <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> — without engaging the
+actual hardware constraint behind the bug.</p>
+<p><strong>Strong prompt</strong> (hardware constraint stated up front):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>I&#39;m writing a TIRX kernel for GEMM. Target: Blackwell B200 (SM100a).
 
-Hardware constraints:
-- tcgen05.commit is per-thread; must be inside elect_sync() guard
-- ...
+Hardware constraint:
+- tcgen05.commit is per-thread; must be inside an elect_sync() guard.
 
 Symptom: Output is all zeros or random garbage, non-deterministically.
 Question: Is mma2tma.arrive() in the correct scope? It uses tcgen05.commit internally.
 </pre></div>
 </div>
-<p><strong>Model response</strong> (correct): <em>“Yes, the scope is wrong.
-``mma2tma.arrive()`` uses ``tcgen05.commit`` internally, and
-``tcgen05.commit`` is per-thread and must be inside an ``elect_sync()``
-guard. In your code, ``mma2tma.arrive()`` is outside the elected-thread
-block, so all 32 threads create empty commit groups that signal the
-mbarrier immediately.”</em></p>
-<p>The weak prompt led the model down a wrong path (<code class="docutils literal notranslate"><span class="pre">cta_group</span></code>
-mismatch). The strong prompt — with the hardware constraint that
-<code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> is per-thread — let the model immediately identify
-the real issue. <strong>The quality of your context determines whether the
-model finds the bug or invents a plausible-sounding wrong answer.</strong></p>
+<p>Because the constraint is stated explicitly, a competent model can
+reason directly to the answer: the <code class="docutils literal notranslate"><span class="pre">arrive</span></code> sits outside the
+elected-thread block, so the 31 non-elected threads each create an empty
+commit group that signals the barrier instantly. The fix is to move
+<code class="docutils literal notranslate"><span class="pre">arrive</span></code> inside
+<code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread(Tx.filter(lane_id,</span> <span class="pre">Tx.ptx.elect_sync())):</span></code>.</p>
+<p><strong>Takeaway:</strong> The model is not the bottleneck here — context is. If the
+prompt does not state that <code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> is per-thread, no amount
+of “be more careful” gets the model to that fact from scratch. The
+pitfall tables earlier in this chapter exist precisely so you can paste
+them as context.</p>
 </section>
 <section id="llm-output-red-flags">
 <h3><span class="section-number">11.4.2. </span>LLM output red flags<a class="headerlink" href="#llm-output-red-flags" title="Permalink to this heading">¶</a></h3>
@@ -575,16 +573,22 @@ buffer shape.</p>
 <p><strong>3. TIRX API quirks.</strong> LLMs have limited TIRX training data and may
 confuse TIRX APIs with CUTLASS or Triton equivalents. Examples of
 details that may not be represented reliably in the model’s prior
-knowledge: - <code class="docutils literal notranslate"><span class="pre">MBarrier.init()</span></code> internally uses <code class="docutils literal notranslate"><span class="pre">Tx.thread()[0:1]</span></code>,
-which checks <code class="docutils literal notranslate"><span class="pre">threadIdx.x</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>. This is always false when called from
-a non-warp-0 context.</p>
+knowledge: - <code class="docutils literal notranslate"><span class="pre">MBarrier.init()</span></code> guards on its <code class="docutils literal notranslate"><span class="pre">leader</span></code> predicate,
+which defaults to <code class="docutils literal notranslate"><span class="pre">Tx.cuda.thread_rank()</span> <span class="pre">==</span> <span class="pre">0</span></code> — thread 0 of the
+enclosing CTA. If you call it from a region that does not include thread
+0 (e.g., a <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.warpgroup():</span> <span class="pre">if</span> <span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">1:</span></code> block where only
+warpgroup 1 is active), no thread will execute the init and the barrier
+silently stays uninitialized. Always initialize barriers from a region
+that includes thread 0 of the CTA, or override <code class="docutils literal notranslate"><span class="pre">leader</span></code> explicitly
+when constructing the barrier.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Tx.copy_async</span></code> from TMEM to local dispatches <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> but
 does NOT emit <code class="docutils literal notranslate"><span class="pre">tcgen05.wait.ld()</span></code>. If you read the register
 immediately, you get stale data.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> elects one thread per <strong>warp</strong>, not per warpgroup.
-With 4 warps, you get 4 elected threads. LLMs sometimes conflate this
-with <code class="docutils literal notranslate"><span class="pre">Tx.thread()[0:1]</span></code> (one per warpgroup).</p></li>
+With 4 warps, <code class="docutils literal notranslate"><span class="pre">Tx.thread(Tx.filter(lane_id,</span> <span class="pre">Tx.ptx.elect_sync()))</span></code>
+gives you 4 elected threads (one per warp); for <em>exactly one</em> thread
+of a warpgroup, narrow further with <code class="docutils literal notranslate"><span class="pre">Tx.thread(tid_in_wg</span> <span class="pre">==</span> <span class="pre">0)</span></code>.</p></li>
 </ul>
 <p>If an API call in the model’s suggestion looks unfamiliar, grep the TIRX
 codebase to verify it exists before using it.</p>
@@ -606,7 +610,7 @@ non-obvious bug, add a short entry:</p>
 <span class="n">only</span> <span class="n">the</span> <span class="n">elected</span> <span class="n">thread</span> <span class="n">has</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">empty</span> <span class="n">commit</span> <span class="n">group</span><span class="o">.</span> <span class="n">The</span> <span class="n">other</span> <span class="mi">31</span> <span class="n">create</span> <span class="n">empty</span>
 <span class="n">commit</span> <span class="n">groups</span> <span class="n">that</span> <span class="n">signal</span> <span class="n">the</span> <span class="n">mbarrier</span> <span class="n">immediately</span><span class="o">.</span>
 <span class="n">Fix</span><span class="p">:</span> <span class="n">Always</span> <span class="n">wrap</span> <span class="n">TCGen05Bar</span><span class="o">.</span><span class="n">arrive</span><span class="p">()</span> <span class="n">calls</span> <span class="n">inside</span> <span class="n">an</span> <span class="n">elected</span><span class="o">-</span><span class="n">thread</span> <span class="n">scope</span><span class="p">:</span>
-<span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;warp&quot;</span><span class="p">)[</span><span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">()]:</span>
+<span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="n">Tx</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">lane_id</span><span class="p">,</span> <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">())):</span>
 </pre></div>
 </div>
 <p>Then include this file (or relevant excerpts) in your prompt context.
@@ -624,7 +628,7 @@ you and the LLM of the solution.</p></li>
 <span class="gu">### tcgen05.commit outside elect_sync</span>
 Symptom: zeros or garbage, non-deterministic.
 Cause: tcgen05.commit is per-thread. 31 empty commit groups signal mbarrier early.
-Fix: wrap TCGen05Bar.arrive() inside <span class="sb">`with Tx.thread(parent=&quot;warp&quot;)[Tx.ptx.elect_sync()]:`</span>.
+Fix: wrap TCGen05Bar.arrive() inside <span class="sb">`with Tx.thread(Tx.filter(lane_id, Tx.ptx.elect_sync())):`</span>.
 
 <span class="gu">### MBarrier.init from wrong warp</span>
 Symptom: kernel hangs (deadlock).
@@ -685,10 +689,10 @@ detection).</p>
 <ol class="arabic simple">
 <li><p>Take your Step 7 kernel and introduce the <code class="docutils literal notranslate"><span class="pre">elect_sync</span></code> bug from
 this chapter: move <code class="docutils literal notranslate"><span class="pre">mma2tma.arrive()</span></code> outside the
-<code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread(parent=&quot;warp&quot;)[Tx.ptx.elect_sync()]:</span></code> block. Run
-the test to confirm it produces wrong output. Then paste the buggy
-code to an LLM with the symptom description. Does the model identify
-the root cause?</p></li>
+<code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">Tx.thread(Tx.filter(lane_id,</span> <span class="pre">Tx.ptx.elect_sync())):</span></code> block.
+Run the test to confirm it produces wrong output. Then paste the
+buggy code to an LLM with the symptom description. Does the model
+identify the root cause?</p></li>
 <li><p>Ask an LLM to generate a numpy reference for the RMSNorm kernel from
 the RMSNorm chapter. Compare its output with your kernel’s output on
 the same input. Do the results match to within fp16 tolerance?</p></li>
@@ -727,7 +731,7 @@ of the two responses.</p>
 <li><a class="reference internal" href="#effective-prompting-for-tirx-kernels">11.2. Effective Prompting for TIRX Kernels</a></li>
 <li><a class="reference internal" href="#symptom-to-cause-quick-reference">11.3. Symptom-to-Cause Quick Reference</a></li>
 <li><a class="reference internal" href="#demo-debugging-a-broken-kernel">11.4. Demo: Debugging a Broken Kernel</a><ul>
-<li><a class="reference internal" href="#real-comparison-weak-prompt-vs-strong-prompt">11.4.1. Real comparison: weak prompt vs strong prompt</a></li>
+<li><a class="reference internal" href="#weak-prompt-vs-strong-prompt">11.4.1. Weak prompt vs strong prompt</a></li>
 <li><a class="reference internal" href="#llm-output-red-flags">11.4.2. LLM output red flags</a></li>
 </ul>
 </li>

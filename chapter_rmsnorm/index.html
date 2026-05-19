@@ -97,8 +97,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -136,8 +136,8 @@ Show Source
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">1. Background: Blackwell GPU Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Programming Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Layout: Mapping Tensors to Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. RMSNorm</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
@@ -210,8 +210,8 @@ warps, cache x in shared memory.</p>
 <section id="how-threads-are-organized-in-this-kernel">
 <h3><span class="section-number">6.2.1. </span>How threads are organized in this kernel<a class="headerlink" href="#how-threads-are-organized-in-this-kernel" title="Permalink to this heading">¶</a></h3>
 <p>Each CTA has <code class="docutils literal notranslate"><span class="pre">bdx</span> <span class="pre">*</span> <span class="pre">bdy</span></code> threads, arranged in a 2D layout via
-<code class="docutils literal notranslate"><span class="pre">Tx.thread_id([bdx,</span> <span class="pre">bdy],</span> <span class="pre">parent=&quot;cta&quot;)</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tx</span><span class="p">,</span> <span class="n">ty</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread_id</span><span class="p">([</span><span class="n">bdx</span><span class="p">,</span> <span class="n">bdy</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;cta&quot;</span><span class="p">)</span>
+<code class="docutils literal notranslate"><span class="pre">Tx.thread_id([bdx,</span> <span class="pre">bdy])</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tx</span><span class="p">,</span> <span class="n">ty</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread_id</span><span class="p">([</span><span class="n">bdx</span><span class="p">,</span> <span class="n">bdy</span><span class="p">])</span>
 <span class="c1"># tx: lane ID within the warp (0-31)</span>
 <span class="c1"># ty: warp index (0 to bdy-1)</span>
 </pre></div>
@@ -368,7 +368,7 @@ with no computation inside the loop body.</p></li>
     <span class="n">bdx</span> <span class="o">=</span> <span class="mi">32</span>                          <span class="c1"># threads per warp (always 32)</span>
     <span class="n">bdy</span> <span class="o">=</span> <span class="n">ceildiv</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>     <span class="c1"># number of warps per CTA</span>
 
-    <span class="nd">@Tx</span><span class="o">.</span><span class="n">prim_func</span><span class="p">(</span><span class="n">tirx</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nd">@Tx</span><span class="o">.</span><span class="n">prim_func</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">rmsnorm</span><span class="p">(</span><span class="n">input_ptr</span><span class="p">:</span> <span class="n">Tx</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="n">weight_ptr</span><span class="p">:</span> <span class="n">Tx</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="n">out_ptr</span><span class="p">:</span> <span class="n">Tx</span><span class="o">.</span><span class="n">handle</span><span class="p">):</span>
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">int32</span><span class="p">()</span>       <span class="c1"># determined at runtime from buffer shape</span>
         <span class="n">input_global</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">match_buffer</span><span class="p">(</span><span class="n">input_ptr</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">],</span> <span class="s2">&quot;float16&quot;</span><span class="p">)</span>
@@ -376,12 +376,12 @@ with no computation inside the loop body.</p></li>
         <span class="n">out_global</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">match_buffer</span><span class="p">(</span><span class="n">out_ptr</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">],</span> <span class="s2">&quot;float16&quot;</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">kernel</span><span class="p">():</span>
-            <span class="n">bx</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">SM_COUNT</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;kernel&quot;</span><span class="p">)</span>
-            <span class="n">tx</span><span class="p">,</span> <span class="n">ty</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread_id</span><span class="p">([</span><span class="n">bdx</span><span class="p">,</span> <span class="n">bdy</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="s2">&quot;cta&quot;</span><span class="p">)</span>  <span class="c1"># tx=lane, ty=warp</span>
+            <span class="n">bx</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">SM_COUNT</span><span class="p">])</span>
+            <span class="n">tx</span><span class="p">,</span> <span class="n">ty</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread_id</span><span class="p">([</span><span class="n">bdx</span><span class="p">,</span> <span class="n">bdy</span><span class="p">])</span>  <span class="c1"># tx=lane, ty=warp</span>
             <span class="n">thread_id</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">ty</span> <span class="o">*</span> <span class="n">bdx</span> <span class="o">+</span> <span class="n">tx</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="p">():</span>
-                <span class="n">pool</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">PoolAllocator</span><span class="p">()</span>
+                <span class="n">pool</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
                 <span class="n">x_smem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">([</span><span class="n">hidden_size</span><span class="p">],</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>   <span class="c1"># cache x for Pass 2</span>
                 <span class="n">sum_sq_smem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">([</span><span class="n">bdy</span><span class="p">],</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>      <span class="c1"># one partial sum per warp</span>
                 <span class="n">pool</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -481,7 +481,7 @@ with no computation inside the loop body.</p></li>
 <span class="n">hidden_size</span> <span class="o">=</span> <span class="mi">4096</span>
 <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">)</span>  <span class="c1"># gpu(0)</span>
-<span class="n">target</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="s2">&quot;cuda -arch=sm_100a&quot;</span><span class="p">)</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
 
 <span class="c1"># Compile</span>
 <span class="n">kernel</span> <span class="o">=</span> <span class="n">get_rmsnorm_kernel</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">)</span>
