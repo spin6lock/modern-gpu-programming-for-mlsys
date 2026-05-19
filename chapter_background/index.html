@@ -184,10 +184,11 @@ warp-specialized kernels in <a class="reference internal" href="../chapter_gemm_
 <li><p><strong>Warpgroup</strong>: 4 consecutive warps (128 threads). On Blackwell, the
 warpgroup is the cooperation unit for TMEM reads — the 128 <code class="docutils literal notranslate"><span class="pre">TLane</span></code>
 rows match the 128 threads one-to-one. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> itself is
-issued by a single elected thread, but its tile granularity along M
-matches a warpgroup, so the warpgroup remains the natural scope for a
-GEMM stage (see the <em>Tensor Core Generational Evolution</em> subsection
-below for details).</p></li>
+issued by a single elected thread; its <span class="math notranslate nohighlight">\(M\)</span> dimension can be 64
+or 128 (and up to 256 in 2-CTA cooperative mode), but a tile of
+<span class="math notranslate nohighlight">\(M=128\)</span> matches the warpgroup row-for-row, so the warpgroup
+remains the natural scope for a GEMM stage (see the <em>Tensor Core
+Generational Evolution</em> subsection below for details).</p></li>
 <li><p><strong>Warp</strong>: A warp contains 32 threads and is the basic SIMT execution
 unit.</p></li>
 <li><p><strong>Thread</strong>: Each thread is identified by a lane ID within its warp.</p></li>
@@ -260,10 +261,10 @@ per-thread</p></td>
 <p>The key difference from earlier GPU generations is that tcgen05 writes
 accumulator results to TMEM first, and software later moves them to
 registers or shared memory as needed.</p>
-<p><strong>Tensor Memory (TMEM)</strong> is new in Blackwell. It is a high-bandwidth
-scratchpad memory private to the Tensor Cores. The tcgen05 MMA unit
-writes its accumulator output directly to TMEM, not to registers or
-shared memory.</p>
+<p><strong>Tensor Memory (TMEM)</strong> is new in Blackwell. It is a per-SM,
+high-bandwidth scratchpad memory used by the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA path. The
+MMA unit writes its accumulator output directly to TMEM, not to
+registers or shared memory.</p>
 <ul class="simple">
 <li><p><strong>TMEM reads are explicit and cooperative.</strong> To consume MMA results,
 software must explicitly load from TMEM into the register file. These
@@ -338,8 +339,9 @@ FMAs per instruction</p></td>
 <td><p>SIMT: 32 threads per
 warp, each issues its
 own instruction</p></td>
-<td><p>Single thread (or 2-CTA
-pair) issues one MMA;
+<td><p>A single elected thread
+issues one MMA (CTA-0 only
+when <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>);
 hardware runs the tile
 asynchronously</p></td>
 </tr>
@@ -372,7 +374,8 @@ convolution, attention
 <span class="math notranslate nohighlight">\(QK^{\top}\)</span> and
 <span class="math notranslate nohighlight">\(PV\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p>Peak on HGX B200</p></td>
+<tr class="row-even"><td><p>Peak per B200 GPU
+(approx.)</p></td>
 <td><p>~75 TFLOPS (fp32)</p></td>
 <td><p>~2.25 PFLOPS (fp16/bf16) →
 up to ~9 PFLOPS (fp4)</p></td>
@@ -580,9 +583,12 @@ threads’ worth of data — but the <em>issue</em> was still collective: all
 128 threads had to execute the instruction. Blackwell decouples the
 two. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> is issued by a <strong>single elected thread</strong>, which
 frees the other 127 threads of the warpgroup to do TMA issuing,
-softmax, or the epilogue in parallel. The MMA tile still matches
-warpgroup granularity along <span class="math notranslate nohighlight">\(M\)</span> (128 rows of <code class="docutils literal notranslate"><span class="pre">TLane</span></code>), and in
-<em>2-CTA</em> cooperative mode two SMs jointly produce a 256-row tile.</p></li>
+softmax, or the epilogue in parallel. The MMA <span class="math notranslate nohighlight">\(M\)</span> dimension is
+up to 128 (warpgroup-sized: <span class="math notranslate nohighlight">\(M \in \{64, 128\}\)</span> for fp16/bf16
+with <code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code>; <span class="math notranslate nohighlight">\(M=128\)</span> is the common choice and pairs
+the 128 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> rows one-to-one with the warpgroup’s 128 threads),
+and in <em>2-CTA</em> cooperative mode two SMs jointly produce a tile up to
+256 rows.</p></li>
 <li><p><strong>Operands migrated from RF to SMEM (and TMEM).</strong> Reading A and B
 from registers forced every thread to hold a share of the tile in its
 register file. As tile sizes grew, RF pressure became the binding
@@ -928,15 +934,14 @@ budget</p></td>
 <td><p>why accumulators
 moved off-RF</p></td>
 </tr>
-<tr class="row-even"><td><p>FP16/BF16 Tensor Core
-throughput</p></td>
-<td><p>~2.25 PFLOPS (dense)</p></td>
+<tr class="row-even"><td><p>tcgen05 peak &#64;
+FP16/BF16 (dense)</p></td>
+<td><p>~2.25 PFLOPS</p></td>
 <td><p>GEMM roof</p></td>
 </tr>
-<tr class="row-odd"><td><p>FP8 / FP4 Tensor Core
-throughput</p></td>
-<td><p>~4.5 / ~9 PFLOPS
-(dense)</p></td>
+<tr class="row-odd"><td><p>tcgen05 peak &#64; FP8 /
+FP4 (dense)</p></td>
+<td><p>~4.5 / ~9 PFLOPS</p></td>
 <td><p>mixed-precision GEMM</p></td>
 </tr>
 <tr class="row-even"><td><p>HBM3e bandwidth</p></td>
@@ -944,7 +949,8 @@ throughput</p></td>
 <td><p>bandwidth roof</p></td>
 </tr>
 <tr class="row-odd"><td><p>L2 cache</p></td>
-<td><p>~100 MB</p></td>
+<td><p>~100 MB (B200) / ~126
+MB (GB200)</p></td>
 <td><p>where tile operands
 actually live after
 warm-up</p></td>

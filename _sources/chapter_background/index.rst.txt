@@ -31,10 +31,11 @@ Blackwell organizes threads into a nested hierarchy:
 - **Warpgroup**: 4 consecutive warps (128 threads). On Blackwell, the
   warpgroup is the cooperation unit for TMEM reads — the 128 ``TLane``
   rows match the 128 threads one-to-one. ``tcgen05.mma`` itself is
-  issued by a single elected thread, but its tile granularity along M
-  matches a warpgroup, so the warpgroup remains the natural scope for a
-  GEMM stage (see the *Tensor Core Generational Evolution* subsection
-  below for details).
+  issued by a single elected thread; its :math:`M` dimension can be 64
+  or 128 (and up to 256 in 2-CTA cooperative mode), but a tile of
+  :math:`M=128` matches the warpgroup row-for-row, so the warpgroup
+  remains the natural scope for a GEMM stage (see the *Tensor Core
+  Generational Evolution* subsection below for details).
 
 - **Warp**: A warp contains 32 threads and is the basic SIMT execution
   unit.
@@ -84,10 +85,10 @@ The key difference from earlier GPU generations is that tcgen05 writes
 accumulator results to TMEM first, and software later moves them to
 registers or shared memory as needed.
 
-**Tensor Memory (TMEM)** is new in Blackwell. It is a high-bandwidth
-scratchpad memory private to the Tensor Cores. The tcgen05 MMA unit
-writes its accumulator output directly to TMEM, not to registers or
-shared memory.
+**Tensor Memory (TMEM)** is new in Blackwell. It is a per-SM,
+high-bandwidth scratchpad memory used by the ``tcgen05`` MMA path. The
+MMA unit writes its accumulator output directly to TMEM, not to
+registers or shared memory.
 
 - **TMEM reads are explicit and cooperative.** To consume MMA results,
   software must explicitly load from TMEM into the register file. These
@@ -158,9 +159,10 @@ and complement each other:
 | Granularity           | 1 scalar FMA per      | :math:`M \times N \times K` |
 |                       | instruction           | FMAs per instruction        |
 +-----------------------+-----------------------+-----------------------------+
-| Execution model       | SIMT: 32 threads per  | Single thread (or 2-CTA     |
-|                       | warp, each issues its | pair) issues one MMA;       |
-|                       | own instruction       | hardware runs the tile      |
+| Execution model       | SIMT: 32 threads per  | A single elected thread     |
+|                       | warp, each issues its | issues one MMA (CTA-0 only  |
+|                       | own instruction       | when ``cta_group=2``);      |
+|                       |                       | hardware runs the tile      |
 |                       |                       | asynchronously              |
 +-----------------------+-----------------------+-----------------------------+
 | Operands live in      | Register file         | SMEM (via matrix            |
@@ -180,8 +182,8 @@ and complement each other:
 |                       | math, control flow,   | :math:`QK^{\top}` and       |
 |                       | everything non-GEMM   | :math:`PV`                  |
 +-----------------------+-----------------------+-----------------------------+
-| Peak on HGX B200      | ~75 TFLOPS (fp32)     | ~2.25 PFLOPS (fp16/bf16) →  |
-|                       |                       | up to ~9 PFLOPS (fp4)       |
+| Peak per B200 GPU     | ~75 TFLOPS (fp32)     | ~2.25 PFLOPS (fp16/bf16) →  |
+| (approx.)             |                       | up to ~9 PFLOPS (fp4)       |
 +-----------------------+-----------------------+-----------------------------+
 
 The architectural motivation is simple: dense matrix multiplication
@@ -312,9 +314,12 @@ Three trends drive the API you will use in TIRX:
    128 threads had to execute the instruction. Blackwell decouples the
    two. ``tcgen05.mma`` is issued by a **single elected thread**, which
    frees the other 127 threads of the warpgroup to do TMA issuing,
-   softmax, or the epilogue in parallel. The MMA tile still matches
-   warpgroup granularity along :math:`M` (128 rows of ``TLane``), and in
-   *2-CTA* cooperative mode two SMs jointly produce a 256-row tile.
+   softmax, or the epilogue in parallel. The MMA :math:`M` dimension is
+   up to 128 (warpgroup-sized: :math:`M \in \{64, 128\}` for fp16/bf16
+   with ``cta_group=1``; :math:`M=128` is the common choice and pairs
+   the 128 ``TLane`` rows one-to-one with the warpgroup’s 128 threads),
+   and in *2-CTA* cooperative mode two SMs jointly produce a tile up to
+   256 rows.
 
 2. **Operands migrated from RF to SMEM (and TMEM).** Reading A and B
    from registers forced every thread to hold a share of the tile in its
@@ -668,16 +673,16 @@ kernel fast?” a calculation you can do in your head.
 | Registers per thread  | 255 × 32-bit          | why accumulators      |
 | (max)                 |                       | moved off-RF          |
 +-----------------------+-----------------------+-----------------------+
-| FP16/BF16 Tensor Core | ~2.25 PFLOPS (dense)  | GEMM roof             |
-| throughput            |                       |                       |
+| tcgen05 peak @        | ~2.25 PFLOPS          | GEMM roof             |
+| FP16/BF16 (dense)     |                       |                       |
 +-----------------------+-----------------------+-----------------------+
-| FP8 / FP4 Tensor Core | ~4.5 / ~9 PFLOPS      | mixed-precision GEMM  |
-| throughput            | (dense)               |                       |
+| tcgen05 peak @ FP8 /  | ~4.5 / ~9 PFLOPS      | mixed-precision GEMM  |
+| FP4 (dense)           |                       |                       |
 +-----------------------+-----------------------+-----------------------+
 | HBM3e bandwidth       | ~8 TB/s               | bandwidth roof        |
 +-----------------------+-----------------------+-----------------------+
-| L2 cache              | ~100 MB               | where tile operands   |
-|                       |                       | actually live after   |
+| L2 cache              | ~100 MB (B200) / ~126 | where tile operands   |
+|                       | MB (GB200)            | actually live after   |
 |                       |                       | warm-up               |
 +-----------------------+-----------------------+-----------------------+
 | HBM cold-miss         | ~281 FLOP/B           | only binds if L2      |

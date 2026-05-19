@@ -235,8 +235,11 @@ Used as the default <code class="docutils literal notranslate"><span class="pre"
 one-thread-per-CTA work such as <code class="docutils literal notranslate"><span class="pre">MBarrier.init</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tx.ptx.elect_sync()</span></code></p></td>
-<td><p>Elect one thread in a warp (for single-thread
-dispatch)</p></td>
+<td><p>Elect one thread <em>per warp</em> (so 4 threads in a
+4-warp warpgroup). Good for <code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> and
+TMA stores; for TMA <em>loads</em> prefer
+<code class="docutils literal notranslate"><span class="pre">tid_in_wg</span> <span class="pre">==</span> <span class="pre">0</span></code> so <code class="docutils literal notranslate"><span class="pre">expect_tx</span></code> is incremented
+exactly once.</p></td>
 </tr>
 </tbody>
 </table>

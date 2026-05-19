@@ -61,8 +61,11 @@ Thread Hierarchy
 |                                    | Used as the default ``leader`` predicate for       |
 |                                    | one-thread-per-CTA work such as ``MBarrier.init``. |
 +------------------------------------+----------------------------------------------------+
-| ``Tx.ptx.elect_sync()``            | Elect one thread in a warp (for single-thread      |
-|                                    | dispatch)                                          |
+| ``Tx.ptx.elect_sync()``            | Elect one thread *per warp* (so 4 threads in a     |
+|                                    | 4-warp warpgroup). Good for ``tcgen05.commit`` and |
+|                                    | TMA stores; for TMA *loads* prefer                 |
+|                                    | ``tid_in_wg == 0`` so ``expect_tx`` is incremented |
+|                                    | exactly once.                                      |
 +------------------------------------+----------------------------------------------------+
 
 Function Parameters

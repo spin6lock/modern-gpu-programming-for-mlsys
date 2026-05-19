@@ -195,7 +195,7 @@ Per Second):</p>
 <section id="the-optimization-journey">
 <h2><span class="section-number">7.2. </span>The Optimization Journey<a class="headerlink" href="#the-optimization-journey" title="Permalink to this heading">¶</a></h2>
 <p>Over the next 3 chapters (9 steps), we will progressively optimize a
-GEMM kernel on Blackwell GPUs until it matches cuBLAS. The 4 key
+GEMM kernel on Blackwell GPUs to within ~10% of cuBLAS. The 4 key
 techniques are: - <strong>Async Data Movement</strong> — let hardware (TMA) do the
 copying, freeing 127 threads - <strong>Software Pipelining</strong> — overlap load
 and compute with multi-buffering - <strong>Warp Specialization</strong> — dedicated
@@ -349,9 +349,9 @@ warpgroup (0-3).</p></li>
 <li><p><strong>``lane_id = Tx.lane_id([32])``</strong> — Which thread within the warp
 (0-31).</p></li>
 </ul>
-<p>Later steps that need warp specialisation (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-numref">Section 8</span></a>
-Step 7 onward) bind <code class="docutils literal notranslate"><span class="pre">Tx.warpgroup_id([2])</span></code> to a name and dispatch on
-it.</p>
+<p>Later steps that need warp specialisation
+(<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-numref">Section 9</span></a> Step 7 onward) bind
+<code class="docutils literal notranslate"><span class="pre">Tx.warpgroup_id([2])</span></code> to a name and dispatch on it.</p>
 <p>The parent level is encoded in the function name itself (<code class="docutils literal notranslate"><span class="pre">*_in_wg</span></code> for
 warpgroup-scoped, <code class="docutils literal notranslate"><span class="pre">lane_id</span></code> for warp-scoped, <code class="docutils literal notranslate"><span class="pre">cta_id_in_cluster</span></code> for
 cluster-scoped). For example, <code class="docutils literal notranslate"><span class="pre">Tx.warp_id_in_wg([4])</span></code> enumerates the 4

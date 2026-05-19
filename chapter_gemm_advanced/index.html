@@ -658,8 +658,9 @@ SMEM via cross-CTA shared memory access, so it sees all 256 columns of
 <code class="docutils literal notranslate"><span class="pre">[B0</span> <span class="pre">|</span> <span class="pre">B1]</span></code>.</p></li>
 <li><p>Result: <code class="docutils literal notranslate"><span class="pre">[A0;</span> <span class="pre">A1]</span> <span class="pre">×</span> <span class="pre">[B0</span> <span class="pre">|</span> <span class="pre">B1]</span></code> = 256×256 output tile.</p></li>
 </ul>
-<p>Each CTA only loads 128×K of A and 128×K of B, but together they compute
-a 256×256 output — 2x arithmetic intensity with the same memory traffic.</p>
+<p>Each CTA still loads 128×K of A and 128×K of B (its own halves), but the
+cooperative MMA uses both CTAs’ SMEM tiles to compute a 256×256 output —
+so the <em>flops per byte fetched by each CTA</em> roughly doubles.</p>
 </section>
 <section id="tile-address-calculation">
 <h3><span class="section-number">9.2.3. </span>Tile Address Calculation<a class="headerlink" href="#tile-address-calculation" title="Permalink to this heading">¶</a></h3>
@@ -715,11 +716,12 @@ TIRX wrapper is <code class="docutils literal notranslate"><span class="pre">tma
 (arrive, wait) target CTA-0’s barriers — this is the coordination
 point.</p></li>
 <li><p><strong>MMA dispatch from CTA-0 only</strong>: With <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>, CTA-0 issues
-one <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> instruction, and the hardware automatically
-dispatches the computation to <strong>both</strong> CTAs’ tensor cores
-simultaneously. CTA-1 does not issue any MMA instruction — the
-hardware handles this coordination internally. This is why the code
-guards MMA with <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">cbx</span> <span class="pre">==</span> <span class="pre">0:</span></code>.</p></li>
+one <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>. The hardware drives a <em>single cooperative</em> MMA
+that spans both CTAs in the cluster — it reads operands from both SMs’
+SMEM and writes the accumulator across both SMs’ TMEM. CTA-1 does not
+issue any MMA instruction. (Each SM still has only one <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>
+engine; “cta_group=2” is one cross-SM MMA, not two engines firing in
+parallel.) This is why the code guards MMA with <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">cbx</span> <span class="pre">==</span> <span class="pre">0:</span></code>.</p></li>
 <li><p><strong>Multicast arrive</strong>: Similarly,
 <code class="docutils literal notranslate"><span class="pre">tcgen05.commit(...,</span> <span class="pre">cta_group=2,</span> <span class="pre">cta_mask=3)</span></code> is issued only by
 CTA-0 but signals both CTAs’ barriers. <code class="docutils literal notranslate"><span class="pre">cta_mask=3</span></code> (binary <code class="docutils literal notranslate"><span class="pre">11</span></code>)
@@ -1541,7 +1543,7 @@ is wrong, the cause is almost certainly one of the bullets above.</p></li>
 <tr class="row-even"><td><p>1</p></td>
 <td><p>Sync load + MMA</p></td>
 <td><p>70 ms</p></td>
-<td><p>1x</p></td>
+<td><p>1×</p></td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
 <td><p>K-loop accumulation</p></td>
@@ -1556,7 +1558,7 @@ is wrong, the cause is almost certainly one of the bullets above.</p></li>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p>TMA async load</p></td>
 <td><p>0.50 ms</p></td>
-<td><p>141x</p></td>
+<td><p>~140×</p></td>
 </tr>
 <tr class="row-even"><td><p>5</p></td>
 <td><p>Software pipeline</p></td>
@@ -1571,22 +1573,22 @@ is wrong, the cause is almost certainly one of the bullets above.</p></li>
 <tr class="row-even"><td><p>7</p></td>
 <td><p>Warp specialization</p></td>
 <td><p>0.23 ms</p></td>
-<td><p>300x</p></td>
+<td><p>~304×</p></td>
 </tr>
 <tr class="row-odd"><td><p>8</p></td>
 <td><p>2-CTA cluster</p></td>
 <td><p>0.13 ms</p></td>
-<td><p>537x</p></td>
+<td><p>~538×</p></td>
 </tr>
 <tr class="row-even"><td><p>9</p></td>
 <td><p>Multi-consumer</p></td>
 <td><p>0.12 ms</p></td>
-<td><p>582x</p></td>
+<td><p>~583×</p></td>
 </tr>
 <tr class="row-odd"><td><p>—</p></td>
 <td><p>cuBLAS (reference)</p></td>
 <td><p>0.11 ms</p></td>
-<td><p>614x</p></td>
+<td><p>~636×</p></td>
 </tr>
 </tbody>
 </table>
@@ -1597,12 +1599,12 @@ you saw printed are typically 2-5× slower than the table on a casual GPU
 <p>The 4 key optimization techniques that deliver the biggest gains:</p>
 <ol class="arabic simple">
 <li><p><strong>TMA Async Data Movement</strong> — hardware copy engine replaces software
-copy (141× from Step 1 → Step 4).</p></li>
+copy (~140× from Step 1 → Step 4).</p></li>
 <li><p><strong>Software Pipelining + Warp Specialization</strong> — overlap load and
-compute with dedicated roles (~2× from Step 4 → Step 7).</p></li>
-<li><p><strong>CTA Clusters</strong> — 2-SM cooperative MMA doubles arithmetic intensity
-(~2× from Step 7 → Step 8).</p></li>
-<li><p><strong>Multi-Consumer</strong> — two MMA warps for higher compute density (~10%
+compute with dedicated roles (~2.2× from Step 4 → Step 7).</p></li>
+<li><p><strong>CTA Clusters</strong> — 2-SM cooperative MMA doubles per-CTA FLOPs/byte
+(~1.8× from Step 7 → Step 8).</p></li>
+<li><p><strong>Multi-Consumer</strong> — two MMA warps for higher compute density (~8%
 from Step 8 → Step 9).</p></li>
 </ol>
 <figure class="align-default" id="id9">
@@ -1611,7 +1613,7 @@ from Step 8 → Step 9).</p></li>
 <p><span class="caption-number">Fig. 9.5.1 </span><span class="caption-text">GEMM Optimization Journey</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>582× total speedup: from 70 ms to 0.12 ms — within 10% of cuBLAS.</p>
+<p>~583× total speedup: 70 ms → 0.12 ms — within ~10% of cuBLAS (0.11 ms).</p>
 </section>
 <section id="exercises">
 <h2><span class="section-number">9.6. </span>Exercises<a class="headerlink" href="#exercises" title="Permalink to this heading">¶</a></h2>
