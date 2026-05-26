@@ -191,6 +191,26 @@ matters for both training and inference.</p>
 Per Second):</p>
 <div class="math notranslate nohighlight" id="equation-chapter-gemm-basics-index-0">
 <span class="eqno">(3.1.1)<a class="headerlink" href="#equation-chapter-gemm-basics-index-0" title="Permalink to this equation">¶</a></span>\[\text{TFLOPS} = \frac{2 \times M \times N \times K}{t_{\text{seconds}} \times 10^{12}}\]</div>
+<section id="gemm-data-path">
+<h3><span class="section-number">3.1.1. </span>GEMM Data Path<a class="headerlink" href="#gemm-data-path" title="Permalink to this heading">¶</a></h3>
+<p>A Blackwell GEMM kernel is organized around a tile data path:</p>
+<figure class="align-default" id="id1">
+<img alt="../_images/memory_dataflow.png" src="../_images/memory_dataflow.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 3.1.1 </span><span class="caption-text"><em>Memory Data Flow</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Operand tiles move from GMEM to SMEM, <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> consumes the SMEM
+operands and writes accumulators to TMEM, the epilogue reads TMEM back
+into registers, and the final result is stored to GMEM. Optimized
+kernels use TMA for the large GMEM &lt;-&gt; SMEM transfers and overlap those
+transfers with MMA.</p>
+<p>Step 1 below is not the fully optimized version of this picture. It is
+the smallest kernel that exposes the same main objects: SMEM operand
+tiles, a TMEM accumulator, a warpgroup TMEM readback, and a final GMEM
+store. Later steps replace the simple parts with TMA, pipelining, warp
+specialization, and CTA clusters.</p>
+</section>
 </section>
 <section id="optimization-path">
 <h2><span class="section-number">3.2. </span>Optimization Path<a class="headerlink" href="#optimization-path" title="Permalink to this heading">¶</a></h2>
@@ -205,27 +225,24 @@ arithmetic intensity</p>
 top of these pieces.</p>
 <hr class="docutils" />
 </section>
-<section id="step-1-synchronous-gemm">
-<span id="chap-single-tile"></span><h2><span class="section-number">3.3. </span>Step 1: Synchronous GEMM<a class="headerlink" href="#step-1-synchronous-gemm" title="Permalink to this heading">¶</a></h2>
-<p>The first working GEMM kernel computes a single tile (M=N=128, K=64).
-All operations are synchronous.</p>
+<section id="step-1-sequential-single-tile-gemm">
+<span id="chap-single-tile"></span><h2><span class="section-number">3.3. </span>Step 1: Sequential Single-Tile GEMM<a class="headerlink" href="#step-1-sequential-single-tile-gemm" title="Permalink to this heading">¶</a></h2>
+<p>The first working GEMM kernel computes one output tile (M=N=128, K=64).
+It is sequential rather than pipelined: each async operation is
+explicitly waited on before the next dependent step starts.</p>
 <p><strong>Topics.</strong></p>
 <ul class="simple">
 <li><p>Synchronous data loading: all 128 threads copy from GMEM → SMEM</p></li>
 <li><p>tcgen05 MMA invocation: single thread issues MMA, all threads wait</p></li>
 <li><p>TMEM allocation/deallocation and writeback (TMEM → RF → GMEM)</p></li>
 </ul>
-<section id="dataflow">
-<h3><span class="section-number">3.3.1. </span>Dataflow<a class="headerlink" href="#dataflow" title="Permalink to this heading">¶</a></h3>
-<p>The single-tile kernel follows the core Blackwell GEMM data path:</p>
-<figure class="align-default" id="id1">
-<img alt="../_images/memory_dataflow.png" src="../_images/memory_dataflow.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 3.3.1 </span><span class="caption-text"><em>Memory Data Flow</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Each step happens <strong>sequentially</strong> — the next step waits for the
-previous to complete.</p>
+<section id="step-1-dataflow">
+<h3><span class="section-number">3.3.1. </span>Step 1 Dataflow<a class="headerlink" href="#step-1-dataflow" title="Permalink to this heading">¶</a></h3>
+<p>In Step 1, each step happens <strong>sequentially</strong> — the next step waits for
+the previous to complete. Two parts are deliberately simpler than the
+optimized path above: GMEM -&gt; SMEM uses synchronous <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> instead
+of TMA, and writeback stores from registers directly to GMEM instead of
+staging through SMEM for a TMA store.</p>
 <ol class="arabic simple">
 <li><p><strong>Allocate</strong>: SMEM (pool allocator), TMEM (<code class="docutils literal notranslate"><span class="pre">tcgen05.alloc</span></code>),
 mbarrier</p></li>
@@ -240,7 +257,52 @@ fp32→fp16 and writes to GMEM</p></li>
 </section>
 <section id="kernel-pieces">
 <h3><span class="section-number">3.3.2. </span>Kernel Pieces<a class="headerlink" href="#kernel-pieces" title="Permalink to this heading">¶</a></h3>
-<p>The kernel has four pieces.</p>
+<p>Before reading the full source, keep this code map in mind. It is not
+meant to compile by itself; it shows where the important objects and
+tile primitives appear in the real kernel below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Tx</span><span class="o">.</span><span class="n">prim_func</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hgemm_v1</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">kernel</span><span class="p">():</span>
+        <span class="c1"># 1. Identify this CTA and the threads inside it.</span>
+        <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">M</span> <span class="o">//</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="n">BLK_N</span><span class="p">])</span>
+        <span class="n">warp_id</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warp_id_in_wg</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">lane_id</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">lane_id</span><span class="p">([</span><span class="mi">32</span><span class="p">])</span>
+
+        <span class="c1"># 2. Allocate SMEM metadata, operand tiles, a TMEM accumulator,</span>
+        <span class="c1">#    and per-thread registers for readback.</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
+        <span class="n">Asmem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">Bsmem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">tmem</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">decl_buffer</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;tmem&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+        <span class="n">Dreg</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">Dreg_f16</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+        <span class="c1"># 3. Move operand tiles into SMEM.</span>
+        <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="p">():</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">A</span><span class="p">[:,</span> <span class="p">:])</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">B</span><span class="p">[:,</span> <span class="p">:])</span>
+
+        <span class="c1"># 4. One selected issuer starts tcgen05 MMA into TMEM,</span>
+        <span class="c1">#    then the CTA waits for MMA completion.</span>
+        <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>  <span class="c1"># selected issuer only</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span><span class="n">tmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">Bsmem</span><span class="p">[:,</span> <span class="p">:],</span>
+                          <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">)</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+        <span class="c1"># 5. Read TMEM into registers, then store the result.</span>
+        <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">warpgroup</span><span class="p">():</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Dreg_wg</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">tmem</span><span class="p">[:,</span> <span class="p">:])</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">wait</span><span class="o">.</span><span class="n">ld</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">Tx</span><span class="o">.</span><span class="n">thread</span><span class="p">():</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="o">...</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Dreg_f16</span><span class="p">[:],</span> <span class="n">Dreg</span><span class="p">[:])</span>
+            <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="p">:],</span> <span class="n">Dreg_f16</span><span class="p">[:])</span>
+</pre></div>
+</div>
+<p>The rest of this section expands the code map one piece at a time.</p>
+<p>The walkthrough below groups the real kernel into four pieces.</p>
 <section id="memory-allocation">
 <h4><span class="section-number">3.3.2.1. </span>Memory Allocation<a class="headerlink" href="#memory-allocation" title="Permalink to this heading">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pool</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
@@ -905,10 +967,13 @@ Will the kernel deadlock, produce wrong results, or both?</p></li>
     </p>
     <ul>
 <li><a class="reference internal" href="#">3. GEMM with Tile Primitives</a><ul>
-<li><a class="reference internal" href="#gemm">3.1. GEMM</a></li>
+<li><a class="reference internal" href="#gemm">3.1. GEMM</a><ul>
+<li><a class="reference internal" href="#gemm-data-path">3.1.1. GEMM Data Path</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#optimization-path">3.2. Optimization Path</a></li>
-<li><a class="reference internal" href="#step-1-synchronous-gemm">3.3. Step 1: Synchronous GEMM</a><ul>
-<li><a class="reference internal" href="#dataflow">3.3.1. Dataflow</a></li>
+<li><a class="reference internal" href="#step-1-sequential-single-tile-gemm">3.3. Step 1: Sequential Single-Tile GEMM</a><ul>
+<li><a class="reference internal" href="#step-1-dataflow">3.3.1. Step 1 Dataflow</a></li>
 <li><a class="reference internal" href="#kernel-pieces">3.3.2. Kernel Pieces</a><ul>
 <li><a class="reference internal" href="#memory-allocation">3.3.2.1. Memory Allocation</a></li>
 <li><a class="reference internal" href="#synchronous-load">3.3.2.2. Synchronous Load</a></li>

@@ -5,6 +5,10 @@ TIRX Language Reference
 =======================
 
 
+This is a reference, not required reading before the GEMM chapters. The
+main path introduces the small amount of TIRX syntax needed to read each
+kernel; come back here when you want the full language details.
+
 TIRX programs are GPU kernel IR written through a Python DSL. A
 ``@Tx.prim_func`` describes one kernel-level function: its buffers,
 symbolic launch coordinates, execution scopes, memory allocations,
