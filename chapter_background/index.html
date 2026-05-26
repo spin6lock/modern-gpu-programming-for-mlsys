@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     
-    <title>1. Background: Blackwell GPU Architecture &#8212; TIRX: High-Performance GPU Kernel Programming 0.0.1 documentation</title>
+    <title>1. Blackwell Background &#8212; TIRX: High-Performance GPU Kernel Programming 0.0.1 documentation</title>
 
     <link rel="stylesheet" href="../_static/material-design-lite-1.3.0/material.blue-deep_orange.min.css" type="text/css" />
     <link rel="stylesheet" href="../_static/sphinx_materialdesign_theme.css" type="text/css" />
@@ -29,15 +29,15 @@
     <link rel="shortcut icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="2. Setup" href="../chapter_setup/index.html" />
-    <link rel="prev" title="TIRX: High-Performance GPU Kernel Programming" href="../index.html" /> 
+    <link rel="next" title="2. Tile Primitive Mental Model" href="../chapter_layouts/index.html" />
+    <link rel="prev" title="TIRX: Blackwell Tile-Primitive Programming" href="../index.html" /> 
   </head>
 <body>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer"><header class="mdl-layout__header mdl-layout__header--waterfall ">
     <div class="mdl-layout__header-row">
         
         <nav class="mdl-navigation breadcrumb">
-            <a class="mdl-navigation__link is-active"><span class="section-number">1. </span>Background: Blackwell GPU Architecture</a>
+            <a class="mdl-navigation__link is-active"><span class="section-number">1. </span>Blackwell Background</a>
         </nav>
         <div class="mdl-layout-spacer"></div>
         <nav class="mdl-navigation">
@@ -95,18 +95,21 @@ Show Source
             
             <nav class="mdl-navigation">
                 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Background: Blackwell GPU Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">8. GEMM Steps 4–6: TMA, Pipelining, and Persistent Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">9. GEMM Steps 7–9: Warp Specialization to cuBLAS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">10. Flash Attention 4</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_ai_assisted/index.html">11. AI-Assisted Kernel Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_api_reference/index.html">12. TIRX API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Blackwell Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">2. Tile Primitive Mental Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">3. GEMM with Tile Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">4. Asynchronous GEMM Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">5. Warp-Specialized and Clustered GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">6. Flash Attention on Blackwell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">7. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_setup/index.html">7.1. Environment Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_fused_gelu/index.html">7.2. Practice Kernel: Fused GELU Gate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_rmsnorm/index.html">7.3. Practice Kernel: RMSNorm Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_ai_assisted/index.html">7.4. LLM-Assisted Kernel Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_api_reference/index.html">7.5. TIRX API Quick Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_tirx_primer/index.html">7.6. TIRX Language Reference</a></li>
+</ul>
+</li>
 </ul>
 
             </nav>
@@ -134,18 +137,21 @@ Show Source
             
             <nav class="mdl-navigation">
                 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Background: Blackwell GPU Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_setup/index.html">2. Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_primer/index.html">3. TIRX Language Basics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">4. TIRX Tile Primitives</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_fused_gelu/index.html">5. Fused GELU-Tanh &amp; Multiply</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_rmsnorm/index.html">6. RMSNorm</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">7. GEMM Steps 1–3: From Single Tile to Spatial Tiling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">8. GEMM Steps 4–6: TMA, Pipelining, and Persistent Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">9. GEMM Steps 7–9: Warp Specialization to cuBLAS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">10. Flash Attention 4</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_ai_assisted/index.html">11. AI-Assisted Kernel Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_api_reference/index.html">12. TIRX API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Blackwell Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layouts/index.html">2. Tile Primitive Mental Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">3. GEMM with Tile Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">4. Asynchronous GEMM Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">5. Warp-Specialized and Clustered GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">6. Flash Attention on Blackwell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">7. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_setup/index.html">7.1. Environment Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_fused_gelu/index.html">7.2. Practice Kernel: Fused GELU Gate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_rmsnorm/index.html">7.3. Practice Kernel: RMSNorm Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_ai_assisted/index.html">7.4. LLM-Assisted Kernel Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_api_reference/index.html">7.5. TIRX API Quick Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chapter_tirx_primer/index.html">7.6. TIRX Language Reference</a></li>
+</ul>
+</li>
 </ul>
 
             </nav>
@@ -157,53 +163,51 @@ Show Source
     <div class="document">
         <div class="page-content" role="main">
         
-  <section id="background-blackwell-gpu-architecture">
-<span id="chap-background"></span><h1><span class="section-number">1. </span>Background: Blackwell GPU Architecture<a class="headerlink" href="#background-blackwell-gpu-architecture" title="Permalink to this heading">¶</a></h1>
-<p>Before diving into the code, let’s understand the key hardware features
-of NVIDIA Blackwell GPUs. If you’re familiar with CUDA, you already know
-about threads, warps, shared memory, and global memory. Blackwell
-introduces several new hardware units and memory spaces that are
-essential for achieving peak performance.</p>
+  <section id="blackwell-background">
+<span id="chap-background"></span><h1><span class="section-number">1. </span>Blackwell Background<a class="headerlink" href="#blackwell-background" title="Permalink to this heading">¶</a></h1>
+<p>Blackwell kernels coordinate thread groups, memory spaces, TMA,
+<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>, barriers, and CTA clusters.</p>
 <section id="thread-hierarchy">
 <h2><span class="section-number">1.1. </span>Thread Hierarchy<a class="headerlink" href="#thread-hierarchy" title="Permalink to this heading">¶</a></h2>
 <p>Blackwell organizes threads into a nested hierarchy:</p>
 <figure class="align-default" id="id1">
-<img alt="../_images/thread_hierarchy.png" src="../_images/thread_hierarchy.png" />
+<img alt="../_images/blackwell_thread_hierarchy.png" src="../_images/blackwell_thread_hierarchy.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 1.1.1 </span><span class="caption-text"><em>Thread Hierarchy</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 1.1.1 </span><span class="caption-text"><em>Blackwell Thread Hierarchy</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <ul class="simple">
 <li><p><strong>CTA</strong> — short for <em>Cooperative Thread Array</em>, the same concept that
 CUDA programmers know as a thread block. It is the basic scheduling
 unit: a CTA runs on a single SM and has access to that SM’s shared
-memory. A CTA contains one or more warpgroups of 128 threads each;
-most kernels in this tutorial use one warpgroup per CTA, and the
-warp-specialized kernels in <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-numref">Section 9</span></a> and
-<a class="reference internal" href="../chapter_flash_attention/index.html#chap-flash-attention"><span class="std std-numref">Section 10</span></a> use up to four.</p></li>
+memory.</p></li>
 <li><p><strong>Warpgroup</strong>: 4 consecutive warps (128 threads). On Blackwell, the
 warpgroup is the cooperation unit for TMEM reads — the 128 <code class="docutils literal notranslate"><span class="pre">TLane</span></code>
-rows match the 128 threads one-to-one. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> itself is
-issued by a single elected thread; its <span class="math notranslate nohighlight">\(M\)</span> dimension can be 64
-or 128 (and up to 256 in 2-CTA cooperative mode), but a tile of
-<span class="math notranslate nohighlight">\(M=128\)</span> matches the warpgroup row-for-row, so the warpgroup
-remains the natural scope for a GEMM stage (see the <em>Tensor Core
-Generational Evolution</em> subsection below for details).</p></li>
-<li><p><strong>Warp</strong>: A warp contains 32 threads and is the basic SIMT execution
-unit.</p></li>
+rows match the 128 threads one-to-one.</p></li>
+<li><p><strong>Warp</strong>: A warp contains 32 threads and is the basic SIMT (<em>single
+instruction, multiple threads</em>) execution unit. The threads in a warp
+issue the same instruction together, while each thread keeps its own
+registers, lane ID, and data.</p></li>
 <li><p><strong>Thread</strong>: Each thread is identified by a lane ID within its warp.</p></li>
-<li><p><strong>Cluster</strong>: A group of cooperating CTAs.</p></li>
+<li><p><strong>Cluster</strong>: A group of cooperating CTAs. Clustered kernels use
+clusters for cross-CTA cooperation, multicast TMA, and 2-CTA
+cooperative MMA.</p></li>
 </ul>
+<p>These levels matter because Blackwell operations are not all issued by
+the same group of threads. A TMA copy is issued by one thread and
+completed by hardware; a TMEM-to-register load is warpgroup-cooperative;
+a <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> commit is issued by an elected thread; clustered MMA
+may involve multiple CTAs.</p>
 </section>
-<section id="memory-hierarchy">
-<h2><span class="section-number">1.2. </span>Memory Hierarchy<a class="headerlink" href="#memory-hierarchy" title="Permalink to this heading">¶</a></h2>
-<p>For TIRX kernels on Blackwell, it is useful to think about memory as a
-hierarchy spanning GMEM, SMEM, TMEM, and registers:</p>
+<section id="memory-spaces">
+<h2><span class="section-number">1.2. </span>Memory Spaces<a class="headerlink" href="#memory-spaces" title="Permalink to this heading">¶</a></h2>
+<p>Blackwell kernels use a memory hierarchy spanning GMEM, SMEM, TMEM, and
+registers:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Memory</p></th>
 <th class="head"><p>Ownership</p></th>
-<th class="head"><p>Latency</p></th>
+<th class="head"><p>Role</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
@@ -212,575 +216,142 @@ hierarchy spanning GMEM, SMEM, TMEM, and registers:</p>
 Memory
 (GMEM)</strong></p></td>
 <td><p>Device-wide</p></td>
-<td><p>High</p></td>
-<td><p>Large capacity
-(HBM),
-bandwidth-limited</p></td>
+<td><p>Persistent
+tensor
+storage</p></td>
+<td><p>Large capacity HBM,
+shared by all SMs</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Shared
 Memory
 (SMEM)</strong></p></td>
 <td><p>Per-CTA (on one
 SM)</p></td>
-<td><p>Low</p></td>
-<td><p>228 KB per SM,
-low-latency
-scratchpad</p></td>
+<td><p>Tile staging</p></td>
+<td><p>Low-latency
+scratchpad; up to
+228 KB per SM on
+B200 / compute
+capability 10.0</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Tensor
 Memory
 (TMEM)</strong></p></td>
 <td><p>Per-SM</p></td>
-<td><p>Very low</p></td>
-<td><p>Per-SM
-high-bandwidth
+<td><p>MMA
+accumulator
+storage</p></td>
+<td><p>Dedicated Blackwell
 scratchpad used by
-<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>; holds
-MMA accumulators
-and, for some
-<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>
-variants, the A
-operand</p></td>
+<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>; also
+used by some MMA
+variants as an
+A-operand staging
+area</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Register
 File (RF)</strong></p></td>
 <td><p>Per-thread</p></td>
-<td><p>Lowest</p></td>
-<td><p>Fastest storage,
-per-thread</p></td>
+<td><p>Scalar and
+per-thread
+tile
+fragments</p></td>
+<td><p>Fast per-thread
+storage used for
+epilogues, scalar
+math, and temporary
+values</p></td>
 </tr>
 </tbody>
 </table>
-<p>The typical data flow for a kernel that uses Tensor Cores:</p>
-<figure class="align-default" id="id2">
-<img alt="../_images/memory_dataflow.png" src="../_images/memory_dataflow.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 1.2.1 </span><span class="caption-text"><em>Memory Data Flow</em></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>The key difference from earlier GPU generations is that tcgen05 writes
-accumulator results to TMEM first, and software later moves them to
-registers or shared memory as needed.</p>
+<p>Each memory space has different access rules. GMEM is the large
+persistent store, SMEM is the staging area for tiles, TMEM holds MMA
+accumulators, and registers hold per-thread values used by the epilogue.</p>
 <p><strong>Tensor Memory (TMEM)</strong> is new in Blackwell. It is a per-SM,
-high-bandwidth scratchpad memory used by the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA path. The
-MMA unit writes its accumulator output directly to TMEM, not to
-registers or shared memory.</p>
+high-bandwidth scratchpad memory used by the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA path.
+Unlike earlier GPU generations where large MMA accumulators lived in
+registers, Blackwell writes <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> accumulator output directly to
+TMEM first. The kernel then explicitly reads those results from TMEM
+into registers, or stages them through shared memory for output.</p>
 <ul class="simple">
 <li><p><strong>TMEM reads are explicit and cooperative.</strong> To consume MMA results,
-software must explicitly load from TMEM into the register file. These
+the kernel explicitly loads from TMEM into the register file. These
 reads are performed cooperatively by the full warpgroup (128 threads).</p></li>
 <li><p><strong>TMEM uses its own addressing and allocation model.</strong> It is not
 accessed like normal memory; instead, it uses a special 2D address
 space whose rows are indexed by a hardware axis called <code class="docutils literal notranslate"><span class="pre">TLane</span></code> (128
 lanes) and whose columns are indexed by <code class="docutils literal notranslate"><span class="pre">TCol</span></code> (up to 512 columns).
-TMEM must be explicitly allocated and deallocated. The <code class="docutils literal notranslate"><span class="pre">TLane</span></code> axis
-has the same 128-element cardinality as a warpgroup, which is why a
-<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> can pair TMEM rows with warpgroup threads one-to-one
-(see <a class="reference internal" href="../chapter_layouts/index.html#chap-layouts"><span class="std std-numref">Section 4</span></a> for the exact matching rule).</p></li>
+TMEM must be explicitly allocated and deallocated.</p></li>
 </ul>
 </section>
-<section id="tma-tensor-memory-accelerator">
-<h2><span class="section-number">1.3. </span>TMA (Tensor Memory Accelerator)<a class="headerlink" href="#tma-tensor-memory-accelerator" title="Permalink to this heading">¶</a></h2>
+<section id="tma">
+<h2><span class="section-number">1.3. </span>TMA<a class="headerlink" href="#tma" title="Permalink to this heading">¶</a></h2>
 <p>TMA is a hardware unit that asynchronously copies rectangular tiles
-between global memory and shared memory. TMA lets software describe a
-tile copy, and hardware performs it asynchronously in the background.</p>
+between global memory and shared memory. A kernel issues a tile copy,
+and the TMA engine performs the transfer in the background.</p>
 <ul class="simple">
 <li><p><strong>Single-thread launch</strong>: One thread issues the TMA operation, and the
 hardware performs the actual tile transfer asynchronously in the
-background. The remaining threads are free to do other work.</p></li>
+background. TMA does not require all CTA threads to execute explicit
+load/store instructions.</p></li>
 <li><p><strong>Swizzled layouts</strong>: TMA can apply layout swizzling during the
 transfer, helping produce shared-memory layouts that are friendly to
 Tensor Core access.</p></li>
-<li><p><strong>Barrier integration</strong>: TMA works with mbarriers. The programmer
-specifies the expected byte count with <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx</span></code>, and the
-hardware signals completion when that amount of data has arrived.</p></li>
+<li><p><strong>Barrier integration</strong>: TMA works with mbarriers. The transfer has an
+expected byte count, and the hardware signals completion when that
+amount of data has arrived.</p></li>
 <li><p><strong>Store support</strong>: TMA is not only for GMEM→SMEM loads; it can also
 store data from SMEM back to GMEM. TMA stores use a commit-group /
 wait-group mechanism for completion tracking.</p></li>
 </ul>
-<p>In short, TMA turns tiled GMEM↔SMEM movement into an asynchronous
-hardware operation with built-in layout and synchronization support.</p>
+<p>TMA changes tile movement from a per-thread load/store loop into an
+asynchronous hardware operation with byte-count tracking and explicit
+completion synchronization.</p>
 </section>
-<section id="tensor-cores-the-compute-engine">
-<h2><span class="section-number">1.4. </span>Tensor Cores: The Compute Engine<a class="headerlink" href="#tensor-cores-the-compute-engine" title="Permalink to this heading">¶</a></h2>
-<p>Before looking at the Blackwell-specific <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instruction, it is
-worth stepping back to understand what a Tensor Core is and why the MMA
-API looks the way it does. If you are already comfortable with
-Hopper-era <code class="docutils literal notranslate"><span class="pre">wgmma</span></code>, you can skim this section.</p>
-<p>A <strong>Tensor Core</strong> is a dedicated hardware unit that, in one instruction,
-performs a full tile-granularity matrix multiply-accumulate:</p>
+<section id="tensor-cores-and-blackwell-mma">
+<h2><span class="section-number">1.4. </span>Tensor Cores and Blackwell MMA<a class="headerlink" href="#tensor-cores-and-blackwell-mma" title="Permalink to this heading">¶</a></h2>
+<p>Tensor Cores are the hardware units that execute dense matrix multiply
+at tile granularity. Blackwell exposes this compute path through the
+<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA instruction family. <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> does not include TMA:
+TMA is the data-movement path, while <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> is the compute path.</p>
+<p>At the math level, a Tensor Core instruction performs a tile-granularity
+matrix multiply-accumulate:</p>
 <div class="math notranslate nohighlight" id="equation-chapter-background-index-0">
 <span class="eqno">(1.4.1)<a class="headerlink" href="#equation-chapter-background-index-0" title="Permalink to this equation">¶</a></span>\[D = AB + C, \quad A \in \mathbb{R}^{M \times K},\ B \in \mathbb{R}^{K \times N},\ C, D \in \mathbb{R}^{M \times N}.\]</div>
-<p>This is in contrast to <strong>CUDA cores</strong>, the GPU’s classic general-purpose
-ALUs that execute scalar fused multiply-add (FMA) — one
-<span class="math notranslate nohighlight">\(d = a \times b + c\)</span> on 32-bit operands, per thread, per cycle. A
-warp of 32 threads therefore retires at most 32 scalar FMAs per cycle. A
-single Tensor Core MMA, by contrast, retires the hundreds-to-thousands
-of FMAs that make up an <span class="math notranslate nohighlight">\(M \times N \times K\)</span> tile as one
-pipelined asynchronous operation. The two engines live on the same SM
-and complement each other:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"></th>
-<th class="head"><p><strong>CUDA core</strong></p></th>
-<th class="head"><p><strong>Tensor Core</strong>
-(<span class="math notranslate nohighlight">\(\texttt{tcgen05}\)</span>
-on Blackwell)</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Granularity</p></td>
-<td><p>1 scalar FMA per
-instruction</p></td>
-<td><p><span class="math notranslate nohighlight">\(M \times N \times K\)</span>
-FMAs per instruction</p></td>
-</tr>
-<tr class="row-odd"><td><p>Execution model</p></td>
-<td><p>SIMT: 32 threads per
-warp, each issues its
-own instruction</p></td>
-<td><p>A single elected thread
-issues one MMA (CTA-0 only
-when <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>);
-hardware runs the tile
-asynchronously</p></td>
-</tr>
-<tr class="row-even"><td><p>Operands live in</p></td>
-<td><p>Register file</p></td>
-<td><p>SMEM (via matrix
-descriptors) and/or TMEM</p></td>
-</tr>
-<tr class="row-odd"><td><p>Accumulator in</p></td>
-<td><p>Register file</p></td>
-<td><p><strong>TMEM</strong> on Blackwell
-(on-chip SM-local
-scratchpad, separate from
-the register file)</p></td>
-</tr>
-<tr class="row-even"><td><p>Typical dtypes</p></td>
-<td><p>fp32 / fp64 / int32 —
-general-purpose</p></td>
-<td><p>fp16 / bf16 / fp8 / fp4 /
-tf32 — low-precision
-GEMM-friendly</p></td>
-</tr>
-<tr class="row-odd"><td><p>Used for</p></td>
-<td><p>elementwise,
-reductions, index
-math, control flow,
-everything non-GEMM</p></td>
-<td><p>dense matrix multiply,
-convolution, attention
-<span class="math notranslate nohighlight">\(QK^{\top}\)</span> and
-<span class="math notranslate nohighlight">\(PV\)</span></p></td>
-</tr>
-<tr class="row-even"><td><p>Peak per B200 GPU
-(approx.)</p></td>
-<td><p>~75 TFLOPS (fp32)</p></td>
-<td><p>~2.25 PFLOPS (fp16/bf16) →
-up to ~9 PFLOPS (fp4)</p></td>
-</tr>
-</tbody>
-</table>
-<p>The architectural motivation is simple: dense matrix multiplication
-dominates deep-learning workloads, has high arithmetic intensity
-(<span class="math notranslate nohighlight">\(O(N^3)\)</span> FLOPs on <span class="math notranslate nohighlight">\(O(N^2)\)</span> data), and is therefore
-compute-bound on a well-fed GPU. A dedicated MMA unit reaches peak
-throughput that scalar FMAs never can.</p>
-<section id="why-you-cannot-ignore-them">
-<h3><span class="section-number">1.4.1. </span>Why You Cannot Ignore Them<a class="headerlink" href="#why-you-cannot-ignore-them" title="Permalink to this heading">¶</a></h3>
-<p>On a Blackwell B200 there is a single Tensor Core unit per SM (the
-<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> engine), but its peak throughput depends on the operand
-precision — narrower operands pack more MMAs per cycle:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Unit</p></th>
-<th class="head"><p>Peak throughput (per
-GPU, approx.)</p></th>
-<th class="head"><p>Ratio vs FP32 CUDA</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>FP32 CUDA cores</p></td>
-<td><p>~75 TFLOPS</p></td>
-<td><p>1×</p></td>
-</tr>
-<tr class="row-odd"><td><p>Tensor Core &#64; FP16 /
-BF16 (dense)</p></td>
-<td><p>~2.25 PFLOPS</p></td>
-<td><p>~30×</p></td>
-</tr>
-<tr class="row-even"><td><p>Tensor Core &#64; FP8
-(dense)</p></td>
-<td><p>~4.5 PFLOPS</p></td>
-<td><p>~60×</p></td>
-</tr>
-<tr class="row-odd"><td><p>Tensor Core &#64; FP4
-(dense)</p></td>
-<td><p>~9 PFLOPS</p></td>
-<td><p>~120×</p></td>
-</tr>
-</tbody>
-</table>
-<p>A kernel that does not use the Tensor Core throws away over 95% of the
-chip. Every GEMM, attention, and convolution kernel in this tutorial is
-written around it.</p>
-</section>
-<section id="instruction-shape-m-times-n-times-k">
-<h3><span class="section-number">1.4.2. </span>Instruction Shape (<span class="math notranslate nohighlight">\(M \times N \times K\)</span>)<a class="headerlink" href="#instruction-shape-m-times-n-times-k" title="Permalink to this heading">¶</a></h3>
-<p>A single MMA instruction operates on a fixed-shape tile. On Blackwell
-<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> with fp16/bf16 operands:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(M \in \{64, 128\}\)</span> (row tile; the <span class="math notranslate nohighlight">\(M\)</span> dimension of
-<span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(D\)</span>). With 2-CTA cooperation <span class="math notranslate nohighlight">\(M\)</span> doubles to
-128 or 256.</p></li>
-<li><p><span class="math notranslate nohighlight">\(N \le 256\)</span> (column tile; the most flexible dimension). The
-exact step depends on <span class="math notranslate nohighlight">\(M\)</span> and the CTA group: <span class="math notranslate nohighlight">\(M=64\)</span>
-single-CTA allows multiples of <span class="math notranslate nohighlight">\(8\)</span>; <span class="math notranslate nohighlight">\(M=128\)</span> single-CTA
-requires multiples of <span class="math notranslate nohighlight">\(16\)</span>; 2-CTA cooperative mode requires
-multiples of <span class="math notranslate nohighlight">\(32\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(K = 16\)</span> (inner-product dimension, fixed for fp16/bf16
-operands).</p></li>
-</ul>
-<p>A GEMM loop builds a larger computation by stepping along <span class="math notranslate nohighlight">\(K\)</span> and
-accumulating. Kernels written later in this tutorial choose
-<span class="math notranslate nohighlight">\(M_{\text{mma}} = 128\)</span> or <span class="math notranslate nohighlight">\(256\)</span> (with 2-CTA cooperation) and
-<span class="math notranslate nohighlight">\(N_{\text{mma}} = 128, 256\)</span>, but always
-<span class="math notranslate nohighlight">\(K_{\text{mma}} = 16\)</span>. The block-level tile
-<code class="docutils literal notranslate"><span class="pre">BLK_M</span> <span class="pre">×</span> <span class="pre">BLK_N</span> <span class="pre">×</span> <span class="pre">BLK_K</span></code> is then a multiple of the instruction tile
-along each dimension.</p>
-</section>
-<section id="supported-data-types">
-<h3><span class="section-number">1.4.3. </span>Supported Data Types<a class="headerlink" href="#supported-data-types" title="Permalink to this heading">¶</a></h3>
-<p>Tensor Cores support a rich set of input types with accumulation usually
-in wider precision:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Input (<span class="math notranslate nohighlight">\(A\)</span>,
-<span class="math notranslate nohighlight">\(B\)</span>)</p></th>
-<th class="head"><p>Accumulator
-(<span class="math notranslate nohighlight">\(C\)</span>,
-<span class="math notranslate nohighlight">\(D\)</span>)</p></th>
-<th class="head"><p>Primary use</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>FP16, BF16</p></td>
-<td><p>FP32</p></td>
-<td><p>Training; still
-common for inference</p></td>
-</tr>
-<tr class="row-odd"><td><p>TF32</p></td>
-<td><p>FP32</p></td>
-<td><p>“Full-precision”
-training</p></td>
-</tr>
-<tr class="row-even"><td><p>FP8 (E4M3, E5M2)</p></td>
-<td><p>FP32</p></td>
-<td><p>Large-model training
-and inference</p></td>
-</tr>
-<tr class="row-odd"><td><p>FP6, FP4</p></td>
-<td><p>FP32</p></td>
-<td><p>Inference on
-weight-quantized
-models</p></td>
-</tr>
-<tr class="row-even"><td><p>INT8, INT4</p></td>
-<td><p>INT32</p></td>
-<td><p>Legacy inference;
-sparsity</p></td>
-</tr>
-</tbody>
-</table>
-<p>Blackwell additionally supports structured 2:4 sparsity on several of
-the above dtypes, which can up to double effective throughput by
-skipping half the multiplies. You will not use sparse MMAs in this
-tutorial, but you should know they exist.</p>
-</section>
-<section id="generational-evolution">
-<h3><span class="section-number">1.4.4. </span>Generational Evolution<a class="headerlink" href="#generational-evolution" title="Permalink to this heading">¶</a></h3>
-<p>Understanding why Blackwell’s MMA API looks the way it does is easier
-once you see the previous three generations side by side:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Gen</p></th>
-<th class="head"><p>Instruction</p></th>
-<th class="head"><p>Who issues</p></th>
-<th class="head"><p>Tile scope</p></th>
-<th class="head"><p>A
-source</p></th>
-<th class="head"><p>B source</p></th>
-<th class="head"><p>Accumulator</p></th>
-<th class="head"><p>Async?</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Volta
-(V100)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mma.sync</span></code> (wmma)</p></td>
-<td><p>all 32 threads
-of a warp</p></td>
-<td><p>warp</p></td>
-<td><p>RF</p></td>
-<td><p>RF</p></td>
-<td><p>RF</p></td>
-<td><p>no</p></td>
-</tr>
-<tr class="row-odd"><td><p>Ampere
-(A100)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mma.sync</span></code>
-(e.g. <code class="docutils literal notranslate"><span class="pre">m16n8k16</span></code>)</p></td>
-<td><p>all 32 threads
-of a warp</p></td>
-<td><p>warp</p></td>
-<td><p>RF</p></td>
-<td><p>RF</p></td>
-<td><p>RF</p></td>
-<td><p>no</p></td>
-</tr>
-<tr class="row-even"><td><p>Hopper
-(H100)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">wgmma.mma_async</span></code></p></td>
-<td><p><strong>all 128
-threads of a
-warpgroup</strong></p></td>
-<td><p>warpgroup</p></td>
-<td><p>RF
-<strong>or
-SMEM</strong></p></td>
-<td><p><strong>SMEM</strong></p></td>
-<td><p>RF</p></td>
-<td><p><strong>yes</strong></p></td>
-</tr>
-<tr class="row-odd"><td><p>Blackwell
-(B200)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code></p></td>
-<td><p><strong>1 elected
-thread</strong> (via
-<code class="docutils literal notranslate"><span class="pre">elect.sync</span></code>)</p></td>
-<td><p><strong>warpgroup,
-or
-2×warpgroup
-with 2-CTA</strong></p></td>
-<td><p><strong>SMEM
-or
-TMEM</strong></p></td>
-<td><p><strong>SMEM</strong></p></td>
-<td><p><strong>TMEM</strong></p></td>
-<td><p><strong>yes</strong></p></td>
-</tr>
-</tbody>
-</table>
-<p>Three trends drive the API you will use in TIRX:</p>
+<p>Tensor Cores are different from <strong>CUDA cores</strong>, the GPU’s
+general-purpose SIMT ALUs. CUDA cores execute scalar and vector
+instructions for indexing, elementwise math, reductions, and control
+flow. Tensor Cores execute dense tile-level MMA instructions for GEMM,
+convolution, and attention. Both engines live on the same SM, but dense
+linear algebra relies on Tensor Cores for peak throughput.</p>
+<p>On Blackwell, an MMA operation has three hardware contracts that kernel
+code must coordinate:</p>
 <ol class="arabic simple">
-<li><p><strong>Tile scope grew from warp to warpgroup to 2-CTA; issue scope shrank
-to a single thread.</strong> Volta and Ampere treated MMA as a per-warp
-operation: all 32 threads in a warp collectively execute the
-instruction and pool their registers to hold A, B, and D. Hopper
-moved the <em>tile</em> scope to a warpgroup — a single <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> spans 128
-threads’ worth of data — but the <em>issue</em> was still collective: all
-128 threads had to execute the instruction. Blackwell decouples the
-two. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> is issued by a <strong>single elected thread</strong>, which
-frees the other 127 threads of the warpgroup to do TMA issuing,
-softmax, or the epilogue in parallel. The MMA <span class="math notranslate nohighlight">\(M\)</span> dimension is
-up to 128 (warpgroup-sized: <span class="math notranslate nohighlight">\(M \in \{64, 128\}\)</span> for fp16/bf16
-with <code class="docutils literal notranslate"><span class="pre">cta_group=1</span></code>; <span class="math notranslate nohighlight">\(M=128\)</span> is the common choice and pairs
-the 128 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> rows one-to-one with the warpgroup’s 128 threads),
-and in <em>2-CTA</em> cooperative mode two SMs jointly produce a tile up to
-256 rows.</p></li>
-<li><p><strong>Operands migrated from RF to SMEM (and TMEM).</strong> Reading A and B
-from registers forced every thread to hold a share of the tile in its
-register file. As tile sizes grew, RF pressure became the binding
-constraint: Hopper’s <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> already reads B from SMEM, and one
-variant reads A from SMEM too. Blackwell completes the move by
-reading A from either SMEM or TMEM. The result: no matter how large
-the MMA tile, RF usage does not grow with it.</p></li>
-<li><p><strong>Execution became asynchronous.</strong> Starting with Hopper, MMA issues a
-work request and returns immediately; completion is signaled through
-a separate barrier. This is essential for overlap — the issuing
-thread is free to prepare the next tile while the current MMA runs in
-the background.</p></li>
+<li><p><strong>Cooperation scope.</strong> An MMA may involve a warpgroup, and some
+Blackwell modes allow two CTAs to cooperate on one MMA tile.</p></li>
+<li><p><strong>Operand location.</strong> MMA operands are described as tiles in SMEM,
+and some Blackwell variants can also use TMEM.</p></li>
+<li><p><strong>Asynchronous completion.</strong> The MMA instruction issues work and
+returns before the hardware finishes; completion is tracked
+separately with barriers.</p></li>
 </ol>
+<p>One Blackwell-specific detail is where the MMA result lives.
+<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> does not keep large accumulator tiles in registers
+during the whole compute phase. It writes them to <strong>TMEM</strong>, a 128 × 512
+32-bit scratchpad per SM. Later, the kernel reads the needed TMEM values
+into registers for the epilogue and writes the final result back to
+GMEM.</p>
+<p>The GEMM chapters use this path directly: TMA stages operand tiles,
+<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> computes into TMEM, and the epilogue reads TMEM to
+produce the output. A slow kernel waits for each tile load before
+starting the matching MMA. A fast kernel overlaps them: while the Tensor
+Core computes on the current tile, TMA brings in the next tile. This is
+why Blackwell GEMM needs both asynchronous data movement and
+asynchronous compute, plus barriers to hand data from one hardware unit
+to the next.</p>
 </section>
-<section id="accumulator-in-tmem-blackwell-specific">
-<h3><span class="section-number">1.4.5. </span>Accumulator in TMEM (Blackwell-Specific)<a class="headerlink" href="#accumulator-in-tmem-blackwell-specific" title="Permalink to this heading">¶</a></h3>
-<p>The most radical change on Blackwell is the accumulator location. A
-Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> tile with <span class="math notranslate nohighlight">\(M=64, N=256\)</span> and FP32 accumulation
-produces <span class="math notranslate nohighlight">\(64 \times 256 = 16384\)</span> accumulator values, which at 128
-threads per warpgroup means <strong>128 FP32 registers per thread</strong>. The
-architectural register file is capped at 255 × 32-bit registers per
-thread; roughly half of that budget is already gone, and we have not
-started loading operands or intermediate results. In practice Hopper
-kernels spend substantial effort managing this pressure (multiple
-smaller MMAs, register reuse tricks).</p>
-<p>Blackwell solves the problem structurally by adding <strong>TMEM</strong> — a 128 ×
-512 32-bit scratchpad per SM, primarily used as the MMA accumulator
-(and, for <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> variants with operand A in TMEM, as an
-A-operand staging area; Flash Attention in
-<a class="reference internal" href="../chapter_flash_attention/index.html#chap-flash-attention"><span class="std std-numref">Section 10</span></a> exploits this to keep the P matrix
-between the two MMAs inside TMEM). <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes its
-accumulator output to TMEM, not to registers. The warpgroup only pulls
-data into registers (<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>) during the writeback epilogue, when
-it actually needs to apply activation or cast to the output dtype.
-Registers are now free for operand pipelining.</p>
-<p>This is why every GEMM kernel in Part III follows the same three-stage
-data flow already sketched in the <em>Memory Hierarchy</em> figure above:
-<strong>TMA</strong> moves GMEM → SMEM, <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> computes into TMEM,
-<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> pulls results back into RF, and a final store returns
-them to GMEM. Each arrow is a different hardware unit with its own
-synchronization primitive. The next two sections introduce the Blackwell
-MMA (<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>) and the barrier system (<code class="docutils literal notranslate"><span class="pre">mbarrier</span></code>) that stitch this
-pipeline together.</p>
-</section>
-</section>
-<section id="tcgen05-tensor-core-mma">
-<h2><span class="section-number">1.5. </span>tcgen05 (Tensor Core MMA)<a class="headerlink" href="#tcgen05-tensor-core-mma" title="Permalink to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> is Blackwell’s matrix multiply-accumulate (MMA) unit.
-Depending on the MMA variant, operand A may come from TMEM or SMEM,
-while operand B is read from SMEM via matrix descriptors. The result is
-written to TMEM.</p>
-<ul class="simple">
-<li><p><strong>Asynchronous execution</strong>: The MMA instruction returns immediately
-while the computation continues in the background.</p></li>
-<li><p><strong>Single-thread issue</strong>: Only one elected thread issues the MMA and
-its corresponding commit. The operation itself is carried out by
-hardware on behalf of the warpgroup.</p></li>
-<li><p><strong>TMEM accumulation</strong>: tcgen05 writes its output to TMEM. It can
-either overwrite the destination (<code class="docutils literal notranslate"><span class="pre">accum=False</span></code>) or accumulate into
-existing TMEM values (<code class="docutils literal notranslate"><span class="pre">accum=True</span></code>).</p></li>
-<li><p><strong>Commit and completion tracking</strong>: After issuing one or more MMAs,
-software uses <code class="docutils literal notranslate"><span class="pre">commit</span></code> to group them. The hardware signals the
-associated mbarrier when the group completes.</p></li>
-<li><p><strong>CTA-group execution</strong>: <code class="docutils literal notranslate"><span class="pre">cta_group</span></code> controls whether one CTA or
-multiple CTAs cooperate on the same MMA operation. This becomes
-important for clustered kernels later in the tutorial.</p></li>
-</ul>
-<p>In short, tcgen05 moves MMA accumulation out of registers and into TMEM,
-which changes both the dataflow and the synchronization model compared
-with earlier generations.</p>
-</section>
-<section id="why-tma-and-tensor-cores-come-together">
-<h2><span class="section-number">1.6. </span>Why TMA and Tensor Cores Come Together<a class="headerlink" href="#why-tma-and-tensor-cores-come-together" title="Permalink to this heading">¶</a></h2>
-<p>The Tensor Core and the TMA are introduced separately, but in practice
-they solve two halves of one problem. A rigorous way to see why needs to
-separate two questions that are often conflated:</p>
-<ol class="arabic simple">
-<li><p>Is the GEMM <em>memory-bound as a whole problem</em>? — a question about the
-global arithmetic intensity of the problem vs the machine’s
-ops-to-byte ratio.</p></li>
-<li><p>Can the Tensor Core be kept fully busy <em>cycle by cycle inside the
-SM</em>? — a question about whether each tile’s operands arrive before
-the MMA on the previous tile finishes.</p></li>
-</ol>
-<p>Confusing these two is the single most common mistake in
-back-of-the-envelope GEMM roofline reasoning.</p>
-<section id="the-whole-problem-roofline">
-<h3><span class="section-number">1.6.1. </span>The whole-problem roofline<a class="headerlink" href="#the-whole-problem-roofline" title="Permalink to this heading">¶</a></h3>
-<p>For a GEMM <span class="math notranslate nohighlight">\(C = AB\)</span> with <span class="math notranslate nohighlight">\(A \in \mathbb{R}^{M \times K}\)</span>,
-<span class="math notranslate nohighlight">\(B \in \mathbb{R}^{K \times N}\)</span> at fp16, total work is
-<span class="math notranslate nohighlight">\(2 M N K\)</span> FLOPs and the <em>minimum</em> bytes that must cross HBM —
-every element read at most once — is <span class="math notranslate nohighlight">\(2(MK + KN + MN)\)</span>. The global
-arithmetic intensity is therefore</p>
-<div class="math notranslate nohighlight" id="equation-chapter-background-index-1">
-<span class="eqno">(1.6.1)<a class="headerlink" href="#equation-chapter-background-index-1" title="Permalink to this equation">¶</a></span>\[\text{AI}_{\text{GEMM}} = \frac{2 M N K}{2(M K + K N + M N)} = \frac{M N K}{M K + K N + M N},\]</div>
-<p>which grows roughly as <span class="math notranslate nohighlight">\(\min(M, N, K)\)</span> (see NVIDIA’s <em>Matrix
-Multiplication Background User’s Guide</em> for the same formula). For
-<span class="math notranslate nohighlight">\(M=N=K=4096\)</span> this is <span class="math notranslate nohighlight">\(\approx 1365\)</span> FLOP/B, about
-<span class="math notranslate nohighlight">\(5\times\)</span> the HBM break-even of
-<span class="math notranslate nohighlight">\(2.25\,\text{PFLOPS}/8\,\text{TB/s} \approx 281\)</span> FLOP/B. Typical
-LLM GEMMs (K in the thousands) are not even close to memory-bound in the
-whole-problem sense.</p>
-</section>
-<section id="why-the-problem-level-answer-is-not-the-kernel-level-answer">
-<h3><span class="section-number">1.6.2. </span>Why the problem-level answer is not the kernel-level answer<a class="headerlink" href="#why-the-problem-level-answer-is-not-the-kernel-level-answer" title="Permalink to this heading">¶</a></h3>
-<p>Being compute-bound as a problem does not automatically make a kernel
-compute-bound. What the kernel actually has to do is feed the SM’s
-Tensor Core one tile after another, and if the <em>time to bring the next
-tile’s operands into SMEM</em> exceeds the <em>time to compute on the current
-tile</em>, the Tensor Core stalls regardless of how favourable the global
-intensity looks.</p>
-<p>For a single <span class="math notranslate nohighlight">\(M \times N\)</span> output tile with inner-K chunk
-<span class="math notranslate nohighlight">\(K_c\)</span>, the tile-level intensity is</p>
-<div class="math notranslate nohighlight" id="equation-chapter-background-index-2">
-<span class="eqno">(1.6.2)<a class="headerlink" href="#equation-chapter-background-index-2" title="Permalink to this equation">¶</a></span>\[\text{AI}_{\text{tile}} = \frac{2 M N K_c}{2(M + N) K_c} = \frac{M N}{M + N}.\]</div>
-<p>For <span class="math notranslate nohighlight">\(128\times128\)</span> that is 64 FLOP/B; for <span class="math notranslate nohighlight">\(256\times256\)</span>,
-128 FLOP/B. Neither clears 281. So if <em>every</em> tile load came as a cold
-miss from HBM, you would have to grow <span class="math notranslate nohighlight">\(M = N\)</span> to roughly
-<span class="math notranslate nohighlight">\(562\)</span> just to break even — impossible in practice.</p>
-</section>
-<section id="the-l2-cache-is-what-makes-small-tiles-viable">
-<h3><span class="section-number">1.6.3. </span>The L2 cache is what makes small tiles viable<a class="headerlink" href="#the-l2-cache-is-what-makes-small-tiles-viable" title="Permalink to this heading">¶</a></h3>
-<p>Blackwell’s B200 has on the order of 100 MB of L2 (NVIDIA’s Blackwell
-tuning guide lists 126 MB on GB200), and the L2’s delivered bandwidth
-into the SM array is several times HBM’s. A sensibly scheduled GEMM
-reuses heavily at L2: along a row of the output grid every tile shares
-the same A-rows; along a column every tile shares the same B-columns.
-Persistent tile schedulers (introduced in
-<a class="reference internal" href="../chapter_gemm_async/index.html#chap-persistent-kernel"><span class="std std-numref">Section 8.3</span></a>) visit tiles in an order that keeps
-these hot operands resident. Measured L2 hit rates for well-scheduled
-GEMMs on B200 are typically 70–90%, so the <em>effective</em> bandwidth an SM
-sees sits much closer to L2 bandwidth than to HBM bandwidth.</p>
-<p>The practical consequence is that the <span class="math notranslate nohighlight">\(MN/(M+N) \geq 281\)</span>
-inequality is the wrong condition to design around. It is the
-HBM-cold-miss worst case. The condition that actually matters is: can
-the <em>L2-hit</em> tile-load time be hidden behind the tile-compute time?
-Because L2 bandwidth per SM is substantially higher than HBM bandwidth
-per SM, 128×128 tiles (with 64 FLOP/B) are fully viable once L2 reuse is
-working.</p>
-</section>
-<section id="what-tma-adds-on-top-of-the-l2">
-<h3><span class="section-number">1.6.4. </span>What TMA adds on top of the L2<a class="headerlink" href="#what-tma-adds-on-top-of-the-l2" title="Permalink to this heading">¶</a></h3>
-<p>Even when operands are in L2, moving them into SMEM still takes real
-time, and the Tensor Core cannot consume operands until they live in
-SMEM (or, for the accumulator, TMEM). Without asynchronous copy the
-kernel has to serialize:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">load</span> <span class="n">tile</span> <span class="n">k</span> <span class="o">-&gt;</span> <span class="n">MMA</span> <span class="n">on</span> <span class="n">tile</span> <span class="n">k</span> <span class="o">-&gt;</span> <span class="n">load</span> <span class="n">tile</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span> <span class="o">-&gt;</span> <span class="n">MMA</span> <span class="n">on</span> <span class="n">tile</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span> <span class="o">-&gt;</span> <span class="o">...</span>
-</pre></div>
-</div>
-<p>and the Tensor Core sits idle during every load interval. With TMA the
-kernel can overlap:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">time</span> <span class="n">t</span>   <span class="p">:</span> <span class="n">MMA</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>       <span class="o">||</span> <span class="n">TMA</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span> <span class="n">into</span> <span class="n">stage</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">time</span> <span class="n">t</span><span class="o">+</span><span class="mi">1</span> <span class="p">:</span> <span class="n">MMA</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>     <span class="o">||</span> <span class="n">TMA</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">2</span> <span class="n">into</span> <span class="n">stage</span> <span class="n">s</span><span class="p">)</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<p>and Tensor Core utilization is governed by
-<span class="math notranslate nohighlight">\(\max(\text{compute time}, \text{load time})\)</span> rather than their
-sum. On top of this, TMA is efficient per transaction: a single
-<code class="docutils literal notranslate"><span class="pre">cp.async.bulk.tensor</span></code> moves a full <span class="math notranslate nohighlight">\(128\times 64\)</span> fp16 tile (16
-KB) in one instruction issued by one elected thread, which leaves the
-other 127 threads in the warpgroup free to run a different MMA, an
-epilogue, or a softmax on a previous tile. Software pipelining
-(<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-numref">Section 8</span></a> Step 5) and warp specialization
-(<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-numref">Section 9</span></a> Step 7) are the software patterns that
-turn this hardware capability into sustained throughput. By the end of
-Part III you will see a kernel issuing a TMA load for tile <span class="math notranslate nohighlight">\(k+2\)</span>
-while the MMA runs on tile <span class="math notranslate nohighlight">\(k+1\)</span> and the writeback reads tile
-<span class="math notranslate nohighlight">\(k\)</span> from TMEM — three hardware units working simultaneously on
-three consecutive tiles.</p>
-</section>
-<section id="takeaways">
-<h3><span class="section-number">1.6.5. </span>Takeaways<a class="headerlink" href="#takeaways" title="Permalink to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><strong>Problem-level AI grows with :math:`min(M,N,K)`.</strong> Large GEMMs are
-compute-bound against the HBM roofline; the 281 FLOP/B break-even
-tells you when a problem <em>could</em> be compute-bound, not whether a given
-kernel <em>is</em>.</p></li>
-<li><p><strong>Tile-level AI of :math:`MN/(M+N)`</strong> is the intensity you would see
-if every tile were a cold HBM miss; it is a worst-case bound, not the
-operating point.</p></li>
-<li><p><strong>L2 reuse is the main lever</strong> that lets 128×128 tiles (64 FLOP/B)
-approach peak throughput. Tile-size alone is not the knob that decides
-whether the kernel is bandwidth-bound.</p></li>
-<li><p><strong>TMA is what turns “compute-bound problem” into “compute-bound
-kernel”</strong> by overlapping whatever tile-load latency remains with
-Tensor Core compute.</p></li>
-</ul>
-</section>
-</section>
-<section id="mbarrier-memory-barrier">
-<h2><span class="section-number">1.7. </span>mbarrier (Memory Barrier)<a class="headerlink" href="#mbarrier-memory-barrier" title="Permalink to this heading">¶</a></h2>
+<section id="memory-barrier-mbarrier">
+<h2><span class="section-number">1.5. </span>Memory Barrier (mbarrier)<a class="headerlink" href="#memory-barrier-mbarrier" title="Permalink to this heading">¶</a></h2>
 <p>mbarriers are hardware synchronization primitives stored in shared
 memory. They combine a counter with a phase bit to enable reusable,
 asynchronous synchronization.</p>
@@ -792,11 +363,11 @@ phase 0.</p></li>
 to arrive:</p>
 <ul class="simple">
 <li><p><strong>TMA auto-arrive</strong>: The hardware arrives automatically once the
-byte transfer completes (tracked via <code class="docutils literal notranslate"><span class="pre">expect_tx</span></code>).</p></li>
+byte transfer completes.</p></li>
 <li><p><strong>tcgen05 auto-arrive</strong>: The hardware arrives once committed MMAs
 complete.</p></li>
-<li><p><strong>Thread arrive</strong>: A thread arrives explicitly (used by writeback
-threads to signal “TMEM is free”).</p></li>
+<li><p><strong>Thread arrive</strong>: A thread arrives explicitly, for example to
+signal that a shared resource can be reused.</p></li>
 </ul>
 </li>
 <li><p><strong>Wait</strong>: A consumer waits until the barrier reaches the expected
@@ -807,101 +378,48 @@ toggles its phase (0 → 1 → 0 → …). This lets the same barrier be
 reused across loop iterations: iteration 0 uses phase 0, iteration 1
 uses phase 1, iteration 2 uses phase 0 again, etc.</p></li>
 </ol>
-<p>This is the basic producer-consumer pattern used throughout the
-tutorial: a producer (for example, TMA) arrives on a barrier when data
-is ready, and the consumer waits on that barrier before using the data.</p>
+<p>The producer-consumer pattern is direct: a producer (for example, TMA)
+arrives on a barrier when data is ready, and the consumer waits before
+using the data.</p>
 </section>
 <section id="synchronization-rules">
-<h2><span class="section-number">1.8. </span>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Permalink to this heading">¶</a></h2>
-<p>Blackwell has multiple asynchronous hardware units (threads, TMA,
-tcgen05 MMA) that read and write different memory spaces. Whenever data
-crosses from one unit or memory space to another, you need explicit
-synchronization:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Data flow</p></th>
-<th class="head"><p>Synchronization needed</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Threads write SMEM → MMA reads
-SMEM (sync copy)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>TMA writes SMEM → MMA reads SMEM
-(async copy)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mbarrier.try_wait</span></code> on the TMA
-completion barrier</p></td>
-</tr>
-<tr class="row-even"><td><p>MMA writes TMEM → Threads read
-TMEM (epilogue)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mbarrier.try_wait</span></code> (optionally
-followed by
-<code class="docutils literal notranslate"><span class="pre">fence.after_thread_sync()</span></code>)</p></td>
-</tr>
-<tr class="row-odd"><td><p>Threads write SMEM → TMA reads
-SMEM (store)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">fence.proxy_async(&quot;shared::cta&quot;)</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Alloc barriers/TMEM → Use them</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">fence.proxy_async</span></code> +
-<code class="docutils literal notranslate"><span class="pre">fence.mbarrier_init</span></code> +
-<code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>All work done → Deallocate TMEM</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> (single-CTA) or
-<code class="docutils literal notranslate"><span class="pre">cluster_sync()</span></code> (cluster)</p></td>
-</tr>
-</tbody>
-</table>
-<p>A few words on why this table is shorter than it looks. <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code>
-is a thread barrier <em>and</em> a release/acquire fence over shared memory, so
-the subsequent MMA issued by the same CTA sees earlier SMEM writes. An
-mbarrier arrival from an async engine (TMA completion, or
-<code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> from an MMA) likewise carries release→acquire
-semantics: once <code class="docutils literal notranslate"><span class="pre">try_wait</span></code> returns, the waiter sees all of the
-producer’s memory effects — including MMA writes to TMEM. In practice
-the mbarrier alone is enough to make the early-step kernels in this
-tutorial (and most of CUTLASS) correct without any explicit fence.
-<code class="docutils literal notranslate"><span class="pre">fence.after_thread_sync()</span></code> is a conservative extra between the
-MMA-completion wait and the first <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>, added in some
-reference kernels (the <code class="docutils literal notranslate"><span class="pre">tirx-kernels</span></code> writeback path used from Step 8
-onward) to make the ordering between prior tcgen05 writes and the
-upcoming thread-proxy reads explicit; it is not needed on the TMA→MMA
-edge. <code class="docutils literal notranslate"><span class="pre">fence.proxy_async(&quot;shared::cta&quot;)</span></code> plays the analogous role on
-the thread→TMA-store edge in SMEM, where no mbarrier is involved.</p>
-<p>Before deallocating TMEM, all CTAs that may still read or write it must
-be finished. For a single-CTA kernel, <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> is sufficient; for
-clustered kernels, <code class="docutils literal notranslate"><span class="pre">cluster_sync()</span></code> is required.</p>
+<h2><span class="section-number">1.6. </span>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Permalink to this heading">¶</a></h2>
+<p>Blackwell kernels mix ordinary thread instructions with asynchronous
+engines such as TMA and <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA. The rule is simple: whenever
+one hardware path produces data and another path consumes it, the kernel
+must make that handoff explicit.</p>
+<p>There are three common handoffs:</p>
+<ul class="simple">
+<li><p><strong>Thread code to hardware engine.</strong> If threads write SMEM and a later
+MMA or TMA store reads it, the kernel needs a thread-level
+synchronization or fence first.</p></li>
+<li><p><strong>TMA to MMA.</strong> If TMA fills SMEM, the MMA side must wait until the
+TMA transfer has completed before reading that tile.</p></li>
+<li><p><strong>MMA to epilogue.</strong> If <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes TMEM, the epilogue must
+wait until the MMA has completed before reading the result.</p></li>
+</ul>
+<p>The same rule applies before releasing resources such as TMEM: every CTA
+that may still read or write the resource must be finished first. The
+GEMM chapters spell out the exact waits and fences used for each
+handoff.</p>
 </section>
 <section id="cta-clusters">
-<h2><span class="section-number">1.9. </span>CTA Clusters<a class="headerlink" href="#cta-clusters" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">1.7. </span>CTA Clusters<a class="headerlink" href="#cta-clusters" title="Permalink to this heading">¶</a></h2>
 <p>Blackwell supports <strong>CTA clusters</strong>: groups of CTAs that can cooperate
-more tightly than independent thread blocks. Key capabilities include:</p>
-<ul class="simple">
-<li><p><strong>shared::cluster memory</strong>: CTAs in the same cluster can access each
-other’s shared memory through the <code class="docutils literal notranslate"><span class="pre">shared::cluster</span></code> address space,
-typically using <code class="docutils literal notranslate"><span class="pre">map_shared_rank</span></code> to obtain the remote pointer.</p></li>
-<li><p><strong>Multicast TMA</strong>: A single TMA command can deliver the same data to
-multiple CTAs simultaneously, reducing global memory bandwidth.</p></li>
-<li><p><strong>Cross-CTA barrier signaling</strong>: mbarrier arrive/wait can be used
-across CTAs in the same cluster, enabling producer-consumer
-synchronization beyond a single CTA.</p></li>
-</ul>
-<p>Clustering gives hardware units such as tcgen05 MMA access to every
-CTA’s shared memory in the cluster, so a single MMA instance can read an
-operand tile that spans multiple SMs’ SMEM and grows the effective MMA
-working set beyond one SM’s 228 KB budget. The global-memory bandwidth
-used is still the sum of each CTA’s own loads — cooperative MMA itself
-does not reduce GMEM traffic. TMA <em>multicast</em> is the complementary
-feature that actually does save GMEM bandwidth, by delivering one GMEM
-tile to every CTA in the cluster from a single load.</p>
+more tightly than independent thread blocks. A clustered kernel can
+coordinate CTAs across multiple SMs, access peer CTA shared memory, and
+synchronize work across the cluster.</p>
+<p>Clusters matter for large tile kernels because one CTA’s local SMEM
+budget is finite. Cooperative MMA can let multiple CTAs contribute SMEM
+operands to one larger MMA tile. TMA multicast is a separate cluster
+feature: one TMA load can deliver the same GMEM tile to multiple CTAs,
+reducing repeated global-memory traffic.</p>
 </section>
-<section id="numbers-to-remember">
-<h2><span class="section-number">1.10. </span>Numbers to Remember<a class="headerlink" href="#numbers-to-remember" title="Permalink to this heading">¶</a></h2>
-<p>Throughout Part III we benchmark kernels against the Blackwell hardware
-limits. Having these reference numbers in working memory makes “is this
-kernel fast?” a calculation you can do in your head.</p>
+<section id="numbers-to-keep-in-mind">
+<h2><span class="section-number">1.8. </span>Numbers to Keep in Mind<a class="headerlink" href="#numbers-to-keep-in-mind" title="Permalink to this heading">¶</a></h2>
+<p>Keep these orders of magnitude in mind when reading the GEMM chapters.
+They explain why kernels stage only a few operand tiles, manage TMEM
+explicitly, and work hard to keep Tensor Cores fed.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Quantity</p></th>
@@ -918,7 +436,9 @@ GPU</p></td>
 persistent schedulers</p></td>
 </tr>
 <tr class="row-odd"><td><p>Shared memory per SM</p></td>
-<td><p>228 KB</p></td>
+<td><p>228 KB on B200 /
+compute capability
+10.0</p></td>
 <td><p>SMEM budget for
 pipeline depth</p></td>
 </tr>
@@ -931,37 +451,37 @@ budget</p></td>
 <tr class="row-odd"><td><p>Registers per thread
 (max)</p></td>
 <td><p>255 × 32-bit</p></td>
-<td><p>why accumulators
-moved off-RF</p></td>
+<td><p>why large accumulator
+tiles are not kept
+entirely in RF</p></td>
 </tr>
-<tr class="row-even"><td><p>tcgen05 peak &#64;
+<tr class="row-even"><td><p>Tensor Core peak &#64;
 FP16/BF16 (dense)</p></td>
-<td><p>~2.25 PFLOPS</p></td>
-<td><p>GEMM roof</p></td>
+<td><p>order of 2 PFLOPS</p></td>
+<td><p>GEMM roof; exact
+value depends on SKU
+and clock</p></td>
 </tr>
-<tr class="row-odd"><td><p>tcgen05 peak &#64; FP8 /
-FP4 (dense)</p></td>
-<td><p>~4.5 / ~9 PFLOPS</p></td>
-<td><p>mixed-precision GEMM</p></td>
+<tr class="row-odd"><td><p>Tensor Core peak &#64;
+FP8 / FP4 (dense)</p></td>
+<td><p>several PFLOPS</p></td>
+<td><p>mixed-precision GEMM;
+exact value depends
+on SKU, clock, and
+sparsity mode</p></td>
 </tr>
 <tr class="row-even"><td><p>HBM3e bandwidth</p></td>
 <td><p>~8 TB/s</p></td>
 <td><p>bandwidth roof</p></td>
 </tr>
 <tr class="row-odd"><td><p>L2 cache</p></td>
-<td><p>~100 MB (B200) / ~126
-MB (GB200)</p></td>
+<td><p>device-specific; 126
+MB on GB200</p></td>
 <td><p>where tile operands
 actually live after
 warm-up</p></td>
 </tr>
-<tr class="row-even"><td><p>HBM cold-miss
-break-even AI</p></td>
-<td><p>~281 FLOP/B</p></td>
-<td><p>only binds if L2
-reuse fails</p></td>
-</tr>
-<tr class="row-odd"><td><p>One fp16 128×64 tile
+<tr class="row-even"><td><p>One fp16 128×64 tile
 in SMEM</p></td>
 <td><p>16 KB</p></td>
 <td><p>TMA transfer
@@ -969,25 +489,11 @@ granularity</p></td>
 </tr>
 </tbody>
 </table>
-<p>Two rules of thumb follow directly from the table:</p>
-<ul class="simple">
-<li><p><strong>Tile choice.</strong> A <span class="math notranslate nohighlight">\(128 \times 128\)</span> fp16 tile has tile-level
-intensity <span class="math notranslate nohighlight">\(MN/(M+N) = 64\)</span> FLOP/B. That is well below the 281 HBM
-cold-miss break-even, but this is only a problem when L2 reuse is
-absent; in a properly scheduled persistent kernel most tile loads hit
-L2, so 128×128 tiles routinely approach peak. Larger tiles
-(<span class="math notranslate nohighlight">\(256 \times 256\)</span> via 2-CTA clustering) help mainly by raising
-occupancy of each MMA issue and reducing control overhead, not by
-crossing a magic AI threshold.</p></li>
-<li><p><strong>SMEM budget.</strong> A 4-stage pipeline with two operand tiles plus a
-(smaller, non-pipelined) output tile easily consumes 150–220 KB, out
-of 228 KB per SM, once barriers and metadata are included. That fits
-but leaves limited slack; this is why Step 5 of the GEMM journey has
-to think carefully about <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code>.</p></li>
-</ul>
-<p>We will revisit these numbers whenever a kernel’s measured throughput is
-reported. If you find yourself without intuition for a benchmark result,
-come back here first.</p>
+<p>NVIDIA often reports multiple peak numbers depending on dtype, sparsity
+mode, and product SKU. Use the table as scale, not as a full performance
+model: SMEM can hold only a small number of staged operand tiles, TMEM
+must be budgeted for accumulator tiles, and Tensor Core throughput is
+high enough that data movement has to overlap compute.</p>
 </section>
 </section>
 
@@ -1000,31 +506,15 @@ come back here first.</p>
       <span class="caption-text">Table Of Contents</span>
     </p>
     <ul>
-<li><a class="reference internal" href="#">1. Background: Blackwell GPU Architecture</a><ul>
+<li><a class="reference internal" href="#">1. Blackwell Background</a><ul>
 <li><a class="reference internal" href="#thread-hierarchy">1.1. Thread Hierarchy</a></li>
-<li><a class="reference internal" href="#memory-hierarchy">1.2. Memory Hierarchy</a></li>
-<li><a class="reference internal" href="#tma-tensor-memory-accelerator">1.3. TMA (Tensor Memory Accelerator)</a></li>
-<li><a class="reference internal" href="#tensor-cores-the-compute-engine">1.4. Tensor Cores: The Compute Engine</a><ul>
-<li><a class="reference internal" href="#why-you-cannot-ignore-them">1.4.1. Why You Cannot Ignore Them</a></li>
-<li><a class="reference internal" href="#instruction-shape-m-times-n-times-k">1.4.2. Instruction Shape (<span class="math notranslate nohighlight">\(M \times N \times K\)</span>)</a></li>
-<li><a class="reference internal" href="#supported-data-types">1.4.3. Supported Data Types</a></li>
-<li><a class="reference internal" href="#generational-evolution">1.4.4. Generational Evolution</a></li>
-<li><a class="reference internal" href="#accumulator-in-tmem-blackwell-specific">1.4.5. Accumulator in TMEM (Blackwell-Specific)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tcgen05-tensor-core-mma">1.5. tcgen05 (Tensor Core MMA)</a></li>
-<li><a class="reference internal" href="#why-tma-and-tensor-cores-come-together">1.6. Why TMA and Tensor Cores Come Together</a><ul>
-<li><a class="reference internal" href="#the-whole-problem-roofline">1.6.1. The whole-problem roofline</a></li>
-<li><a class="reference internal" href="#why-the-problem-level-answer-is-not-the-kernel-level-answer">1.6.2. Why the problem-level answer is not the kernel-level answer</a></li>
-<li><a class="reference internal" href="#the-l2-cache-is-what-makes-small-tiles-viable">1.6.3. The L2 cache is what makes small tiles viable</a></li>
-<li><a class="reference internal" href="#what-tma-adds-on-top-of-the-l2">1.6.4. What TMA adds on top of the L2</a></li>
-<li><a class="reference internal" href="#takeaways">1.6.5. Takeaways</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#mbarrier-memory-barrier">1.7. mbarrier (Memory Barrier)</a></li>
-<li><a class="reference internal" href="#synchronization-rules">1.8. Synchronization Rules</a></li>
-<li><a class="reference internal" href="#cta-clusters">1.9. CTA Clusters</a></li>
-<li><a class="reference internal" href="#numbers-to-remember">1.10. Numbers to Remember</a></li>
+<li><a class="reference internal" href="#memory-spaces">1.2. Memory Spaces</a></li>
+<li><a class="reference internal" href="#tma">1.3. TMA</a></li>
+<li><a class="reference internal" href="#tensor-cores-and-blackwell-mma">1.4. Tensor Cores and Blackwell MMA</a></li>
+<li><a class="reference internal" href="#memory-barrier-mbarrier">1.5. Memory Barrier (mbarrier)</a></li>
+<li><a class="reference internal" href="#synchronization-rules">1.6. Synchronization Rules</a></li>
+<li><a class="reference internal" href="#cta-clusters">1.7. CTA Clusters</a></li>
+<li><a class="reference internal" href="#numbers-to-keep-in-mind">1.8. Numbers to Keep in Mind</a></li>
 </ul>
 </li>
 </ul>
@@ -1039,14 +529,14 @@ come back here first.</p>
          <i class="pagenation-arrow-L fas fa-arrow-left fa-lg"></i>
          <div class="pagenation-text">
             <span class="pagenation-direction">Previous</span>
-            <div>TIRX: High-Performance GPU Kernel Programming</div>
+            <div>TIRX: Blackwell Tile-Primitive Programming</div>
          </div>
      </a>
-     <a id="button-next" href="../chapter_setup/index.html" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored" role="botton" accesskey="N">
+     <a id="button-next" href="../chapter_layouts/index.html" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored" role="botton" accesskey="N">
          <i class="pagenation-arrow-R fas fa-arrow-right fa-lg"></i>
         <div class="pagenation-text">
             <span class="pagenation-direction">Next</span>
-            <div>2. Setup</div>
+            <div>2. Tile Primitive Mental Model</div>
         </div>
      </a>
   </div>
