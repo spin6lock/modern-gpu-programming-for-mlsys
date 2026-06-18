@@ -348,7 +348,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tile-layout">Tile layout</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#named-axes">Named axes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-layout">Distributed layout</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#replication-in-practice-scale-factors-in-tmem">Replication in practice: scale factors in TMEM</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#intra-kernel-replication-pattern-scale-factors-in-tmem">Intra-kernel replication pattern: scale factors in TMEM</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle-layout">Swizzle layout</a></li>
@@ -420,8 +420,8 @@ rather than partitioned:</p>
 </div>
 <iframe src="../demo/tile_distributed.html" title="Distributed layout across a GPU mesh" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: a layout distributed over a 2×2 GPU mesh.</em></p>
-<section id="replication-in-practice-scale-factors-in-tmem">
-<h3>Replication in practice: scale factors in TMEM<a class="headerlink" href="#replication-in-practice-scale-factors-in-tmem" title="Link to this heading">#</a></h3>
+<section id="intra-kernel-replication-pattern-scale-factors-in-tmem">
+<h3>Intra-kernel replication pattern: scale factors in TMEM<a class="headerlink" href="#intra-kernel-replication-pattern-scale-factors-in-tmem" title="Link to this heading">#</a></h3>
 <p>Replication is not only about multiple GPUs — it also describes data the hardware <em>broadcasts across
 lanes</em>. Blackwell’s block-scaled MMA (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>) is the clean example. Its
 scale factors live in TMEM, and a 128-row scale vector is stored in only <strong>32 TMEM lanes</strong> (logical
@@ -511,7 +511,7 @@ is generation-specific; that is the subject of the next chapter.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tile-layout">Tile layout</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#named-axes">Named axes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-layout">Distributed layout</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#replication-in-practice-scale-factors-in-tmem">Replication in practice: scale factors in TMEM</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#intra-kernel-replication-pattern-scale-factors-in-tmem">Intra-kernel replication pattern: scale factors in TMEM</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle-layout">Swizzle layout</a></li>
