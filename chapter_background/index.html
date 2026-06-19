@@ -322,10 +322,9 @@ Tensor Core and TMA engines.</em></p>
 <section id="the-execution-hierarchy">
 <h2>The Execution Hierarchy<a class="headerlink" href="#the-execution-hierarchy" title="Link to this heading">#</a></h2>
 <p>Why does a GPU need so many levels of grouping rather than a flat pool of threads? Because
-different operations cooperate at different granularities — the lanes of a warp execute in
-lockstep, the threads of a CTA share that CTA’s shared memory, the CTAs of a cluster synchronize
-across SMs — and the hardware exposes a level for each kind of cooperation. A GPU organizes its
-threads into a nested hierarchy, and on Blackwell the levels are these:</p>
+cooperation happens at different scales: the lanes of a warp execute in lockstep, the threads of a
+CTA share that CTA’s shared memory, and the CTAs of a cluster synchronize across SMs. A GPU
+organizes its threads into a nested hierarchy, and on Blackwell the levels are these:</p>
 <iframe src="../demo/thread_hierarchy.html" title="Blackwell thread hierarchy" loading="lazy"
         style="width:100%; min-width:900px; height:520px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: click a level — thread → warp → warpgroup → CTA → cluster → grid.</em></p>
 <ul class="simple">
