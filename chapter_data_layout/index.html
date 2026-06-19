@@ -424,7 +424,8 @@ broadcast, written with a replication dimension:</p>
 <p>Four replicas at a stride of 32 lanes: lanes <code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">l+32</span></code>, <code class="docutils literal notranslate"><span class="pre">l+64</span></code>, <code class="docutils literal notranslate"><span class="pre">l+96</span></code> all hold the same scale.
 The replication dimension carries no new data — it says “the same value, in four lane positions,”
 exactly as <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> broadcast a row across the GPU mesh above.</p>
-<p><img alt="SFA/SFB in TMEM: 128 rows packed into 32 lanes (TLane = r % 32), replicated warpx4 to all 128 lanes of the reading warpgroup" src="../_images/sf_tmem.svg" /></p>
+<iframe src="../demo/sf_tmem.html" title="Scale factors in TMEM: packing and warpx4 replication" loading="lazy"
+        style="width:100%; min-width:1040px; height:560px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: hover a TMEM lane — it stores 4 logical M-rows (<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">//</span> <span class="pre">32</span></code> → column) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> to 4 of the warpgroup’s 128 reading lanes.</em></p>
 <p>The byte packing inside each column (the <code class="docutils literal notranslate"><span class="pre">scale_vec</span></code> 1X/2X/4X modes) and the <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> split
 are in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>.</p>
 </section>
