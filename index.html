@@ -170,20 +170,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="tirx_guide/native_basics/cuda.html">CUDA C++/PTX</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/first_kernel.html">Your first kernel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/functions.html">Defining a function</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/control_flow.html">Control flow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/compiling.html">Compiling and inspecting</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tirx_guide/layout.html">Tensor Layout</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
@@ -206,6 +193,14 @@
 <li class="toctree-l1"><a class="reference internal" href="appendix/index.html">Reference</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="tirx_guide/language_reference/cuda/parser_utils.html">Parser utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tirx_guide/language_reference/cuda/data_types.html">Data types and expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tirx_guide/language_reference/cuda/buffers.html">Buffers and memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tirx_guide/language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tirx_guide/language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_api_reference/index.html">TIRx API Reference</a></li>
@@ -334,14 +329,16 @@ marks each handoff between tile operations.</p>
 the performance model (roofline, overlap) that defines “fast”; then a deep dive into data
 layout, the memory engines (TMA and Tensor Memory), the Tensor Core, the barrier/phase
 coordination model, and advanced scheduling (CLC). Everything later is programming <em>this</em> machine.</p></li>
-<li><p><strong>Part II — Programming a GPU with TIRx.</strong> The TIRx native level — writing device kernels
-directly (kernels, buffers, control flow, synchronization, compiling) — and the tensor layout
-model (<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>, named axes, swizzle).</p></li>
+<li><p><strong>Part II — Programming a GPU with TIRx.</strong> An introduction to TIRx through one runnable
+single-MMA GEMM — scope, layout, and dispatch in action, and how compilation works — and the
+tensor layout model (<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>, named axes, swizzle). The full language-feature set lives in
+the Reference.</p></li>
 <li><p><strong>Part III — GEMM: Tiled to SOTA.</strong> The optimization spine — a tiled GEMM built up through
 TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.</p></li>
 <li><p><strong>Part IV — Capstone: Flash Attention.</strong> Composing the whole machine into a real kernel.</p></li>
 <li><p><strong>Part V — Workflow &amp; Practice.</strong> Profiling/debugging and writing kernels with agents.</p></li>
-<li><p><strong>Appendix.</strong> API reference and full source listings.</p></li>
+<li><p><strong>Reference.</strong> TIRx language reference, the API cheat sheet, compiler internals, and the full
+Flash Attention 4 source.</p></li>
 </ul>
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
@@ -360,18 +357,8 @@ TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.<
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tirx_guide/native_basics.html">TIRx Basics: Native Level</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/native_basics.html#what-native-level-means">What “native level” means</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/native_basics.html#the-shared-model">The shared model</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tirx_guide/layout.html">Tensor Layout</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/layout.html#interactive-demo">Interactive demo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/layout.html#tilelayout">TileLayout</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/layout.html#swizzlelayout-composelayout">SwizzleLayout, ComposeLayout</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tirx_guide/layout.html#design-rationale">Design rationale</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tirx_guide/layout.html">Tensor Layout</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -458,6 +445,7 @@ TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.<
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="appendix/index.html">Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tirx_guide/arch/index.html">Compiler Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tirx_guide/language_reference/index.html">TIRx Language Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_api_reference/index.html">TIRx API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_fa4_source/index.html">Flash Attention 4 Source</a></li>
 </ul>

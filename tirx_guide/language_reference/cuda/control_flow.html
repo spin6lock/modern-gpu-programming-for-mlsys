@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Parser utilities &#8212; Modern GPU Programming For MLSys</title>
+    <title>Control flow &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -45,13 +45,13 @@
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'tirx_guide/native_basics/cuda/parser_utils';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tirx_guide/language_reference/cuda/control_flow';</script>
     <script src="../../../_static/demo-embed.js?v=353cd901"></script>
     <link rel="icon" href="../../../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Data types and expressions" href="data_types.html" />
-    <link rel="prev" title="Defining a function" href="functions.html" />
+    <link rel="next" title="CUDA C++/PTX intrinsics" href="threads_sync.html" />
+    <link rel="prev" title="Buffers and memory" href="buffers.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -168,21 +168,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="../cuda.html">CUDA C++/PTX</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="first_kernel.html">Your first kernel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="functions.html">Defining a function</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Parser utilities</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data_types.html">Data types and expressions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="buffers.html">Buffers and memory</a></li>
-<li class="toctree-l3"><a class="reference internal" href="control_flow.html">Control flow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="threads_sync.html">CUDA C++/PTX intrinsics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="compiling.html">Compiling and inspecting</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../layout.html">Tensor Layout</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
@@ -201,10 +188,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../chapter_ai_assisted/index.html">Writing TIRx Kernels with Agents</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">Reference</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">TIRx Language Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parser_utils.html">Parser utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_types.html">Data types and expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buffers.html">Buffers and memory</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Control flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../chapter_api_reference/index.html">TIRx API Reference</a></li>
@@ -280,7 +275,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Parser utilities</h1>
+    <h1>Control flow</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -290,10 +285,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-inline-a-python-value"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline-inline-functions"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> — inline functions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class-parser-side-state-objects"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> — parser-side state objects</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-constexpr"><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if">if</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loop">loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while">while</a></li>
 </ul>
             </nav>
         </div>
@@ -305,59 +299,75 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="parser-utilities">
-<h1>Parser utilities<a class="headerlink" href="#parser-utilities" title="Link to this heading">#</a></h1>
-<p>A few helpers act at <strong>parse time</strong> (when TVMScript is turned into TIRx), letting
-you inline Python-computed values, factor out reusable fragments, and bundle
-parser-side state.</p>
-<section id="t-meta-var-inline-a-python-value">
-<h2><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value<a class="headerlink" href="#t-meta-var-inline-a-python-value" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">T.meta_var(x)</span></code> tells the parser to treat <code class="docutils literal notranslate"><span class="pre">x</span></code> — a value computed in <strong>Python</strong> —
-as a compile-time <em>meta</em> value and inline it directly into the IR, rather than
-parse it as a script variable. It avoids a throwaway local, and it drives
-metaprogramming: a plain Python <code class="docutils literal notranslate"><span class="pre">for</span></code> over a meta value unrolls in the parser.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>              <span class="c1"># n is a Python int, inlined</span>
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>            <span class="c1"># unrolled at parse time</span>
-    <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="t-inline-inline-functions">
-<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> — inline functions<a class="headerlink" href="#t-inline-inline-functions" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> defines a function whose body is <strong>inlined at each call site</strong> during
-parsing — no call appears in the generated code. It follows Python’s lexical (LEGB)
-scoping with late binding, so a parameter shadows an enclosing variable:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@T</span><span class="o">.</span><span class="n">inline</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">add_into</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-    <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span>
+  <section id="control-flow">
+<h1>Control flow<a class="headerlink" href="#control-flow" title="Link to this heading">#</a></h1>
+<p>Control flow is <code class="docutils literal notranslate"><span class="pre">if</span></code>, the loop family, and <code class="docutils literal notranslate"><span class="pre">while</span></code> — each maps to the obvious
+CUDA.</p>
+<section id="if">
+<h2>if<a class="headerlink" href="#if" title="Link to this heading">#</a></h2>
+<p>A Python <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code> becomes a CUDA <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code>. Guard work by a
+thread/lane comparison, or elect a single issuing thread with
+<code class="docutils literal notranslate"><span class="pre">T.ptx.elect_sync()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">tx</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">*</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">+</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
 
-<span class="n">add_into</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>       <span class="c1"># inlined -&gt; acc[0] = acc[0] + A[tx, j]</span>
+<span class="k">if</span> <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">():</span>
+    <span class="o">...</span>                              <span class="c1"># one elected lane (e.g. to issue TMA/MMA)</span>
 </pre></div>
 </div>
-</section>
-<section id="t-meta-class-parser-side-state-objects">
-<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> — parser-side state objects<a class="headerlink" href="#t-meta-class-parser-side-state-objects" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> marks a plain Python class whose <strong>instances are parser meta
-values</strong>: their fields can hold buffers and scalars, so you can bundle related
-allocations and state into one object and use it in the kernel body.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@T</span><span class="o">.</span><span class="n">meta_class</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smem</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">acc</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">decl_buffer</span><span class="p">([</span><span class="mi">64</span><span class="p">],</span> <span class="s2">&quot;float16&quot;</span><span class="p">,</span> <span class="n">smem</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;shared.dyn&quot;</span><span class="p">)</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">smem</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>     <span class="c1"># use its fields like ordinary buffers</span>
-<span class="c1"># ... s.buf[i] ...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(((</span><span class="kt">int</span><span class="p">)</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">128</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>This is handy for grouping a kernel’s pipeline state (barriers, accumulators,
-scratch views) instead of threading many separate locals through the body.</p>
+<p>For an expression-level choice (no branch), use <code class="docutils literal notranslate"><span class="pre">T.if_then_else(cond,</span> <span class="pre">a,</span> <span class="pre">b)</span></code>.</p>
 </section>
-<section id="t-constexpr">
-<h2><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code><a class="headerlink" href="#t-constexpr" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code> marks a compile-time kernel parameter, baked in by <code class="docutils literal notranslate"><span class="pre">&#64;T.jit</span></code>’s
-<code class="docutils literal notranslate"><span class="pre">.specialize(...)</span></code>. See <a class="reference internal" href="functions.html"><span class="doc">Defining a function</span></a> for the details.</p>
+<section id="loop">
+<h2>loop<a class="headerlink" href="#loop" title="Link to this heading">#</a></h2>
+<p>Loops come in four flavors; a plain Python <code class="docutils literal notranslate"><span class="pre">range</span></code> becomes <code class="docutils literal notranslate"><span class="pre">T.serial</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">T.serial(n)</span></code> — a sequential loop (ptxas may still unroll it).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.unroll(n)</span></code> — fully unrolled (expanded to straight-line statements).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.vectorized(n)</span></code> — a vectorized loop.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.grid(*extents)</span></code> — a nested loop nest.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">break</span></code> / <code class="docutils literal notranslate"><span class="pre">continue</span></code> work inside loops.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">T</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">j</span><span class="p">)</span>
+<span class="w">    </span><span class="n">B_ptr</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">max</span><span class="p">(</span><span class="n">A_ptr</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="p">],</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">T.unroll(4)</span></code> instead expands to four straight-line statements with no loop.</p>
+</section>
+<section id="while">
+<h2>while<a class="headerlink" href="#while" title="Link to this heading">#</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">while</span></code> loop runs until its condition is false. Use a mutable scalar counter
+(see <a class="reference internal" href="buffers.html"><span class="doc">Buffers and memory</span></a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">i</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">:</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>It lowers to a <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">(1)</span></code> with an early-exit <code class="docutils literal notranslate"><span class="pre">break</span></code> (the counter is a
+one-element register buffer):</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">64</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">break</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">;</span>
+<span class="w">  </span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -373,20 +383,20 @@ scratch views) instead of threading many separate locals through the body.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="functions.html"
+       href="buffers.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Defining a function</p>
+        <p class="prev-next-title">Buffers and memory</p>
       </div>
     </a>
     <a class="right-next"
-       href="data_types.html"
+       href="threads_sync.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Data types and expressions</p>
+        <p class="prev-next-title">CUDA C++/PTX intrinsics</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -408,10 +418,9 @@ scratch views) instead of threading many separate locals through the body.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-inline-a-python-value"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline-inline-functions"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> — inline functions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class-parser-side-state-objects"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> — parser-side state objects</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-constexpr"><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if">if</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loop">loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while">while</a></li>
 </ul>
   </nav></div>
 

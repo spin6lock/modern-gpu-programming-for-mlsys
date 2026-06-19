@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>CUDA C++/PTX &#8212; Modern GPU Programming For MLSys</title>
+    <title>TIRx Language Reference &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -45,13 +45,13 @@
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'tirx_guide/native_basics/cuda';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tirx_guide/language_reference/index';</script>
     <script src="../../_static/demo-embed.js?v=353cd901"></script>
     <link rel="icon" href="../../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Your first kernel" href="cuda/first_kernel.html" />
-    <link rel="prev" title="TIRx Basics: Native Level" href="../native_basics.html" />
+    <link rel="next" title="Parser utilities" href="cuda/parser_utils.html" />
+    <link rel="prev" title="TIRx lowering pipeline" href="../arch/lowering_pipeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -168,21 +168,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">CUDA C++/PTX</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cuda/first_kernel.html">Your first kernel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/functions.html">Defining a function</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/control_flow.html">Control flow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cuda/compiling.html">Compiling and inspecting</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../layout.html">Tensor Layout</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
@@ -201,10 +188,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../chapter_ai_assisted/index.html">Writing TIRx Kernels with Agents</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">Reference</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">TIRx Language Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cuda/parser_utils.html">Parser utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda/data_types.html">Data types and expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda/buffers.html">Buffers and memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../chapter_api_reference/index.html">TIRx API Reference</a></li>
@@ -278,7 +273,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>CUDA C++/PTX</h1>
+    <h1>TIRx Language Reference</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -292,35 +287,19 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cuda-c-ptx">
-<h1>CUDA C++/PTX<a class="headerlink" href="#cuda-c-ptx" title="Link to this heading">#</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Native-level kernel authoring for the <strong>CUDA backend</strong> (the <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>
-target) — the thread hierarchy, memory scopes, the <code class="docutils literal notranslate"><span class="pre">T.cuda.*</span></code> / <code class="docutils literal notranslate"><span class="pre">T.ptx.*</span></code>
-intrinsics, and the compile / run / inspect loop. For what “native level”
-means in general, see <a class="reference internal" href="../native_basics.html"><span class="doc">TIRx Basics: Native Level</span></a>. The complete kernels in these
-chapters (<code class="docutils literal notranslate"><span class="pre">scale</span></code>, <code class="docutils literal notranslate"><span class="pre">add</span></code>, <code class="docutils literal notranslate"><span class="pre">smem_demo</span></code>, <code class="docutils literal notranslate"><span class="pre">block_sum</span></code>, and the warp
-all-reduce) are tested end-to-end on a CUDA GPU.</p>
-</div>
-<p>All native authoring uses these imports. The <code class="docutils literal notranslate"><span class="pre">__future__</span></code> import lets <code class="docutils literal notranslate"><span class="pre">&#64;T.jit</span></code>
-kernels reference compile-time parameters inside type annotations (see
-<a class="reference internal" href="cuda/functions.html"><span class="doc">Defining a function</span></a>); it is harmless for ordinary kernels:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">tvm</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tvm.script</span><span class="w"> </span><span class="kn">import</span> <span class="n">tirx</span> <span class="k">as</span> <span class="n">T</span>
-</pre></div>
-</div>
+  <section id="tirx-language-reference">
+<span id="chap-language-reference"></span><h1>TIRx Language Reference<a class="headerlink" href="#tirx-language-reference" title="Link to this heading">#</a></h1>
+<p>The full language-feature set for writing TIRx device kernels, factored out of the
+<a class="reference internal" href="../../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a> walkthrough: parser utilities, data types and expressions,
+buffers and memory, control flow, and thread synchronization. Reach for these pages
+when you need the precise spelling or semantics of a feature.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="cuda/first_kernel.html">Your first kernel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cuda/functions.html">Defining a function</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cuda/parser_utils.html">Parser utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cuda/data_types.html">Data types and expressions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cuda/buffers.html">Buffers and memory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cuda/control_flow.html">Control flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cuda/compiling.html">Compiling and inspecting</a></li>
 </ul>
 </div>
 </section>
@@ -337,20 +316,20 @@ kernels reference compile-time parameters inside type annotations (see
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../native_basics.html"
+       href="../arch/lowering_pipeline.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">TIRx Basics: Native Level</p>
+        <p class="prev-next-title">TIRx lowering pipeline</p>
       </div>
     </a>
     <a class="right-next"
-       href="cuda/first_kernel.html"
+       href="cuda/parser_utils.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Your first kernel</p>
+        <p class="prev-next-title">Parser utilities</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
