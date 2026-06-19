@@ -301,14 +301,16 @@
 <li><p>Each barrier carries a <em>phase</em> that flips every round; waiting on the correct phase is what gates a consumer safely.</p></li>
 </ul>
 </div>
-<p>The Tensor Core
-(<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) and TMA (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>) are both <em>asynchronous</em>, and on both of them
-issuing work is not the same as finishing it. That asynchrony is what buys overlap, but it also
-creates a hazard. The moment one engine produces data that another will consume — TMA filling a
-tile that the Tensor Core will read, or the Tensor Core writing a result the epilogue will read —
-the consumer has no built-in way to know the data has actually arrived. Every such handoff must be
-made explicit, or the kernel races. The primitive that makes those handoffs safe, and reusable
-across pipeline iterations, is the <strong>mbarrier</strong>.</p>
+<p><strong>Motivation.</strong> TMA (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>) and the Tensor Core (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) are
+<em>asynchronous</em>: issuing the work returns immediately, long before the work is done. That gap is the
+whole point — it is what lets a load overlap with compute instead of stalling behind it — but it is
+also where kernels go wrong. Read a tile before its load has landed and you get garbage; wait on the
+wrong signal and the kernel deadlocks. Whenever one engine produces data another will consume — TMA
+filling a tile the Tensor Core will read, or the Tensor Core writing a result the epilogue will read
+— the consumer needs an explicit, trustworthy way to know the data has arrived. The <strong>mbarrier</strong>,
+and the <em>phase</em> it carries, is how a kernel makes those handoffs safe and reuses them across pipeline
+iterations: this chapter introduces the barrier itself, then phase tracking, then the handful of
+synchronization rules a tensor-core kernel must obey (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 <section id="the-mbarrier">
 <h2>The mbarrier<a class="headerlink" href="#the-mbarrier" title="Link to this heading">#</a></h2>
 <div style="overflow-x:auto;">

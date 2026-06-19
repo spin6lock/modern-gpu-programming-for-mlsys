@@ -316,13 +316,16 @@
 <li><p>Two constraints hold every generation: global-memory coalescing and shared-memory bank conflicts.</p></li>
 </ul>
 </div>
-<p>What changed from <strong>Ampere</strong> to <strong>Hopper</strong> to <strong>Blackwell</strong> is not the basic operation the tensor
-core performs (still <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">AB</span> <span class="pre">+</span> <span class="pre">C</span></code>) — it is <em>how operands reach the tensor core</em>, plus the shapes,
-dtypes, and accumulator each generation supports. Each generation’s memory and compute engines demand a
-<em>specific</em> operand layout, and getting it wrong is silently slow, or silently wrong. This chapter
-traces that one moving part across the three generations, building on the layout notation from
-<a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a> (<code class="docutils literal notranslate"><span class="pre">S[...]</span></code>, named axes, swizzle). The Blackwell TMEM specifics are in
-<a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Special Memory: TMEM</span></a>.</p>
+<p><strong>Motivation.</strong> The tensor core on every recent GPU performs the same kind of operation — the matrix
+multiply-accumulate <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">AB</span> <span class="pre">+</span> <span class="pre">C</span></code>. So you might expect a kernel that hits peak throughput on one
+generation to carry over to the next. It often does not: the same kernel can run silently slow, or
+return silently wrong results, on the following chip. The reason is that the operation’s high-level
+form stays fixed while <em>how its operands reach the tensor core</em> does not — and neither do the shapes,
+dtypes, and accumulator each generation supports. What each generation actually demands is a
+<em>specific</em> operand layout, and a layout the hardware merely tolerates as ordinary memory can still be
+the wrong one for the tensor core. This chapter follows that one moving part across <strong>Ampere</strong> →
+<strong>Hopper</strong> → <strong>Blackwell</strong>, building on the layout notation from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a> (<code class="docutils literal notranslate"><span class="pre">S[...]</span></code>,
+named axes, swizzle); the Blackwell TMEM specifics are in <a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Special Memory: TMEM</span></a>.</p>
 <section id="two-constraints-that-never-went-away">
 <h2>Two Constraints That Never Went Away<a class="headerlink" href="#two-constraints-that-never-went-away" title="Link to this heading">#</a></h2>
 <p>Before any tensor core enters the picture, two layout rules already hold on every generation. The
