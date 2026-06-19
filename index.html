@@ -175,11 +175,6 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part V — Workflow &amp; Practice</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="chapter_profiling/index.html">Profiling and Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_ai_assisted/index.html">Writing TIRx Kernels with Agents</a></li>
-</ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="appendix/index.html">Reference</a></li>
@@ -325,7 +320,6 @@ foundation for the code examples throughout the book.</p></li>
 TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.</p></li>
 <li><p><strong>Part IV — Flash Attention 4.</strong> A complete attention kernel built from the Part III techniques:
 two MMAs with softmax between them, online-softmax rescaling, causal masking, and GQA.</p></li>
-<li><p><strong>Part V — Workflow &amp; Practice.</strong> Profiling/debugging and writing kernels with agents.</p></li>
 <li><p><strong>Reference.</strong> TIRx language reference, the API cheat sheet, compiler internals, and the full
 Flash Attention 4 source.</p></li>
 </ul>
@@ -399,27 +393,6 @@ Flash Attention 4 source.</p></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_flash_attention/index.html#compile-and-verify">Compile and Verify</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_flash_attention/index.html#differences-from-gemm">Differences from GEMM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chapter_flash_attention/index.html#exercises">Exercises</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part V — Workflow &amp; Practice</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="chapter_profiling/index.html">Profiling and Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_ai_assisted/index.html">Writing TIRx Kernels with Agents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#workflow">Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#from-goal-to-instruction">From Goal to Instruction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#the-tirx-contract-prompt">The TIRx Contract Prompt</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#case-study-elected-mma-commit-bug">Case Study: Elected MMA Commit Bug</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#use-case-1-explain-a-kernel-as-tile-primitives">Use Case 1: Explain a Kernel as Tile Primitives</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#use-case-2-review-a-kernel-change">Use Case 2: Review a Kernel Change</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#use-case-3-debug-from-symptoms">Use Case 3: Debug from Symptoms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#use-case-4-generate-reference-tests">Use Case 4: Generate Reference Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#use-case-5-inspect-generated-cuda">Use Case 5: Inspect Generated CUDA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#agent-review-boundaries">Agent Review Boundaries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#project-context-file">Project Context File</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_ai_assisted/index.html#exercises">Exercises</a></li>
 </ul>
 </li>
 </ul>
