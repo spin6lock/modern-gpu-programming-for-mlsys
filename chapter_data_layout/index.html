@@ -50,7 +50,7 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Data Layout Through GPU Generations" href="../chapter_layout_generations/index.html" />
+    <link rel="next" title="Data Layout Across GPU Generations" href="../chapter_layout_generations/index.html" />
     <link rel="prev" title="What Makes a Kernel Fast" href="../chapter_performance/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -152,7 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Introduction to Data Layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Across GPU Generations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
@@ -305,7 +305,7 @@ memory, which thread’s register, which SMEM bank. The data and its logical sha
 layout is what decides whether an access coalesces, hits distinct banks, or matches the format an
 engine expects, and so it is where much of GPU performance is won or lost. To talk about it
 precisely we need a way to write layouts down. This chapter builds a compact <strong>notation</strong> for
-layouts that the rest of Part I uses; <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a> then applies it to each GPU
+layouts that the rest of Part I uses; <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a> then applies it to each GPU
 generation’s hardware requirements. Treat the notation here as plain mathematical notation — the
 goal is simply to get fluent at reading a layout.</p>
 <section id="the-shapestride-model">
@@ -374,7 +374,7 @@ explicit, a row-major 8×16 tile in memory is just</p>
 <p>The tags earn their keep when a layout describes data <em>spread across threads</em> rather than laid out
 in memory. For instance, <code class="docutils literal notranslate"><span class="pre">S[(8,</span> <span class="pre">4,</span> <span class="pre">2)</span> <span class="pre">:</span> <span class="pre">(4&#64;laneid,</span> <span class="pre">1&#64;laneid,</span> <span class="pre">1&#64;reg)]</span></code> maps rows and columns onto
 lane IDs and a per-lane register instead of linear memory — and this is not a contrived example: it
-is exactly the tensor-core register fragment you will meet in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>.</p>
+is exactly the tensor-core register fragment you will meet in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>.</p>
 <iframe src="../demo/thread_register.html" title="Thread + register layout via named axes" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: a layout over <code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code> — click a cell to see which lane/register holds it.</em></p>
 </section>
@@ -393,7 +393,7 @@ and we express it with a <strong>replication</strong> dimension <code class="doc
 <h3>Intra-kernel replication pattern: scale factors in TMEM<a class="headerlink" href="#intra-kernel-replication-pattern-scale-factors-in-tmem" title="Link to this heading">#</a></h3>
 <p>Replication might sound like a multi-GPU concern, but the same dimension describes something that
 happens inside a single kernel: data the hardware <em>broadcasts across lanes</em>. Blackwell’s
-block-scaled MMA (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>) is the clean example, and it is worth tracing
+block-scaled MMA (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>) is the clean example, and it is worth tracing
 because the layout looks surprising at first. Its scale factors live in TMEM, and a 128-row scale
 vector is stored in only <strong>32 TMEM lanes</strong> (logical row <code class="docutils literal notranslate"><span class="pre">r</span></code> → lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, with <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> running
 along columns). Those 32 stored lanes are then <strong>replicated along the lane axis</strong> so that all 128
@@ -408,7 +408,7 @@ exactly as <code class="docutils literal notranslate"><span class="pre">&#64;gpu
 <iframe src="../demo/sf_tmem.html" title="Scale factors in TMEM: packing and warpx4 replication" loading="lazy"
         style="width:100%; min-width:1040px; height:560px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: hover a TMEM lane — it stores 4 logical M-rows (<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">//</span> <span class="pre">32</span></code> → column) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> to 4 of the warpgroup’s 128 reading lanes.</em></p>
 <p>The byte packing inside each column (the <code class="docutils literal notranslate"><span class="pre">scale_vec</span></code> 1X/2X/4X modes) and the <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> split
-are in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>.</p>
+are in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>.</p>
 </section>
 </section>
 <section id="swizzle-layout">
@@ -467,7 +467,7 @@ demands is generation-specific, and that is precisely the subject of the next ch
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Data Layout Through GPU Generations</p>
+        <p class="prev-next-title">Data Layout Across GPU Generations</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

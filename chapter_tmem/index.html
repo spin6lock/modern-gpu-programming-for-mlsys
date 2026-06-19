@@ -152,7 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Across GPU Generations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Special Memory: TMEM</a></li>
@@ -324,7 +324,7 @@ reach it. Data moves in and out through three dedicated <code class="docutils li
 accumulator and its scale factors need to travel.</p>
 <p>The first, <strong><code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code></strong>, moves <strong>TMEM → registers</strong>. It is a warpgroup-cooperative load with a
 <em>fixed fragment layout</em> (the <code class="docutils literal notranslate"><span class="pre">.32x32b</span></code> / <code class="docutils literal notranslate"><span class="pre">.16x*b</span></code> datapath atoms) that distributes the TMEM tile
-into registers as the <strong>m8n8 register fragment</strong> (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>) — lane <code class="docutils literal notranslate"><span class="pre">l</span></code> gets row
+into registers as the <strong>m8n8 register fragment</strong> (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>) — lane <code class="docutils literal notranslate"><span class="pre">l</span></code> gets row
 <code class="docutils literal notranslate"><span class="pre">l/4</span></code> and two columns. The point of that fixed layout is continuity: the epilogue pulls the
 accumulator out of TMEM into the <em>same</em> per-lane fragment an Ampere <code class="docutils literal notranslate"><span class="pre">mma</span></code> or Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> produces,
 so it can cast and store the result with code that already exists. The second, <strong><code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code></strong>, is

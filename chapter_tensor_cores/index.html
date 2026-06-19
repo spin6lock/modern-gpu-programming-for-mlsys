@@ -154,7 +154,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Across GPU Generations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
@@ -500,7 +500,7 @@ TMEM:</p>
 data operands never do: they are first TMA-loaded into SMEM, then copied SMEM → TMEM with
 <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> before the MMA can run. The TMEM layout is compact — a 128-row scale vector packs into
 just 32 lanes (<code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, with <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> running along columns) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> to all 128
-reading lanes; the full layout is in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>.</p>
+reading lanes; the full layout is in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>.</p>
 <p>The two-CTA case follows a principle worth holding onto: a scale travels with whatever it scales.
 Under <strong><code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code></strong> the scale factors split exactly like the data they describe. <strong>SFA follows
 A</strong>, so each CTA holds the M-half matching its own A rows, whereas <strong>SFB is multicast to both CTAs</strong>,

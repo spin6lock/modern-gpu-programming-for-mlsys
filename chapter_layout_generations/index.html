@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Data Layout Through GPU Generations &#8212; Modern GPU Programming For MLSys</title>
+    <title>Data Layout Across GPU Generations &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -152,7 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Data Layout Across GPU Generations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
@@ -267,7 +267,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Data Layout Through GPU Generations</h1>
+    <h1>Data Layout Across GPU Generations</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -306,8 +306,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="data-layout-through-gpu-generations">
-<span id="chap-layout-generations"></span><h1>Data Layout Through GPU Generations<a class="headerlink" href="#data-layout-through-gpu-generations" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="data-layout-across-gpu-generations">
+<span id="chap-layout-generations"></span><h1>Data Layout Across GPU Generations<a class="headerlink" href="#data-layout-across-gpu-generations" title="Link to this heading">#</a></h1>
 <p>Why organize a chapter by GPU generation at all? Because the thing that actually changed from
 <strong>Ampere</strong> to <strong>Hopper</strong> to <strong>Blackwell</strong> is not the math the tensor core does — it is <em>how operands
 reach the tensor core</em>. Each generation’s memory and compute engines demand a <em>specific</em> operand
