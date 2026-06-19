@@ -317,32 +317,36 @@ synchronization rules a tensor-core kernel must obey (<a class="reference intern
 <iframe src="../demo/mbarrier_mechanism.html" title="mbarrier data structure and APIs" loading="lazy"
         style="width:100%; min-width:1320px; height:620px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: an mbarrier’s counter + phase bit, and its init / arrive / wait APIs.</em></p>
-<p>An mbarrier is a hardware synchronization object stored in shared memory: a counter that knows when
-it has reached zero. It combines an <strong>arrival counter</strong> with a <strong>phase bit</strong>. Its lifecycle is the
-three operations a kernel performs on it:</p>
+<p>An mbarrier is a hardware synchronization object that lives in shared memory. At heart it is just a
+counter that knows when it has reached zero, paired with a single <strong>phase bit</strong>; together the
+<strong>arrival counter</strong> and that phase bit are everything a kernel needs to coordinate a handoff. To see
+how, it helps to walk through the three operations a kernel performs on a barrier over its lifetime.</p>
 <ol class="arabic simple">
-<li><p><strong>Init</strong> — set the expected number of arrivals; the barrier starts at phase 0.</p></li>
-<li><p><strong>Arrive</strong> — each arrival decrements the counter. There are three ways to arrive:</p>
+<li><p><strong>Init.</strong> We tell the barrier how many arrivals to expect. It starts life at phase 0, counter
+loaded, waiting for the first round of work to report in.</p></li>
+<li><p><strong>Arrive.</strong> Each arrival brings the counter one step closer to zero. A barrier can be arrived at
+in three different ways, and the differences matter:</p>
 <ul class="simple">
-<li><p><strong>TMA tx-count arrival</strong> — <code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx(bytes)</span></code> records the expected byte (tx)
-count (and counts as the issuing thread’s arrival); the TMA engine then issues <code class="docutils literal notranslate"><span class="pre">complete-tx</span></code>
-as bytes land, and the barrier’s phase flips only once BOTH the pending arrival count and the
-tx (byte) count are satisfied. It is not a second ordinary “arrival”
-(see <a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> commit arrival</strong> — the arrival requires an explicit
-<code class="docutils literal notranslate"><span class="pre">tcgen05.commit.mbarrier::arrive</span></code>; the commit group’s completion drives the barrier arrival.
-It is not automatic without the commit.</p></li>
-<li><p><strong>Thread arrive</strong> — a thread arrives explicitly, e.g. to signal that a shared buffer is free
-to reuse.</p></li>
+<li><p><strong>TMA tx-count arrival.</strong> Here <code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx(bytes)</span></code> records the expected byte
+(tx) count and also counts as the issuing thread’s arrival. As the load runs, the TMA engine
+issues <code class="docutils literal notranslate"><span class="pre">complete-tx</span></code> while bytes land, and the barrier flips its phase only once BOTH the
+pending arrival count and the tx (byte) count have been satisfied. In other words, the
+<code class="docutils literal notranslate"><span class="pre">expect_tx</span></code> call is not a second ordinary “arrival” — it sets up a byte budget that the
+hardware drains on its own (see <a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> commit arrival.</strong> This one is not automatic. The arrival only happens once you issue
+an explicit <code class="docutils literal notranslate"><span class="pre">tcgen05.commit.mbarrier::arrive</span></code>, and it is the completion of that commit group
+that drives the barrier arrival. Forget the commit and the barrier never advances.</p></li>
+<li><p><strong>Thread arrive.</strong> A thread can also arrive directly, the plain way — for example to announce
+that a shared buffer it was using is now free to reuse.</p></li>
 </ul>
 </li>
-<li><p><strong>Wait</strong> — a consumer blocks until the barrier reaches the expected phase for this iteration,
-which means all required arrivals have happened.</p></li>
+<li><p><strong>Wait.</strong> Finally, a consumer blocks on the barrier until it reaches the phase expected for this
+iteration, which is the same as saying every required arrival has happened.</p></li>
 </ol>
-<p>The first two arrival paths come from the asynchronous engines of the previous
-chapters: the same hardware that runs ahead also reports back through the mbarrier. This gives the
-producer/consumer pattern directly — the producer (say, TMA) arrives
-when its data is ready, and the consumer waits before touching it.</p>
+<p>The first two of these arrival paths come straight from the asynchronous engines we met in the
+previous chapters: the same hardware that runs ahead of the program also reports back through the
+mbarrier. That is what gives us the producer/consumer pattern for free. The producer — TMA, say —
+arrives once its data is ready, and the consumer simply waits before touching it.</p>
 </section>
 <section id="phase-tracking">
 <h2>Phase Tracking<a class="headerlink" href="#phase-tracking" title="Link to this heading">#</a></h2>
@@ -350,30 +354,30 @@ when its data is ready, and the consumer waits before touching it.</p>
 <iframe src="../demo/phase_tracking.html" title="mbarrier phase tracking" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: the phase bit flipping as a barrier is reused across pipeline iterations.</em></p>
-<p>The phase bit exists for reuse. A long
-K-loop runs the same handoff hundreds of times, and allocating a fresh barrier for each iteration
-would be wasteful and would not even fit in SMEM. The barrier is reused, and the phase bit
-keeps successive reuses from being confused for one another. When all arrivals complete, the
-barrier automatically <strong>flips its phase</strong> (0 → 1 → 0 → …), which lets a single barrier serve every
-iteration of a pipelined loop: iteration 0 waits on phase 0, iteration 1 on phase 1, iteration 2 on
-phase 0 again, and so on.</p>
-<p>The consequence is that a pipelined kernel never allocates a barrier per iteration. It keeps a small
-set of barriers and tracks, in a register, <em>which phase</em> the current stage expects. This
-<strong>stage + phase</strong> bookkeeping is precisely how a software pipeline reuses a fixed pool of SMEM
-buffers and barriers across a long K-loop (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
+<p>Why does the barrier carry a phase bit at all? The answer is reuse. A long K-loop runs the very
+same handoff hundreds of times over, and allocating a fresh barrier for each iteration would be both
+wasteful and impossible — that many barriers would never fit in SMEM. So we reuse one barrier, and
+the phase bit is what keeps one round of reuse from being mistaken for the next. Each time all of its
+arrivals complete, the barrier automatically <strong>flips its phase</strong> (0 → 1 → 0 → …). A single barrier
+can therefore serve every iteration of a pipelined loop: iteration 0 waits on phase 0, iteration 1
+on phase 1, iteration 2 on phase 0 again, and so the pattern continues.</p>
+<p>What this buys us is that a pipelined kernel never has to allocate a barrier per iteration. Instead
+it keeps a small set of barriers around and remembers, in a register, <em>which phase</em> the current stage
+is expecting. This bit of <strong>stage + phase</strong> bookkeeping is exactly how a software pipeline manages
+to reuse a fixed pool of SMEM buffers and barriers across a long K-loop (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 </section>
 <section id="synchronization-rules">
 <h2>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Link to this heading">#</a></h2>
-<p>The whole model reduces to a single rule: <strong>whenever one path produces data
-and another consumes it, make the handoff explicit.</strong> A tensor-core kernel only ever exhibits three
-such handoffs:</p>
+<p>For all its moving parts, the model comes down to a single rule: <strong>whenever one path produces data
+and another consumes it, make the handoff explicit.</strong> The pleasant surprise is how few such handoffs
+a tensor-core kernel actually contains — only three ever show up:</p>
 <ul class="simple">
-<li><p><strong>Thread code → engine.</strong> If threads write SMEM and a later MMA or TMA store reads it, insert a
-thread-level sync or fence first.</p></li>
-<li><p><strong>TMA → MMA.</strong> If TMA fills a SMEM tile, the MMA must wait on the load’s mbarrier before reading
-that tile.</p></li>
-<li><p><strong>MMA → epilogue.</strong> If <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes TMEM, the epilogue must wait for the MMA’s completion
-barrier before reading the result.</p></li>
+<li><p><strong>Thread code → engine.</strong> When threads write SMEM and a later MMA or TMA store reads it, insert a
+thread-level sync or fence first, so the writes are visible before the engine goes looking for them.</p></li>
+<li><p><strong>TMA → MMA.</strong> When TMA fills a SMEM tile, the MMA must wait on that load’s mbarrier before it
+reads the tile.</p></li>
+<li><p><strong>MMA → epilogue.</strong> When <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes TMEM, the epilogue must wait on the MMA’s completion
+barrier before it reads the result.</p></li>
 </ul>
 <p>The <strong>TMA → MMA</strong> handoff in motion — the TMA engine satisfies the barrier’s tx (byte) count via
 <code class="docutils literal notranslate"><span class="pre">complete-tx</span></code> as its bytes land, and the consumer’s <code class="docutils literal notranslate"><span class="pre">try_wait</span></code> releases:</p>
@@ -382,10 +386,12 @@ barrier before reading the result.</p></li>
         style="width:100%; min-width:1320px; height:700px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: a TMA load signalling completion through an mbarrier. The <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA → epilogue
 handoff works the same way, with the Tensor Core arriving on the barrier instead of TMA.</em></p>
-<p>The same rule extends to resource reuse, which is a handoff running the other way:
-before TMEM or a SMEM buffer is freed or overwritten, every participant that might still read it
-must first have arrived. The GEMM chapters spell out the exact wait and fence at each of these
-handoffs; those kernels resolve into a sequence of producer/consumer pairs.</p>
+<p>The same rule reaches a little further than it first appears, because resource reuse is itself a
+handoff — just one running in the opposite direction. Before a stretch of TMEM or a SMEM buffer is
+freed or overwritten, every participant that might still be reading it must first have arrived. The
+GEMM chapters work out the exact wait and fence needed at each of these handoffs, and once you see
+them in that light, those kernels dissolve into nothing more than a sequence of producer/consumer
+pairs.</p>
 </section>
 </section>
 
