@@ -453,7 +453,7 @@ need — and the trick — are already there on Ampere.</p>
 B operands <strong>directly from SMEM</strong> — no <code class="docutils literal notranslate"><span class="pre">ldmatrix</span></code>. But the Tensor Core does not read arbitrary
 SMEM: it reads through a 64-bit <strong>matrix descriptor</strong> that fixes the one format the operand may be
 stored in. A GEMM logically has to find where <code class="docutils literal notranslate"><span class="pre">A[m,</span> <span class="pre">k]</span></code> lives; the descriptor is what turns
-<code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">k)</span></code> into a SMEM address. It has four parts (from <code class="docutils literal notranslate"><span class="pre">ptx_wgmma_encode_matrix_descriptor</span></code>):</p>
+<code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">k)</span></code> into a SMEM address. It has four parts:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
@@ -488,9 +488,9 @@ the atom:</p>
 <p>So the kernel’s job is to write A into SMEM in exactly this atom-tiled, swizzled format — the TMA
 load does that — and hand <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> a descriptor whose <code class="docutils literal notranslate"><span class="pre">ldo</span></code> / <code class="docutils literal notranslate"><span class="pre">sdo</span></code> / <code class="docutils literal notranslate"><span class="pre">swizzle</span></code> match (in the kernels
 these are literal constants, e.g. <code class="docutils literal notranslate"><span class="pre">ldo</span> <span class="pre">=</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">sdo</span> <span class="pre">=</span> <span class="pre">64</span></code>, <code class="docutils literal notranslate"><span class="pre">swizzle</span> <span class="pre">=</span> <span class="pre">64B</span></code>). The swizzle is itself a
-first-class format on Hopper — <code class="docutils literal notranslate"><span class="pre">SwizzleMode</span></code> (<code class="docutils literal notranslate"><span class="pre">SWIZZLE_NONE</span> <span class="pre">/</span> <span class="pre">32B</span> <span class="pre">/</span> <span class="pre">64B</span> <span class="pre">/</span> <span class="pre">128B</span></code>) applied through a
-<code class="docutils literal notranslate"><span class="pre">SwizzleLayout</span></code> — and the <em>same</em> format is named in both the TMA descriptor that fills the tile and
-the <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> descriptor that reads it, so the load and the MMA agree by construction. (On Ampere that
+first-class format on Hopper — <code class="docutils literal notranslate"><span class="pre">SWIZZLE_NONE</span> <span class="pre">/</span> <span class="pre">32B</span> <span class="pre">/</span> <span class="pre">64B</span> <span class="pre">/</span> <span class="pre">128B</span></code> — and the <em>same</em> format is named in
+both the TMA descriptor that fills the tile and the <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> descriptor that reads it, so the load and
+the MMA agree by construction. (On Ampere that
 same permutation lived in hand-written index math.)</p>
 <p>The demo below shows the element arrangement inside one atom for each format — <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>
 (8 × 128 B), <code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> (8 × 64 B), and <code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code>:</p>
@@ -518,7 +518,7 @@ genuinely new here is the <strong>scale factors</strong> of a block-scaled MMA.<
 <p>A block-scaled MMA (mxfp8, nvfp4) carries two operands beyond A and B — <code class="docutils literal notranslate"><span class="pre">SFA</span> <span class="pre">(M,</span> <span class="pre">SFK)</span></code> and
 <code class="docutils literal notranslate"><span class="pre">SFB</span> <span class="pre">(N,</span> <span class="pre">SFK)</span></code>, where <code class="docutils literal notranslate"><span class="pre">SFK</span> <span class="pre">=</span> <span class="pre">K</span> <span class="pre">/</span> <span class="pre">block</span></code> — and, unlike A and B, <strong>the scale factors live in TMEM</strong>,
 not SMEM. They take the SMEM→TMEM detour: a TMA load brings them into SMEM, then <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> copies them into TMEM before the MMA.</p>
-<p>The TMEM layout itself (<code class="docutils literal notranslate"><span class="pre">sf_tmem_layout</span></code>, the PTX <em>tcgen05 MMA scale-factor A layout</em>) is the
+<p>The TMEM layout itself (the PTX <em>tcgen05 MMA scale-factor A layout</em>) is the
 lane-replication example from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">What Is Data Layout?</span></a>: a 128-row scale vector packs into 32 lanes
 (row → lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> along TMEM columns at stride <code class="docutils literal notranslate"><span class="pre">epc</span> <span class="pre">=</span> <span class="pre">4</span></code>) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code>
 to all 128 reading lanes (<code class="docutils literal notranslate"><span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">32&#64;TLane]</span></code>).</p>
@@ -644,7 +644,7 @@ consumes it must all agree on the same swizzle, or the tensor core reads scrambl
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -654,7 +654,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

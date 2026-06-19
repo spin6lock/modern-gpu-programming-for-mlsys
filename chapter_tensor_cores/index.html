@@ -421,9 +421,8 @@ share the 128 lanes</strong> (one at align 0, one at align 16). Columns are the 
 contiguously: CTA 0 takes rows 0–127, CTA 1 takes rows 128–255, <strong>each into its own TMEM lanes
 0–127, full N columns</strong>. So the (256, N) accumulator is two separate 128-row TMEM regions, one per
 CTA — not one buffer spanning both. Each CTA holds its own 128 A-rows in SMEM; the <strong>even CTA</strong>
-issues the instruction and commits the completion barrier for the pair (the <code class="docutils literal notranslate"><span class="pre">cta_mask=3</span></code> /
-<code class="docutils literal notranslate"><span class="pre">pair_mask</span></code> you see in the GEMM kernels). This is the mode the 2-CTA cluster GEMM in
-<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> uses.</p>
+issues the instruction and commits the completion barrier for the pair. This is the mode the 2-CTA
+cluster GEMM in <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> uses.</p>
 <p><img alt="cta_group::2, M=256: M split contiguously, 128 rows per CTA across the pair" src="../_images/mma_cg2_m256.svg" /></p>
 <p><strong><code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code>, M = 128.</strong> Also a pair, but each CTA takes only <strong>64 M-rows</strong> (CTA 0 rows 0–63,
 CTA 1 rows 64–127), and N is split in half: within each CTA the low-N half occupies lanes 0–63 and
@@ -507,8 +506,9 @@ block’s scale before the product is summed in f32,</p>
 </table>
 </div>
 <p>So the scale factors take a detour the data operands don’t: they are TMA-loaded into SMEM, then
-copied SMEM → TMEM with <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> before the MMA. In TMEM they are packed as <code class="docutils literal notranslate"><span class="pre">uint32</span></code> cells, with logical row <code class="docutils literal notranslate"><span class="pre">r</span></code> landing at
-TMEM lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">128</span></code>, column <code class="docutils literal notranslate"><span class="pre">col0</span> <span class="pre">+</span> <span class="pre">r</span> <span class="pre">/</span> <span class="pre">128</span></code>.</p>
+copied SMEM → TMEM with <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> before the MMA. In TMEM a 128-row scale vector packs into
+just 32 lanes (<code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, with <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> running along columns) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> to all 128
+reading lanes — the full layout is in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>.</p>
 <p>Under <strong><code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code></strong> the scale factors split exactly like the data they describe: <strong>SFA follows
 A</strong> — each CTA holds the M-half matching its A rows — while <strong>SFB is multicast to both CTAs</strong>, since
 each CTA’s M-half multiplies against the same per-N column scales. In the kernels this is the “load
@@ -582,7 +582,7 @@ SFA per-CTA (single-CTA mask), broadcast SFB (pair mask)” pattern.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -592,7 +592,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

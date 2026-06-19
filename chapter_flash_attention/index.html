@@ -369,6 +369,7 @@ O = O * scale + P @ V_block
 row_max = m_new
 </pre></div>
 </div>
+<p>This pseudocode uses natural <code class="docutils literal notranslate"><span class="pre">exp</span></code> and an explicit <code class="docutils literal notranslate"><span class="pre">/sqrt(d)</span></code> for clarity; the actual kernel folds both <code class="docutils literal notranslate"><span class="pre">1/sqrt(d)</span></code> and <code class="docutils literal notranslate"><span class="pre">log2(e)</span></code> into a single constant <code class="docutils literal notranslate"><span class="pre">scale_log2</span> <span class="pre">=</span> <span class="pre">log2(e)/sqrt(d)</span></code> and evaluates the exponentials with <code class="docutils literal notranslate"><span class="pre">exp2</span></code> on the raw scores (<code class="docutils literal notranslate"><span class="pre">exp(x/sqrt(d))</span> <span class="pre">=</span> <span class="pre">exp2(x</span> <span class="pre">·</span> <span class="pre">scale_log2)</span></code>), since the hardware <code class="docutils literal notranslate"><span class="pre">exp2</span></code> is cheaper than a natural <code class="docutils literal notranslate"><span class="pre">exp</span></code>.</p>
 <p>Here <code class="docutils literal notranslate"><span class="pre">P</span></code> is not the final normalized attention matrix. It is the softmax numerator tile for the current K/V block. After all K/V blocks, the kernel writes <code class="docutils literal notranslate"><span class="pre">O</span> <span class="pre">/</span> <span class="pre">row_sum</span></code>.</p>
 <p>For TIRx, the key question is not only what the algorithm computes, but where each tile lives while the kernel runs. <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">P</span></code>, and <code class="docutils literal notranslate"><span class="pre">O</span></code> are tile values:</p>
 <ul class="simple">
@@ -407,7 +408,7 @@ row_max = m_new
 </tr>
 <tr class="row-odd"><td><p>Score MMA</p></td>
 <td><p>Q in SMEM and K in SMEM -&gt; score tile <code class="docutils literal notranslate"><span class="pre">S</span></code> in TMEM</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(...,</span> <span class="pre">dispatch=&quot;tcgen05&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Tx.warp.gemm_async(...,</span> <span class="pre">dispatch=&quot;tcgen05&quot;)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Softmax read</p></td>
@@ -422,7 +423,7 @@ row_max = m_new
 </tr>
 <tr class="row-even"><td><p>Value MMA</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">P</span></code> in TMEM and V in SMEM -&gt; output accumulator <code class="docutils literal notranslate"><span class="pre">O</span></code> in TMEM</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Tx.gemm_async(...,</span> <span class="pre">dispatch=&quot;tcgen05&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Tx.warp.gemm_async(...,</span> <span class="pre">dispatch=&quot;tcgen05&quot;)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> with a TMEM operand</p></td>
 </tr>
 <tr class="row-odd"><td><p>Correction</p></td>
@@ -620,7 +621,8 @@ P, V -&gt; value MMA -&gt; O
 <div class="math notranslate nohighlight">
 \[O = O + P_{\text{block}}V_{\text{block}}\]</div>
 <p>Here <code class="docutils literal notranslate"><span class="pre">O</span></code> has already been initialized or rescaled for this K/V block. The A operand is <code class="docutils literal notranslate"><span class="pre">P</span></code> in TMEM, the B operand is <code class="docutils literal notranslate"><span class="pre">V</span></code> in SMEM, and the output accumulator is <code class="docutils literal notranslate"><span class="pre">O</span></code> in TMEM:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tx</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># First sub-MMA: columns 0:K_SPLIT (the first 96 of P / rows of V).</span>
+<span class="n">Tx</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">gemm_async</span><span class="p">(</span>
     <span class="n">O_region</span><span class="p">[</span><span class="n">i_q</span><span class="p">],</span>
     <span class="n">P_region</span><span class="p">[</span><span class="n">i_q</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K_SPLIT</span><span class="p">],</span>
     <span class="n">V_smem</span><span class="p">[</span><span class="n">kv_stage</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K_SPLIT</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">HEAD_DIM</span><span class="p">],</span>
@@ -629,6 +631,9 @@ P, V -&gt; value MMA -&gt; O
     <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span>
     <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="c1"># Second sub-MMA over columns K_SPLIT:BLK_N (the last 32) elided for brevity;</span>
+<span class="c1"># it has the same form with accum=True and waits on p_ready_2 first. The two</span>
+<span class="c1"># sub-MMAs together cover all BLK_N columns of P — the last 32 are NOT dropped.</span>
 </pre></div>
 </div>
 <blockquote>
@@ -668,7 +673,7 @@ P, V -&gt; value MMA -&gt; O
 <li><p>Numerator slots hold the <code class="docutils literal notranslate"><span class="pre">P</span></code> tile after the softmax exponentiation step.</p></li>
 <li><p>Output slots hold the fp32 <code class="docutils literal notranslate"><span class="pre">O</span></code> accumulator.</p></li>
 </ul>
-<p>These are not independent buffers in global memory. They are regions of the same TMEM allocation. Sharing is forced, not chosen: with Q-pipeline depth 2 the two <code class="docutils literal notranslate"><span class="pre">S</span></code> slots (2 × MMA_N = 128) and two <code class="docutils literal notranslate"><span class="pre">O</span></code> slots (2 × 128) already fill all 512 fp32 columns of the region, so <code class="docutils literal notranslate"><span class="pre">P</span></code> has no columns of its own — it must alias the same bytes through the fp16 view. The schedule is valid because each region is reused only after the previous consumer has finished. That is why barriers are part of the layout story: TMEM reuse is safe only when the producer-consumer handoff is complete.</p>
+<p>These are not independent buffers in global memory. They are regions of the same TMEM allocation. Sharing is forced, not chosen: with Q-pipeline depth 2 the two <code class="docutils literal notranslate"><span class="pre">S</span></code> slots (2 × MMA_N = 256 columns) and two <code class="docutils literal notranslate"><span class="pre">O</span></code> slots (2 × MMA_N = 256 columns) already fill all 512 fp32 columns of the region (256 + 256 = 512), so <code class="docutils literal notranslate"><span class="pre">P</span></code> has no columns of its own — it must alias the same bytes through the fp16 view. The schedule is valid because each region is reused only after the previous consumer has finished. That is why barriers are part of the layout story: TMEM reuse is safe only when the producer-consumer handoff is complete.</p>
 <p>The kernel allocates TMEM through a <code class="docutils literal notranslate"><span class="pre">T.TMEMPool</span></code>. It takes one fp32 view (<code class="docutils literal notranslate"><span class="pre">tmem</span></code>) for the score and output accumulators, then moves the pool base back to 0 and takes a second, fp16 view (<code class="docutils literal notranslate"><span class="pre">tmem_as_f16</span></code>) that aliases the <em>same</em> physical TMEM:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tmem_pool</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">TMEMPool</span><span class="p">(</span><span class="n">pool</span><span class="p">,</span> <span class="n">total_cols</span><span class="o">=</span><span class="n">N_COLS_TMEM</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="n">CTA_GROUP</span><span class="p">,</span> <span class="n">tmem_addr</span><span class="o">=</span><span class="n">tmem_addr</span><span class="p">)</span>
 <span class="n">tmem</span> <span class="o">=</span> <span class="n">tmem_pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="n">N_COLS_TMEM</span><span class="p">),</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>
@@ -878,13 +883,8 @@ value P0*V[n-2]
 <h2>Causal Masking<a class="headerlink" href="#causal-masking" title="Link to this heading">#</a></h2>
 <p>Causal attention changes which score elements are valid: a query position may only attend to keys at or before that position. In this kernel, causal handling appears in two places.</p>
 <p>First, the K/V loop can stop early for each Q block. <code class="docutils literal notranslate"><span class="pre">get_n_block_max(...)</span></code> computes the last K/V block that this Q block may need, so the kernel does not load or compute K/V blocks that are entirely above the causal diagonal.</p>
-<p>Second, blocks that cross the diagonal still run score MMA, but the softmax stage masks invalid columns before exponentiation. For each row, the code computes a column limit and sets scores beyond that limit to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> in registers:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">col_limit</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-<span class="n">in_bound</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">)</span>
-<span class="n">s_chunk</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_chunk</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">if</span> <span class="n">in_bound</span> <span class="k">else</span> <span class="o">-</span><span class="n">inf</span>
-</pre></div>
-</div>
-<p>The real implementation applies this in chunks with <code class="docutils literal notranslate"><span class="pre">mask_r2p(...)</span></code>, which builds a bit mask instead of branching on every score element. Blocks fully below the diagonal do not need this register mask; blocks crossing the diagonal do.</p>
+<p>Second, blocks that cross the diagonal still run score MMA, but the softmax stage masks invalid columns before exponentiation. For each row, the code derives a per-row column limit from the row’s query position and the current K/V block offset: key columns at or before that limit are kept, and every column past it is set to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> in registers so it contributes nothing to the row max or to the <code class="docutils literal notranslate"><span class="pre">exp2</span></code> numerator.</p>
+<p>The real implementation applies this with <code class="docutils literal notranslate"><span class="pre">mask_r2p(...)</span></code>, which turns the per-row limit into a bit mask over the 32-wide score chunk and applies it to the whole chunk at once, instead of branching on every score element. Blocks fully below the diagonal keep all their columns and do not need this register mask; blocks crossing the diagonal do.</p>
 <p>From the tile-primitive point of view, causal mode does not replace the main data path. It changes the K/V trip count and inserts masking into the RF softmax step between score MMA and <code class="docutils literal notranslate"><span class="pre">P</span></code> writeback.</p>
 </section>
 <section id="gqa-support">
@@ -1107,7 +1107,7 @@ q_head  = row % GQA_RATIO
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -1117,7 +1117,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

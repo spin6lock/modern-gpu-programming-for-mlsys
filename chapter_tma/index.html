@@ -346,8 +346,8 @@ rather than a cooperative thread copy, with very different performance and synch
 <h2>Swizzled Layouts<a class="headerlink" href="#swizzled-layouts" title="Link to this heading">#</a></h2>
 <p>TMA can apply layout <strong>swizzling</strong> as it writes into shared memory, producing a SMEM layout that
 the Tensor Core can read without bank conflicts. The swizzle pattern is part of the TMA descriptor
-and must match the layout the MMA expects — this is the concrete link between <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">What Is Data Layout?</span></a>
-and the hardware, and why GEMM kernels build their SMEM tiles with helpers like <code class="docutils literal notranslate"><span class="pre">tma_shared_layout(...)</span></code>.</p>
+and must match the layout the MMA expects — the concrete link between <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">What Is Data Layout?</span></a> and
+the hardware: the TMA descriptor, the SMEM tile, and the MMA must all agree on the same swizzle.</p>
 </section>
 <section id="completion-loads-vs-stores">
 <h2>Completion: Loads vs. Stores<a class="headerlink" href="#completion-loads-vs-stores" title="Link to this heading">#</a></h2>
@@ -432,7 +432,7 @@ tile overlap the compute on the current one.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -442,7 +442,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

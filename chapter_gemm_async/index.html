@@ -346,7 +346,7 @@
 <p>The following steps are incremental. Step 4 moves the large GMEM &lt;-&gt; SMEM transfers onto TMA. Step 5 adds a two-stage software pipeline so TMA for the next K tile can overlap MMA on the current tile. Step 6 turns the launch into a persistent kernel with a tile scheduler. The SMEM, TMEM, and register layouts still follow the contracts introduced earlier; the new focus is asynchronous handoff between hardware units.</p>
 <section id="step-4-tma-async-load">
 <span id="chap-tma-async"></span><h2>Step 4: TMA Async Load<a class="headerlink" href="#step-4-tma-async-load" title="Link to this heading">#</a></h2>
-<p>Step 4 replaces synchronous <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> with TMA hardware. One thread issues the command, and the hardware performs the tile movement. These steps work at the full M=N=K=4096 size — not the single 128×128 tile of Chapters 1–3 — and their end-to-end timings appear in Chapter 5’s <em>End-to-End Result</em> table.</p>
+<p>Step 4 replaces synchronous <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> with TMA hardware. One thread issues the command, and the hardware performs the tile movement. These steps work at the full M=N=K=4096 size — not the single-tile / small sizes of Steps 1–3 — and their end-to-end timings appear in the <em>End-to-End Result</em> table at the end of <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>.</p>
 <blockquote>
 <div><p><strong>What this step changes — Dispatch</strong></p>
 <ul class="simple">
@@ -572,7 +572,7 @@
 <p>With <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>, the kernel allocates two SMEM stages. The figure shows the intended schedule over K tiles:</p>
 <p><img alt="Pipeline PIPE_DEPTH=2 — the target schedule; this single-warpgroup step only prefetches, full overlap arrives with warp specialization in Step 7" src="../_images/pipe_depth2.png" /></p>
 <p>The first two TMA loads fill the two stages. After that, the stages alternate. While MMA computes on <code class="docutils literal notranslate"><span class="pre">k0</span></code>, TMA can load <code class="docutils literal notranslate"><span class="pre">k2</span></code> into the stage that will be reused next. While MMA computes on <code class="docutils literal notranslate"><span class="pre">k1</span></code>, TMA can load <code class="docutils literal notranslate"><span class="pre">k3</span></code>, and so on. The two hardware paths are different: TMA moves GMEM -&gt; SMEM tiles, while <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> consumes an already-loaded SMEM stage and writes the accumulator to TMEM.</p>
-<p>This simplified single-warpgroup pipeline only overlaps the <em>prefetched</em> stages: the main loop still waits for the current MMA to complete (<code class="docutils literal notranslate"><span class="pre">try_wait(mma_bar,</span> <span class="pre">phase_mma)</span></code>) before issuing the next TMA load, so it does not yet realize the fully concurrent schedule the figure suggests. True producer/consumer overlap — where a dedicated load warp keeps issuing TMA while a separate MMA warp computes — requires warp specialization, which Chapter 5 introduces as Step 7. So read Step 5 as building the multi-stage SMEM ring buffer and per-stage barriers that Step 7 turns into real overlap — plus prefetch that takes the first loads off the critical path.</p>
+<p>This simplified single-warpgroup pipeline only overlaps the <em>prefetched</em> stages: the main loop still waits for the current MMA to complete (<code class="docutils literal notranslate"><span class="pre">try_wait(mma_bar,</span> <span class="pre">phase_mma)</span></code>) before issuing the next TMA load, so it does not yet realize the fully concurrent schedule the figure suggests. True producer/consumer overlap — where a dedicated load warp keeps issuing TMA while a separate MMA warp computes — requires warp specialization, which the next chapter (<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>) introduces as Step 7. So read Step 5 as building the multi-stage SMEM ring buffer and per-stage barriers that Step 7 turns into real overlap — plus prefetch that takes the first loads off the critical path.</p>
 <p>When reading the Step 5 code, look for four changes from Step 4:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span></code> and <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> gain a leading <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> dimension, so each stage has its own SMEM storage.</p></li>
@@ -598,7 +598,7 @@
 <span class="n">tma_load</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">next_k</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>3. Phase management</strong>: the MMA barrier is single-buffered, so <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> flips every iteration. The TMA barriers are double-buffered, so <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> flips when the stage wraps:</p>
+<p><strong>3. Phase management</strong>: each barrier’s phase tracks one barrier slot, so the flip rule follows how many slots that barrier has. The MMA accumulator is a single TMEM slot, so <code class="docutils literal notranslate"><span class="pre">mma_bar</span></code> is a single barrier (<code class="docutils literal notranslate"><span class="pre">mma_bar.ptr_to([0])</span></code>): every iteration reuses the same slot, so <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> flips every iteration. The TMA barriers are a <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code>-element array, one per SMEM stage; a given stage’s barrier is only revisited once per wrap of the ring, so <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> flips only when the stage index wraps back to 0:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">PIPE_DEPTH</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
     <span class="n">phase_tma</span> <span class="o">^=</span> <span class="mi">1</span>
 </pre></div>
@@ -1059,7 +1059,7 @@
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -1069,7 +1069,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

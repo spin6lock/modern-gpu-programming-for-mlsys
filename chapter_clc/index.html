@@ -362,9 +362,8 @@ tile; if it returns the sentinel, exit.</p></li>
 <p>Because step 2 is asynchronous and barrier-tracked, it overlaps with step 1’s compute — the next
 tile’s assignment is ready by the time the current tile finishes, so the SM never stalls waiting
 for work.</p>
-<p>In TIRx this is wrapped by the persistent tile scheduler (<code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code>): the
-persistent-kernel step of the GEMM ladder (<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>) can use CLC so the scheduler
-distributes M×N output tiles by hardware work-stealing rather than a static grid-stride loop. The
+<p>The persistent-kernel step of the GEMM ladder (<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>) uses CLC so output
+tiles are distributed by hardware work-stealing rather than a static grid-stride loop. The
 payoff is best when per-tile cost varies or the tile count does not divide evenly across SMs —
 exactly the cases where a static schedule leaves SMs idle in the tail.</p>
 </section>
@@ -433,7 +432,7 @@ exactly the cases where a static schedule leaves SMs idle in the tail.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -443,7 +442,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

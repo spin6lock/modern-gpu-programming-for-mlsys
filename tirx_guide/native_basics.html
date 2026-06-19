@@ -325,15 +325,19 @@
                   
   <section id="tirx-basics-native-level">
 <span id="chap-tirx-primer"></span><h1>TIRx Basics: Native Level<a class="headerlink" href="#tirx-basics-native-level" title="Link to this heading">#</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This part assumes a working TIRx install (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">tvm.script</span> <span class="pre">import</span> <span class="pre">tirx</span> <span class="pre">as</span> <span class="pre">T</span></code>); see the
+project README for current setup.</p>
+</div>
 <section id="what-native-level-means">
 <h2>What “native level” means<a class="headerlink" href="#what-native-level-means" title="Link to this heading">#</a></h2>
 <p>A native-level TIRx kernel reads like a structured device kernel: you place
 threads yourself, allocate shared/register buffers, write loops and barriers, and
 call device intrinsics directly. There is no automatic scheduling — what you write
-is what is emitted. This is the foundation the higher-level tile primitives are built on; everything
-here is what those primitives
-ultimately lower to, so it is also where you go when a hardware feature does not
-have a primitive yet.</p>
+is what is emitted. It is the foundation the higher-level tile-primitive abstractions (used in the
+GEMM and Flash Attention kernels of Parts III–IV) lower to, and where you go when a hardware
+feature has no higher-level primitive yet.</p>
 </section>
 <section id="the-shared-model">
 <h2>The shared model<a class="headerlink" href="#the-shared-model" title="Link to this heading">#</a></h2>
@@ -421,7 +425,7 @@ and device intrinsics, and the generated source. Pick your backend:</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -431,7 +435,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

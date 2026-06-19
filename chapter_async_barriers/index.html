@@ -367,8 +367,8 @@ iteration of a pipelined loop: iteration 0 waits on phase 0, iteration 1 on phas
 on phase 0 again, and so on.</p>
 <p>So a pipelined kernel doesn’t allocate a barrier per iteration — it keeps a small set of barriers
 and tracks, in a register, <em>which phase</em> the current stage expects. This <strong>stage + phase</strong>
-bookkeeping (a <code class="docutils literal notranslate"><span class="pre">PipelineState</span></code> in Part III does exactly this) is how a software pipeline reuses a
-fixed pool of SMEM buffers and barriers across a long K-loop.</p>
+bookkeeping is how a software pipeline reuses a fixed pool of SMEM buffers and barriers across a
+long K-loop (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 </section>
 <section id="synchronization-rules">
 <h2>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Link to this heading">#</a></h2>
@@ -460,7 +460,7 @@ sequence of producer/consumer pairs rather than a wall of intrinsics.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -470,7 +470,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

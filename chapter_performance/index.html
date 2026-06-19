@@ -369,7 +369,7 @@ the only lever is moving fewer bytes (or moving them faster). A kernel <strong>a
 AI is well below 1 — deep in the memory-bound region. The best such a kernel can do is
 saturate HBM bandwidth, so the design goals are coalesced/TMA loads and fusion (do more math
 per byte loaded).</p></li>
-<li><p><strong>GEMM</strong> has AI that grows with size. For a square <code class="docutils literal notranslate"><span class="pre">M=N=K=N</span></code> fp16 matmul, the ideal is</p>
+<li><p><strong>GEMM</strong> has AI that grows with size. For a square <code class="docutils literal notranslate"><span class="pre">M=N=K</span></code> fp16 matmul, the ideal is</p>
 <div class="math notranslate nohighlight">
 \[\text{AI} = \frac{2N^3}{(3N^2)\cdot 2\,\text{bytes}} = \frac{N}{3}\ \text{FLOP/byte}.\]</div>
 <p>At <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">4096</span></code> that is ≈ 1365 FLOP/byte — far to the right of the ridge. <strong>GEMM at scale is
@@ -418,7 +418,7 @@ helps, and the only further gains come from changing the algorithm so it moves l
 <section id="the-optimization-ladder">
 <h2>The Optimization Ladder<a class="headerlink" href="#the-optimization-ladder" title="Link to this heading">#</a></h2>
 <p>Theory says a 4096³ fp16 GEMM is compute-bound and could approach the ~2 PFLOP/s ceiling. Here
-is what the implementations in Part IV actually measure on a B200 — the same algorithm, climbing
+is what the implementations in Part III actually measure on a B200 — the same algorithm, climbing
 toward the roof one technique at a time.</p>
 <p>The single biggest jump is switching from CUDA-core tiling to the <strong>tensor-core + TMA</strong> path.
 At <code class="docutils literal notranslate"><span class="pre">M=N=K=2048</span></code>:</p>
@@ -502,7 +502,7 @@ epilogue is draining tile <code class="docutils literal notranslate"><span class
 <p>This is why Blackwell exposes the load (TMA), compute (<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>), and store paths as
 <em>independent asynchronous engines</em>, coordinated by mbarriers (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers and Phases</span></a>).
 Software pipelining (step 5) and warp specialization (step 7) are the two structural patterns
-for arranging that overlap; Part IV builds on both.</p>
+for arranging that overlap; Part III builds on both.</p>
 </section>
 <section id="occupancy-and-resource-pressure">
 <h2>Occupancy and Resource Pressure<a class="headerlink" href="#occupancy-and-resource-pressure" title="Link to this heading">#</a></h2>
@@ -518,10 +518,10 @@ mind: classic occupancy-driven latency hiding, and the explicit pipelining this 
 <p>Every later chapter is a concrete answer to “which roof am I under, and what moves me toward
 it”:</p>
 <ul class="simple">
-<li><p>Memory-bound kernels (Part II) → coalesced/TMA loads and fusion.</p></li>
-<li><p>Compute-bound GEMM (Part IV) → tensor cores to raise the ceiling, then TMA + pipelining +
+<li><p>Memory-bound kernels → coalesced/TMA loads and fusion.</p></li>
+<li><p>Compute-bound GEMM (Part III) → tensor cores to raise the ceiling, then TMA + pipelining +
 specialization to reach it.</p></li>
-<li><p>Flash Attention (Part V) → raise AI by keeping tiles on-chip, then apply the same overlap
+<li><p>Flash Attention (Part IV) → raise AI by keeping tiles on-chip, then apply the same overlap
 toolkit.</p></li>
 </ul>
 <p>When a kernel underperforms, return to this chapter’s question first: compute the AI, find the
@@ -597,7 +597,7 @@ roof, and optimize the resource that is actually binding.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -607,7 +607,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>

@@ -354,9 +354,9 @@ tile operations.</p>
 the performance model (roofline, overlap) that defines “fast”; then a deep dive into data
 layout, the memory engines (TMA and Tensor Memory), the Tensor Core, the barrier/phase
 coordination model, and advanced scheduling (CLC). Everything later is programming <em>this</em> machine.</p></li>
-<li><p><strong>Part II — Programming a GPU with TIRx.</strong> Setup, the TIRx language and compile pipeline,
-the scope/layout/dispatch framework, data layouts and swizzle, and your first complete
-kernels (elementwise and reductions).</p></li>
+<li><p><strong>Part II — Programming a GPU with TIRx.</strong> The TIRx native level — writing device kernels
+directly (kernels, buffers, control flow, synchronization, compiling) — and the tensor layout
+model (<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>, named axes, swizzle).</p></li>
 <li><p><strong>Part III — GEMM: Tiled to SOTA.</strong> The optimization spine — a tiled GEMM built up through
 TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.</p></li>
 <li><p><strong>Part IV — Capstone: Flash Attention.</strong> Composing the whole machine into a real kernel.</p></li>
@@ -601,7 +601,7 @@ TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.<
   <div class="footer-item">
     
 <p class="component-author">
-By TIRx Developers
+By MLC Community
 </p>
 
   </div>
@@ -611,7 +611,7 @@ By TIRx Developers
 
   <p class="copyright">
     
-      © Copyright TIRx Developers.
+      © Copyright 2026, MLC Community.
       <br/>
     
   </p>
