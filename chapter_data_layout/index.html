@@ -355,16 +355,20 @@ rule over a fixed buffer, so rearranging a tile is usually a change of <em>layou
 </section>
 <section id="tile-layout">
 <h2>Tile layout<a class="headerlink" href="#tile-layout" title="Link to this heading">#</a></h2>
-<p>GPU kernels rarely work on a whole matrix at once; they work on tiles. Tiling needs no new
-machinery — it is just a layout with more dimensions. An 8×8 matrix cut
-into 2×4 tiles becomes a 4-D layout — <code class="docutils literal notranslate"><span class="pre">(tile_row,</span> <span class="pre">row_in_tile,</span> <span class="pre">tile_col,</span> <span class="pre">col_in_tile)</span></code> — with
-strides chosen so each tile is contiguous:</p>
+<p>So far, we have described layouts for whole tensors. GPU kernels, however, rarely operate on an
+entire matrix at once. Instead, they work on smaller tiles that are loaded, transformed, and
+computed on by different parts of the hardware. The good news is that tiling needs no new
+machinery — it is still just a layout, now written with more dimensions. An 8×8 matrix cut into
+2×4 tiles becomes a 4-D layout — <code class="docutils literal notranslate"><span class="pre">(tile_row,</span> <span class="pre">row_in_tile,</span> <span class="pre">tile_col,</span> <span class="pre">col_in_tile)</span></code> — with strides
+chosen so each tile is contiguous:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(4, 2, 2, 4) : (16, 4, 8, 1)]
 </pre></div>
 </div>
 <p>A logical <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> maps through <code class="docutils literal notranslate"><span class="pre">(i//2,</span> <span class="pre">i%2,</span> <span class="pre">j//4,</span> <span class="pre">j%4)</span></code> and then the strides. Notice that the
 notation expresses tiling without any special “tile” concept at all — it is still the same
 shape–stride model, just with the index split into outer and inner coordinates.</p>
+<p>The following interactive visualization shows how a logical matrix index is decomposed into tile
+coordinates and then mapped to a physical address.</p>
 <iframe src="../demo/tiled_layout.html" title="Tile layout: interactive address computation" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: click a cell to see its tiled index and address.</em></p>
 </section>
