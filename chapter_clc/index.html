@@ -295,14 +295,15 @@
 <div class="overview admonition">
 <p class="admonition-title">Overview</p>
 <ul class="simple">
-<li><p>A persistent kernel keeps one CTA resident per SM and loops over output tiles instead of relaunching a CTA per tile.</p></li>
+<li><p>A persistent kernel keeps about one CTA resident per SM (not a guaranteed 1:1 mapping) and loops over output tiles instead of relaunching a CTA per tile.</p></li>
 <li><p>Cluster Launch Control is the hardware mechanism that hands each persistent CTA its next tile — a work-stealing loop driven by two instructions.</p></li>
 <li><p>The payoff is even SM utilization from launch to finish.</p></li>
 </ul>
 </div>
-<p>To keep every SM busy from launch to finish, a <em>persistent</em> kernel keeps one CTA resident per SM
-and has it loop over many output tiles — rather than launching a fresh CTA per tile — pulling each
-next tile from a scheduler (the pattern Part III builds). One way to supply the next tile is a
+<p>To keep every SM busy from launch to finish, a <em>persistent</em> kernel keeps roughly one CTA resident
+per SM (residency is not a guaranteed 1:1 mapping) and has it loop over many output tiles — rather
+than launching a fresh CTA per tile — pulling each next tile from a scheduler (the pattern Part III
+builds). One way to supply the next tile is a
 <em>static</em> assignment, tile = f(grid index). If tiles cost different amounts, or the tile count
 doesn’t divide evenly across the SMs, the work imbalances: some SMs run out of tiles and sit idle
 while the rest grind through the tail.</p>
@@ -324,32 +325,36 @@ asks the scheduler to <em>cancel the launch</em> of the next pending cluster and
 coordinates instead. The 16-byte response is written to SMEM and an mbarrier is signalled on
 completion (<code class="docutils literal notranslate"><span class="pre">mbarrier::complete_tx::bytes</span></code>), multicast to every CTA in the cluster — so it is
 awaited with the same phase/barrier model as a TMA load (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">query_cancel</span></code></strong> — decodes that response once the barrier fires. If a cluster was successfully
-cancelled (its work stolen), it returns the cancelled cluster’s first <code class="docutils literal notranslate"><span class="pre">ctaid.x</span></code> — the tile to
-process; otherwise it returns a sentinel (<code class="docutils literal notranslate"><span class="pre">0xFFFFFFFF</span></code>) meaning <em>no work left</em>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">query_cancel</span></code></strong> — reads that response once the barrier fires, in two steps:
+<code class="docutils literal notranslate"><span class="pre">clusterlaunchcontrol.query_cancel.is_canceled</span></code> returns a <strong>predicate</strong> (did a cancellation
+succeed?), and only when it did do you call <code class="docutils literal notranslate"><span class="pre">clusterlaunchcontrol.query_cancel.get_first_ctaid</span></code>
+to extract the cancelled cluster’s first CTA id — a coordinate vector (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>), the tile to
+process. A false predicate means <em>no work left</em>; you branch on the predicate, there is no numeric
+sentinel to compare against.</p></li>
 </ul>
 <p>Stealing a tile is implemented as cancelling some other cluster’s pending launch and inheriting its
-coordinates, which is why the answer can be either a real tile or the sentinel that says the grid is
-exhausted.</p>
+coordinates, which is why the response is either a successful cancellation (carrying a real cluster
+coordinate) or a failure that says the grid is exhausted.</p>
 </section>
 <section id="the-work-stealing-loop">
 <h2>The Work-Stealing Loop<a class="headerlink" href="#the-work-stealing-loop" title="Link to this heading">#</a></h2>
 <p>With those two instructions, the persistent kernel becomes a short loop that keeps asking for work
 until there is none left:</p>
 <ol class="arabic simple">
-<li><p>Process the tile this cluster was launched with.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">try_cancel</span></code> the next cluster; wait on its mbarrier.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">query_cancel</span></code>: if it returns a valid <code class="docutils literal notranslate"><span class="pre">ctaid</span></code>, decode it into tile coordinates and process that
-tile; if it returns the sentinel, exit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">try_cancel</span></code> the next cluster — an asynchronous request that returns immediately.</p></li>
+<li><p>Process the tile this cluster already has, while that request is in flight.</p></li>
+<li><p>Wait on the request’s mbarrier, then <code class="docutils literal notranslate"><span class="pre">query_cancel</span></code>: if <code class="docutils literal notranslate"><span class="pre">is_canceled</span></code> is true, read
+<code class="docutils literal notranslate"><span class="pre">get_first_ctaid</span></code>, decode it into tile coordinates, and loop; otherwise exit.</p></li>
 </ol>
-<p>The ordering of these steps matters. Because step 2 is asynchronous and barrier-tracked, it does
-not block — it overlaps with step 1’s compute, so the next tile’s assignment is already in hand by
-the time the current tile finishes. The SM moves from one tile to the next without stalling to ask
-what to do.</p>
-<p>The GEMM ladder (<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>) uses this step: its persistent-kernel stage uses CLC so
-output tiles are distributed by hardware work-stealing rather than a static grid-stride loop. The
-payoff shows up when per-tile cost varies or the tile count does not divide evenly across SMs — the
-cases where a static schedule would have left SMs idle in the tail.</p>
+<p>The ordering matters: the request goes out <em>before</em> the cluster computes its current tile, so the
+asynchronous, barrier-tracked <code class="docutils literal notranslate"><span class="pre">try_cancel</span></code> overlaps that compute. The next tile’s assignment is
+already in hand by the time the current tile finishes, and the SM moves from one tile to the next
+without stalling to ask what to do.</p>
+<p>TIRx exposes CLC as a dynamic tile scheduler. The persistent GEMM shown in <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>
+(Step 6) uses the <em>static</em> <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code> — a grid-stride-style assignment — to keep
+the walkthrough simple; CLC is the drop-in dynamic alternative that distributes tiles by hardware
+work-stealing instead. The payoff shows up when per-tile cost varies or the tile count does not
+divide evenly across SMs — the cases where a static schedule leaves SMs idle in the tail.</p>
 </section>
 </section>
 

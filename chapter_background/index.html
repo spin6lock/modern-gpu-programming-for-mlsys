@@ -335,13 +335,15 @@ independently (so lanes can take different branches).</p></li>
 warpgroup-level MMA (<code class="docutils literal notranslate"><span class="pre">wgmma</span></code>), it is also the cooperation unit for Blackwell Tensor Memory
 access, where the 128 threads cooperatively move a TMEM tile to or from registers.</p></li>
 <li><p><strong>CTA</strong> (<em>Cooperative Thread Array</em>, a.k.a. a CUDA thread block) — the basic scheduling unit.
-A CTA runs on a single SM and owns that SM’s shared memory.</p></li>
+A CTA runs on a single SM and owns a private shared-memory allocation within it; multiple
+resident CTAs share the SM’s shared-memory capacity.</p></li>
 <li><p><strong>Cluster</strong> — a group of cooperating CTAs (across SMs) that can synchronize and access each
 other’s shared memory (distributed shared memory).</p></li>
 </ul>
 <p>These levels matter because Blackwell operations are <strong>not all issued by the same group of
 threads</strong>. A TMA copy is issued by one thread and
-finished by hardware; a TMEM→register load is warpgroup-cooperative; a <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA is committed
+finished by hardware; a TMEM→register load is warpgroup-distributed (four warp-collective
+<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> instructions, one per warp’s 32 TMEM lanes); a <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA is committed
 by one elected thread; a clustered MMA spans two CTAs. Each operation, in other words, has a
 natural granularity, and which threads run it is the operation’s <strong>scope</strong> — the first of the
 book’s three recurring knobs (scope, layout, dispatch).</p>
@@ -385,7 +387,7 @@ through them, each with its own capacity, latency, and access rules:</p>
 <td><p>Low-latency scratchpad; up to 228 KB/SM on B200</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Tensor Memory (TMEM)</strong></p></td>
-<td><p>Per-SM</p></td>
+<td><p>Per-CTA</p></td>
 <td><p>MMA accumulator storage</p></td>
 <td><p>New on Blackwell; used by <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></p></td>
 </tr>
@@ -403,9 +405,11 @@ kernels.</p>
 <p><img alt="Memory dataflow across the hierarchy" src="../_images/memory_dataflow.png" /></p>
 <p><strong>Tensor Memory (TMEM)</strong> is the one memory here without a pre-Blackwell analog; its details are in
 <a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>. Earlier GPUs kept large MMA accumulators in registers; Blackwell instead
-writes <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> accumulator output to TMEM, a per-SM 2D scratchpad (128 rows × up to 512 32-bit
-columns), and the kernel then explicitly reads TMEM into registers for the epilogue. That extra step is not free, and two consequences of it
-show up everywhere later: TMEM reads are <strong>explicit and warpgroup-cooperative</strong>, and TMEM must be
+writes <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> accumulator output to TMEM, a CTA-scoped 2D scratchpad — 128 lanes × up to 512
+32-bit columns per CTA (the array physically lives on the SM) — and the kernel then explicitly reads
+TMEM into registers for the epilogue. That extra step is not free, and two consequences of it
+show up everywhere later: TMEM reads are <strong>explicit and warpgroup-distributed</strong> (four warp-collective
+<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> instructions, one per warp’s 32 TMEM lanes), and TMEM must be
 <strong>explicitly allocated and freed</strong>.</p>
 </section>
 <section id="cta-clusters">
@@ -438,7 +442,9 @@ delivers the same GMEM tile to several CTAs and so cuts redundant global traffic
 together on a GEMM. A GEMM tile flows across the hardware in three stages:</p>
 <ol class="arabic simple">
 <li><p><strong>Load.</strong> A TMA copy (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>) streams an A/B operand tile from GMEM into SMEM. One
-thread issues it; the TMA engine does the transfer and signals an mbarrier when the bytes land.</p></li>
+thread issues it after <code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx(bytes)</span></code> records the expected byte (tx) count;
+the TMA engine issues <code class="docutils literal notranslate"><span class="pre">complete-tx</span></code> as bytes land, and the barrier’s phase flips only once both
+the arrival count and the tx-count are satisfied.</p></li>
 <li><p><strong>Compute.</strong> A <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) reads the SMEM operands and
 accumulates into a TMEM tile. It is issued by one elected thread and signals a barrier when done.</p></li>
 <li><p><strong>Epilogue.</strong> The warpgroup reads the TMEM accumulator into registers, casts it to the output

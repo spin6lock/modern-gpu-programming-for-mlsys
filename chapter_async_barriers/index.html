@@ -322,9 +322,14 @@ three operations a kernel performs on it:</p>
 <li><p><strong>Init</strong> — set the expected number of arrivals; the barrier starts at phase 0.</p></li>
 <li><p><strong>Arrive</strong> — each arrival decrements the counter. There are three ways to arrive:</p>
 <ul class="simple">
-<li><p><strong>TMA auto-arrive</strong> — the hardware arrives once the expected byte count has landed (this is
-the <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx</span></code> mechanism from <a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> auto-arrive</strong> — the hardware arrives once committed MMAs complete.</p></li>
+<li><p><strong>TMA tx-count arrival</strong> — <code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx(bytes)</span></code> records the expected byte (tx)
+count (and counts as the issuing thread’s arrival); the TMA engine then issues <code class="docutils literal notranslate"><span class="pre">complete-tx</span></code>
+as bytes land, and the barrier’s phase flips only once BOTH the pending arrival count and the
+tx (byte) count are satisfied. It is not a second ordinary “arrival”
+(see <a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> commit arrival</strong> — the arrival requires an explicit
+<code class="docutils literal notranslate"><span class="pre">tcgen05.commit.mbarrier::arrive</span></code>; the commit group’s completion drives the barrier arrival.
+It is not automatic without the commit.</p></li>
 <li><p><strong>Thread arrive</strong> — a thread arrives explicitly, e.g. to signal that a shared buffer is free
 to reuse.</p></li>
 </ul>
@@ -368,8 +373,8 @@ that tile.</p></li>
 <li><p><strong>MMA → epilogue.</strong> If <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes TMEM, the epilogue must wait for the MMA’s completion
 barrier before reading the result.</p></li>
 </ul>
-<p>The <strong>TMA → MMA</strong> handoff in motion — the TMA engine arrives on the barrier when its bytes land,
-and the consumer’s <code class="docutils literal notranslate"><span class="pre">try_wait</span></code> releases:</p>
+<p>The <strong>TMA → MMA</strong> handoff in motion — the TMA engine satisfies the barrier’s tx (byte) count via
+<code class="docutils literal notranslate"><span class="pre">complete-tx</span></code> as its bytes land, and the consumer’s <code class="docutils literal notranslate"><span class="pre">try_wait</span></code> releases:</p>
 <div style="overflow-x:auto;">
 <iframe src="../demo/mbarrier_tma_timeline.html" title="mbarrier signalling TMA completion" loading="lazy"
         style="width:100%; min-width:1320px; height:700px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>

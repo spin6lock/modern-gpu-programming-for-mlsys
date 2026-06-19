@@ -316,8 +316,8 @@ threads free for compute.</p>
 <h2>One Thread Issues, Hardware Moves the Tile<a class="headerlink" href="#one-thread-issues-hardware-moves-the-tile" title="Link to this heading">#</a></h2>
 <p>TMA divides the labor: a <strong>single thread issues</strong> a tile copy, and the <strong>hardware performs the
 transfer</strong> in the background. There is no per-thread load/store loop. The issuing thread hands the
-engine a descriptor — the tile shape, strides, and destination — and the engine streams the bytes on
-its own.</p>
+engine a tensor-map descriptor — the global tensor’s shape, strides, and tile/box and swizzle — and a
+destination SMEM address at the copy, and the engine streams the bytes on its own.</p>
 <p>The same logical “copy this tile” can be realized two ways. The threads can cooperate, each pulling
 its share of the data, or one thread can issue a TMA transfer and let the engine do the rest. The
 two paths differ in both performance and synchronization, and choosing between them is a <em>dispatch</em>
@@ -327,7 +327,7 @@ decision — the scope / layout / dispatch lens from the book’s introduction.<
 <h2>Swizzled Layouts<a class="headerlink" href="#swizzled-layouts" title="Link to this heading">#</a></h2>
 <p>The tile also has to land in a form the Tensor Core can read efficiently. TMA can apply layout
 <strong>swizzling</strong> as it writes into shared memory, producing a SMEM layout that the Tensor Core reads
-without bank conflicts. The swizzle pattern travels in the TMA descriptor, and it must match the
+without bank conflicts when the swizzle matches the layout/mode the MMA expects. The swizzle pattern travels in the TMA descriptor, and it must match the
 layout the MMA expects. This links <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a> to the hardware: the TMA descriptor, the
 SMEM tile, and the MMA must all agree on the same swizzle, or the bytes the engine deposits will not
 be the bytes the core wants.</p>
@@ -340,9 +340,9 @@ something reads the data? TMA needs an explicit completion signal, and loads and
 mechanisms.</p>
 <p><img alt="TMA load synchronization flow" src="../_images/tma_sync_flow.png" /></p>
 <p>A <strong>load (GMEM → SMEM)</strong> integrates with an <strong>mbarrier</strong> (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>). The issuing
-thread tells the barrier how many bytes to expect (<code class="docutils literal notranslate"><span class="pre">arrive.expect_tx(total_bytes)</span></code>); the hardware
-arrives on the barrier once exactly that many bytes have landed; and consumers wait on the barrier
-before touching the tile. A <strong>store (SMEM → GMEM)</strong> has no consumer waiting on the result, so it
+thread records the expected byte (tx) count (<code class="docutils literal notranslate"><span class="pre">mbarrier.arrive.expect_tx(bytes)</span></code>); the engine issues
+<code class="docutils literal notranslate"><span class="pre">complete-tx</span></code> as bytes land, and the phase flips only once both the arrival count and the tx-count are
+satisfied; consumers wait on the barrier before touching the tile. A <strong>store (SMEM → GMEM)</strong> has no consumer waiting on the result, so it
 uses a lighter-weight <strong>commit-group / wait-group</strong> mechanism instead: the kernel commits the issued
 store group and later waits for it to drain before reusing the SMEM buffer.</p>
 <p>TMA turns tile movement from a per-thread loop into an asynchronous hardware operation with

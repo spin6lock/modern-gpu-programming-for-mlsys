@@ -618,9 +618,10 @@ The atom is:</p>
 </pre></div>
 </div>
 <p>— 32 rows on <code class="docutils literal notranslate"><span class="pre">TLane</span></code> and <code class="docutils literal notranslate"><span class="pre">sf_per_mma</span></code> scale factors on <code class="docutils literal notranslate"><span class="pre">TCol</span></code>, with the
-replica <code class="docutils literal notranslate"><span class="pre">R[4:32&#64;TLane]</span></code> routing that 32-row group across the <strong>four warps</strong> of a
-warpgroup (stride 32 covers lanes 0–127) — the “warpx4” router, so one physical
-scale-factor group feeds all four warps. The atom is then direct-summed with an
+replica <code class="docutils literal notranslate"><span class="pre">R[4:32&#64;TLane]</span></code> replicating that 32-row group along the TMEM <code class="docutils literal notranslate"><span class="pre">TLane</span></code>
+axis (32 → 128 TMEM lanes, stride 32 covering <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 0–127) — the “warpx4”
+router, so each of the four warps’ 32-lane TMEM window sees the same scale-factor
+group; the actual reads are then done by those warps’ threads. The atom is then direct-summed with an
 outer over <code class="docutils literal notranslate"><span class="pre">(M</span> <span class="pre">rows,</span> <span class="pre">K</span> <span class="pre">scale-factor</span> <span class="pre">groups)</span></code>, packing <code class="docutils literal notranslate"><span class="pre">epc</span> <span class="pre">=</span> <span class="pre">32</span> <span class="pre">/</span> <span class="pre">SF_bits</span></code>
 scale factors into each 32-bit <code class="docutils literal notranslate"><span class="pre">TCol</span></code> cell (e.g. four fp8 <code class="docutils literal notranslate"><span class="pre">e8m0</span></code> SFs per cell);
 optional stride-0 <code class="docutils literal notranslate"><span class="pre">reuse</span></code> and outer <code class="docutils literal notranslate"><span class="pre">pipe_depth</span></code> iters express SF reuse across
@@ -652,7 +653,10 @@ TMEM-lane placement an MMA writes, for datapath <code class="docutils literal no
 row→lane) or <code class="docutils literal notranslate"><span class="pre">&quot;F&quot;</span></code> (M=64, warp-scattered).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tcgen05_atom_layout(instr_shape,</span> <span class="pre">tensor_shape,</span> <span class="pre">dtype)</span></code> — the per-warpgroup
 register tile a <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> / <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> atom (<code class="docutils literal notranslate"><span class="pre">.32x32b</span></code>, <code class="docutils literal notranslate"><span class="pre">.16x64b</span></code>,
-…) moves to and from registers.</p></li>
+…) moves to and from registers. The tile is warpgroup-distributed at the DSL
+level but lowered to four warp-collective <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> / <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code>
+instructions — each PTX instruction is issued by one warp, which moves its own
+32 TMEM lanes.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wg_local_layout(cols,</span> <span class="pre">rows=128)</span></code> — a warpgroup-local register tile, one row
 per thread on <code class="docutils literal notranslate"><span class="pre">tid_in_wg</span></code>.</p></li>
 </ul>
@@ -684,7 +688,7 @@ that conflict <em>structural</em>, not accidental. Take the <code class="docutil
 <code class="docutils literal notranslate"><span class="pre">S[(8,64):(64&#64;m,1&#64;m)]</span></code> — element <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> at address <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">=</span> <span class="pre">64i</span> <span class="pre">+</span> <span class="pre">j</span></code>. One row
 is <code class="docutils literal notranslate"><span class="pre">64</span> <span class="pre">×</span> <span class="pre">2</span> <span class="pre">=</span> <span class="pre">128</span></code> bytes = exactly one bank line, so walking <em>down a column</em>
 (fixed <code class="docutils literal notranslate"><span class="pre">j</span></code>, increasing <code class="docutils literal notranslate"><span class="pre">i</span></code>) jumps a whole bank line each step and lands on the
-<strong>same bank</strong> every time — a 32-way column conflict. The transform below scatters
+<strong>same bank</strong> every time — an 8-way column conflict (8 rows → one bank). The transform below scatters
 those accesses across banks; we close the loop on this exact tile in the worked
 example.</p>
 </section>
@@ -745,8 +749,10 @@ distinct banks, no conflict</strong>. Without the swizzle the same column is
 <code class="docutils literal notranslate"><span class="pre">bank</span> <span class="pre">=</span> <span class="pre">⌊j/2⌋</span></code> for every row — a single bank, fully serialized.</p>
 <p>The 128B/<code class="docutils literal notranslate"><span class="pre">float16</span></code> case above is one instance — with swizzle, a
 read of any <strong>8×16B column is conflict-free, under any format</strong> (32B / 64B / 128B).
-The <code class="docutils literal notranslate"><span class="pre">B</span></code> parameter is chosen per swizzle width precisely so the eight 16-byte rows
-of a column always scatter across distinct banks.</p>
+This holds when the element width, swizzle mode, and access pattern match the
+swizzle (the TMA/MMA descriptor mode the parameters were chosen for), not for an
+arbitrary access. The <code class="docutils literal notranslate"><span class="pre">B</span></code> parameter is chosen per swizzle width precisely so the
+eight 16-byte rows of a column always scatter across distinct banks.</p>
 <p>In the interactive demo, pick a dtype and a swizzle mode (<code class="docutils literal notranslate"><span class="pre">none</span></code> / <code class="docutils literal notranslate"><span class="pre">32B</span></code> /
 <code class="docutils literal notranslate"><span class="pre">64B</span></code> / <code class="docutils literal notranslate"><span class="pre">128B</span></code>) in the <em>Swizzle (SMEM)</em> control. The physical panel switches
 to a <em>line × bank</em> view (each cell is one 4-byte bank word, holding

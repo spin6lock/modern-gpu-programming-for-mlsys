@@ -352,9 +352,10 @@ chapter is the MMA itself: how it is issued and how its operands split across th
 fit the same way into TMEM, and one CTA is sometimes too small to hold a worthwhile tile. A
 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA runs over one CTA (<code class="docutils literal notranslate"><span class="pre">cta_group::1</span></code>) or a pair of CTAs in a cluster
 (<code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code>). The mode and the tile’s <strong>M</strong> together decide how the (M, N) accumulator is laid
-out in TMEM — which lane and column each logical element <code class="docutils literal notranslate"><span class="pre">C[m,</span> <span class="pre">n]</span></code> lands on. The column axis is
-constant across every mode: TMEM is 128 lanes × up to 512 columns, and <strong>N always maps to
-columns</strong>, so what changes from case to case is only the <em>lane</em> mapping of the M rows.
+out in TMEM — which lane and column each logical element <code class="docutils literal notranslate"><span class="pre">C[m,</span> <span class="pre">n]</span></code> lands on (TMEM is 128 lanes ×
+up to 512 columns). In the single-CTA modes N maps to TMEM columns and only the <em>lane</em> mapping of
+the M rows changes from case to case; the 2-CTA mode additionally splits N across lanes, as the
+table shows.
 Not every M is legal in every mode; the combinations are these:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -417,7 +418,7 @@ leaving the upper lanes empty.</p>
 <p><img alt="cta_group::2, M=128: 64 rows per CTA with N split across the lower/upper 64 lanes" src="../_images/mma_cg2_m128.svg" /></p>
 <p>What does <em>not</em> change across the four modes: in every case B (N, K) lives in
 SMEM, and for <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> each CTA supplies operands from its own SMEM (with A split by M as
-above). The accumulator C (M, N) is always f32 in TMEM.</p>
+above). The accumulator C (M, N) is f32 in TMEM for the kernels here; the <code class="docutils literal notranslate"><span class="pre">.kind::f16</span></code> path can also accumulate in f16.</p>
 </section>
 <section id="block-scaled-mma-mxfp8-nvfp4">
 <h2>Block-Scaled MMA (mxfp8 / nvfp4)<a class="headerlink" href="#block-scaled-mma-mxfp8-nvfp4" title="Link to this heading">#</a></h2>

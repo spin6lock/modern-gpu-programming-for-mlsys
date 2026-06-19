@@ -513,7 +513,7 @@ barrier waited before the primitive, and barrier signaled after it.
 </table>
 </div>
 <p>This is a better question than “explain this code” because it forces the answer to use the tutorial’s mental model. If the agent cannot identify the scope, layout, dispatch, or handoff, that is a sign the explanation is incomplete.</p>
-<p>For a line like <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(Dreg_wg,</span> <span class="pre">tmem)</span></code>, a weak explanation is “this copies data.” A useful explanation says: this runs under warpgroup scope, reads a TMEM accumulator tile, writes a warpgroup-distributed register view, lowers to a <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>-style readback, and needs <code class="docutils literal notranslate"><span class="pre">wait.ld()</span></code> before the registers are consumed.</p>
+<p>For a line like <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(Dreg_wg,</span> <span class="pre">tmem)</span></code>, a weak explanation is “this copies data.” A useful explanation says: this runs under warpgroup scope, reads a TMEM accumulator tile, writes a warpgroup-distributed register view, lowers to four warp-collective <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> instructions (each warp moves its own 32 TMEM lanes, covering all 128 lanes), and needs <code class="docutils literal notranslate"><span class="pre">wait.ld()</span></code> before the registers are consumed.</p>
 </section>
 <section id="use-case-2-review-a-kernel-change">
 <h2>Use Case 2: Review a Kernel Change<a class="headerlink" href="#use-case-2-review-a-kernel-change" title="Link to this heading">#</a></h2>
