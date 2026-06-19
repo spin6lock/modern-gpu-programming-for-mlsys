@@ -301,18 +301,24 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="async-coordination-mbarriers">
 <span id="chap-async-barriers"></span><h1>Async Coordination: mbarriers<a class="headerlink" href="#async-coordination-mbarriers" title="Link to this heading">#</a></h1>
-<p>The Tensor Core (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) and TMA (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Asynchronous Data Movement: TMA</span></a>) are both <em>asynchronous</em>:
-issuing work is not the same as finishing it. To build a correct kernel, every time one engine
-produces data another consumes, the handoff must be explicit. The primitive that makes those
-handoffs safe — and reusable across pipeline iterations — is the <strong>mbarrier</strong>.</p>
+<p>By now a theme has emerged from the last two chapters: the Tensor Core
+(<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) and TMA (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Asynchronous Data Movement: TMA</span></a>) are both <em>asynchronous</em>, and on both of them
+issuing work is not the same as finishing it. That asynchrony is what buys overlap, but it also
+creates a hazard. The moment one engine produces data that another will consume — TMA filling a
+tile that the Tensor Core will read, or the Tensor Core writing a result the epilogue will read —
+the consumer has no built-in way to know the data has actually arrived. Every such handoff must be
+made explicit, or the kernel races. The primitive that makes those handoffs safe — and, crucially,
+reusable across pipeline iterations — is the <strong>mbarrier</strong>.</p>
 <section id="the-mbarrier">
 <h2>The mbarrier<a class="headerlink" href="#the-mbarrier" title="Link to this heading">#</a></h2>
 <div style="overflow-x:auto;">
 <iframe src="../demo/mbarrier_mechanism.html" title="mbarrier data structure and APIs" loading="lazy"
         style="width:100%; min-width:1320px; height:620px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: an mbarrier’s counter + phase bit, and its init / arrive / wait APIs.</em></p>
-<p>An mbarrier is a hardware synchronization object stored in shared memory. It combines an
-<strong>arrival counter</strong> with a <strong>phase bit</strong>, and its lifecycle is:</p>
+<p>An mbarrier is a hardware synchronization object stored in shared memory, and at its core it is
+nothing more than a counter that knows when it has reached zero. Concretely it combines an
+<strong>arrival counter</strong> with a <strong>phase bit</strong>, and the way to understand it is to walk its lifecycle —
+the three operations a kernel performs on it:</p>
 <ol class="arabic simple">
 <li><p><strong>Init</strong> — set the expected number of arrivals; the barrier starts at phase 0.</p></li>
 <li><p><strong>Arrive</strong> — each arrival decrements the counter. There are three ways to arrive:</p>
@@ -327,8 +333,10 @@ to reuse.</p></li>
 <li><p><strong>Wait</strong> — a consumer blocks until the barrier reaches the expected phase for this iteration,
 which means all required arrivals have happened.</p></li>
 </ol>
-<p>The producer/consumer pattern is then direct: the producer (say, TMA) arrives when data is ready;
-the consumer waits before touching it.</p>
+<p>Notice that the first two arrival paths come straight from the asynchronous engines of the previous
+chapters: the same hardware that runs ahead also reports back through the mbarrier. With those
+pieces in hand the producer/consumer pattern falls out directly — the producer (say, TMA) arrives
+when its data is ready, and the consumer waits before touching it.</p>
 </section>
 <section id="phase-tracking">
 <h2>Phase Tracking<a class="headerlink" href="#phase-tracking" title="Link to this heading">#</a></h2>
@@ -336,19 +344,24 @@ the consumer waits before touching it.</p>
 <iframe src="../demo/phase_tracking.html" title="mbarrier phase tracking" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: the phase bit flipping as a barrier is reused across pipeline iterations.</em></p>
-<p>The reason an mbarrier carries a <strong>phase bit</strong> is reuse. When all arrivals complete, the barrier
-automatically <strong>flips its phase</strong> (0 → 1 → 0 → …). That lets a single barrier serve every
-iteration of a pipelined loop: iteration 0 waits on phase 0, iteration 1 on phase 1, iteration 2
-on phase 0 again, and so on.</p>
-<p>So a pipelined kernel doesn’t allocate a barrier per iteration — it keeps a small set of barriers
-and tracks, in a register, <em>which phase</em> the current stage expects. This <strong>stage + phase</strong>
-bookkeeping is how a software pipeline reuses a fixed pool of SMEM buffers and barriers across a
-long K-loop (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
+<p>We have mentioned the phase bit twice without yet saying why it exists; the reason is reuse. A long
+K-loop runs the same handoff hundreds of times, and allocating a fresh barrier for each iteration
+would be wasteful and would not even fit in SMEM. So the barrier is reused, and the phase bit is
+what keeps successive reuses from being confused for one another. When all arrivals complete, the
+barrier automatically <strong>flips its phase</strong> (0 → 1 → 0 → …), which lets a single barrier serve every
+iteration of a pipelined loop: iteration 0 waits on phase 0, iteration 1 on phase 1, iteration 2 on
+phase 0 again, and so on.</p>
+<p>The consequence is that a pipelined kernel never allocates a barrier per iteration. It keeps a small
+set of barriers and tracks, in a register, <em>which phase</em> the current stage expects. This
+<strong>stage + phase</strong> bookkeeping is precisely how a software pipeline reuses a fixed pool of SMEM
+buffers and barriers across a long K-loop (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 </section>
 <section id="synchronization-rules">
 <h2>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Link to this heading">#</a></h2>
-<p>The whole model reduces to one rule: <strong>whenever one path produces data and another consumes it,
-make the handoff explicit.</strong> The three handoffs that appear in every tensor-core kernel are:</p>
+<p>For all the machinery, the whole model reduces to a single rule: <strong>whenever one path produces data
+and another consumes it, make the handoff explicit.</strong> What makes this tractable in practice is that
+a tensor-core kernel only ever exhibits three such handoffs, and once you can name them the kernel
+stops looking like a wall of intrinsics. They are:</p>
 <ul class="simple">
 <li><p><strong>Thread code → engine.</strong> If threads write SMEM and a later MMA or TMA store reads it, insert a
 thread-level sync or fence first.</p></li>
@@ -364,10 +377,11 @@ and the consumer’s <code class="docutils literal notranslate"><span class="pre
         style="width:100%; min-width:1320px; height:700px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 </div><p><em>Interactive: a TMA load signalling completion through an mbarrier. The <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA → epilogue
 handoff works the same way, with the Tensor Core arriving on the barrier instead of TMA.</em></p>
-<p>The same rule guards resource reuse: before TMEM or a SMEM buffer is freed or overwritten, every
-participant that might still read it must have arrived. The GEMM chapters spell out the exact wait
-and fence at each handoff; once you recognize the three patterns above, those kernels read as a
-sequence of producer/consumer pairs rather than a wall of intrinsics.</p>
+<p>The same rule extends naturally to resource reuse, which is just a handoff running the other way:
+before TMEM or a SMEM buffer is freed or overwritten, every participant that might still read it
+must first have arrived. The GEMM chapters spell out the exact wait and fence at each of these
+handoffs, but the reading is easy once the patterns are familiar — those kernels resolve into a
+sequence of producer/consumer pairs rather than the wall of intrinsics they first appear to be.</p>
 </section>
 </section>
 

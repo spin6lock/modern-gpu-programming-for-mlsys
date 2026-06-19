@@ -301,47 +301,53 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="special-memory-tmem">
 <span id="chap-tmem"></span><h1>Special Memory: TMEM<a class="headerlink" href="#special-memory-tmem" title="Link to this heading">#</a></h1>
-<p>Blackwell adds a memory space that earlier GPUs do not have: <strong>Tensor Memory (TMEM)</strong>, a per-SM 2D
-scratchpad where the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> Tensor Core (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) keeps its accumulator and, for
-block-scaled MMAs, its scale factors. Because it is a <em>memory</em>, it belongs here alongside TMA: this
+<p>Through Hopper, the Tensor Core’s accumulator lived in registers — which works until the tiles grow
+large enough that the accumulator crowds out everything else the threads need to hold. Blackwell’s
+answer is a memory space earlier GPUs do not have: <strong>Tensor Memory (TMEM)</strong>, a per-SM 2D scratchpad
+where the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> Tensor Core (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) keeps its accumulator and, for
+block-scaled MMAs, its scale factors. Because it is a <em>memory</em>, it belongs here alongside TMA. This
 chapter covers what TMEM is, how it is addressed and allocated, and how data moves in and out of it.</p>
 <section id="a-2d-address-space">
 <h2>A 2D address space<a class="headerlink" href="#a-2d-address-space" title="Link to this heading">#</a></h2>
 <p>Earlier generations kept large MMA accumulators in registers throughout the compute phase; on
 Blackwell <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> instead writes them to TMEM — <strong>128 rows × up to 512 32-bit columns</strong> per
-SM. TMEM is not addressed like linear memory: rows are indexed by a hardware axis called <code class="docutils literal notranslate"><span class="pre">TLane</span></code>
-(128 lanes) and columns by <code class="docutils literal notranslate"><span class="pre">TCol</span></code> (up to 512). A TMEM buffer is declared with a layout over those
-axes — e.g. an accumulator is <code class="docutils literal notranslate"><span class="pre">S[(128,</span> <span class="pre">N)</span> <span class="pre">:</span> <span class="pre">(1&#64;TLane,</span> <span class="pre">1&#64;TCol)]</span></code> in the notation of
-<a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a>.</p>
+SM. The shape hints at how TMEM is addressed: not as a flat byte array, but as a genuine grid. Rows
+are indexed by a hardware axis called <code class="docutils literal notranslate"><span class="pre">TLane</span></code> (128 lanes) and columns by <code class="docutils literal notranslate"><span class="pre">TCol</span></code> (up to 512), and a
+TMEM buffer is declared with a layout over those two axes. An accumulator, for instance, is
+<code class="docutils literal notranslate"><span class="pre">S[(128,</span> <span class="pre">N)</span> <span class="pre">:</span> <span class="pre">(1&#64;TLane,</span> <span class="pre">1&#64;TCol)]</span></code> in the notation of <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a>.</p>
 <p><img alt="TMEM 2D layout: TLane rows × TCol columns" src="../_images/tmem_layout.png" /></p>
 </section>
 <section id="allocation">
 <h2>Allocation<a class="headerlink" href="#allocation" title="Link to this heading">#</a></h2>
-<p>TMEM must be explicitly <strong>allocated and freed</strong> by the kernel. Allocation is done by a single warp,
-in units of 32 columns, with the column count rounded up to a power of two — so TMEM is a budgeted
-per-SM resource, like SMEM. A kernel sizes its TMEM the way it sizes its SMEM ring buffers.</p>
+<p>Unlike registers, which the compiler hands out automatically, TMEM must be explicitly <strong>allocated
+and freed</strong> by the kernel. A single warp does the allocation, in units of 32 columns, with the
+column count rounded up to a power of two. The upshot is that TMEM is a budgeted per-SM resource,
+much like SMEM: a kernel sizes its TMEM the same way it sizes its SMEM ring buffers, and has to live
+within the per-SM limit.</p>
 </section>
 <section id="reading-and-writing-tmem">
 <h2>Reading and writing TMEM<a class="headerlink" href="#reading-and-writing-tmem" title="Link to this heading">#</a></h2>
-<p>TMEM is not addressed like SMEM — there is no <code class="docutils literal notranslate"><span class="pre">ld.shared</span></code> / <code class="docutils literal notranslate"><span class="pre">st.shared</span></code> for it. Data moves in and
-out through three dedicated <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> — TMEM → registers.</strong> A warpgroup-cooperative load with a <em>fixed fragment layout</em>
-(the <code class="docutils literal notranslate"><span class="pre">.32x32b</span></code> / <code class="docutils literal notranslate"><span class="pre">.16x*b</span></code> datapath atoms). It distributes the TMEM tile into registers in the
-<strong>m8n8 register fragment</strong> (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>) — lane <code class="docutils literal notranslate"><span class="pre">l</span></code> gets row <code class="docutils literal notranslate"><span class="pre">l/4</span></code>, two
-columns. So the epilogue pulls the accumulator out of TMEM into the <em>same</em> per-lane fragment an
-Ampere <code class="docutils literal notranslate"><span class="pre">mma</span></code> or Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> produces, then casts and stores it.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> — registers → TMEM.</strong> The reverse, in that same fragment — used to stage data a
-thread already holds in registers (e.g. an A operand) into TMEM.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> — SMEM → TMEM.</strong> A bulk copy (the <code class="docutils literal notranslate"><span class="pre">32x128b.warpx4</span></code> form) — this is what stages the
-block-scaled MMA’s scale factors.</p></li>
-</ul>
+<p>Because TMEM is its own address space, the ordinary <code class="docutils literal notranslate"><span class="pre">ld.shared</span></code> / <code class="docutils literal notranslate"><span class="pre">st.shared</span></code> instructions do not
+reach it. Data moves in and out through three dedicated <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions, one for each path the
+accumulator and its scale factors need to travel.</p>
+<p>The first, <strong><code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code></strong>, moves <strong>TMEM → registers</strong>. It is a warpgroup-cooperative load with a
+<em>fixed fragment layout</em> (the <code class="docutils literal notranslate"><span class="pre">.32x32b</span></code> / <code class="docutils literal notranslate"><span class="pre">.16x*b</span></code> datapath atoms) that distributes the TMEM tile
+into registers as the <strong>m8n8 register fragment</strong> (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Through GPU Generations</span></a>) — lane <code class="docutils literal notranslate"><span class="pre">l</span></code> gets row
+<code class="docutils literal notranslate"><span class="pre">l/4</span></code> and two columns. The point of that fixed layout is continuity: the epilogue pulls the
+accumulator out of TMEM into the <em>same</em> per-lane fragment an Ampere <code class="docutils literal notranslate"><span class="pre">mma</span></code> or Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> produces,
+so it can cast and store the result with code that already exists. The second, <strong><code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code></strong>, is
+the reverse — <strong>registers → TMEM</strong>, in that same fragment — used to stage data a thread already holds
+in registers (an A operand, say) into TMEM. The third, <strong><code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code></strong>, is a bulk <strong>SMEM → TMEM</strong>
+copy (the <code class="docutils literal notranslate"><span class="pre">32x128b.warpx4</span></code> form); this is the instruction that stages a block-scaled MMA’s scale
+factors.</p>
 <p><img alt="tcgen05.ld / st move the TMEM accumulator to and from registers in the m8n8 fragment (lane l → row l/4, two columns)" src="../_images/tcgen05_ldst.svg" /></p>
-<p>All three are <strong>asynchronous</strong>: like TMA and the MMA, they return before the data has moved, so a
-<code class="docutils literal notranslate"><span class="pre">tcgen05.wait</span></code> / commit gates any consumer (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).</p>
-<p>When you reach <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a>, this is the path you will write directly: TMA stages the
-operands into SMEM, <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> accumulates into TMEM, and the epilogue <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>s TMEM back
-into registers to produce the output.</p>
+<p>All three share TMA’s defining trait: they are <strong>asynchronous</strong>. Like TMA and the MMA itself, they
+return before the data has actually moved, so a <code class="docutils literal notranslate"><span class="pre">tcgen05.wait</span></code> / commit must gate any consumer that
+depends on the result (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).</p>
+<p>These three instructions, together with TMA, trace the full life of a tile on Blackwell, and it is
+the path you will write directly when you reach <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a>: TMA stages the operands into
+SMEM, <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> accumulates into TMEM, and the epilogue <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>s TMEM back into registers to
+produce the output.</p>
 </section>
 </section>
 
