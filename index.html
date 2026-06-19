@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=994f5abe" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=98272572" />
     <link rel="stylesheet" type="text/css" href="_static/demo-embed.css?v=e7774416" />
   
   <!-- So that users can add custom icons -->
@@ -50,7 +50,7 @@
     <link rel="icon" href="_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The GPU Execution and Memory Model" href="chapter_background/index.html" />
+    <link rel="next" title="GPU Execution Model" href="chapter_background/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -158,31 +158,19 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="chapter_background/index.html">The GPU Execution and Memory Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="part_data_layout/index.html">Deep Dive into Data Layout</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_data_layout/index.html">What Is Data Layout?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="part_memory/index.html">Memory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tmem/index.html">Tensor Memory (TMEM)</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="part_compute/index.html">Compute</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_async_barriers/index.html">Async Coordination: mbarriers and Phases</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="part_advanced/index.html">Advanced Topics</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_clc/index.html">Cluster Launch Control (CLC)</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_data_layout/index.html">Introduction to Data Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tmem/index.html">Special Memory: TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="tirx_guide/native_basics/cuda.html">CUDA C++/PTX</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/first_kernel.html">Your first kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tirx_guide/native_basics/cuda/functions.html">Defining a function</a></li>
@@ -216,11 +204,11 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="appendix/index.html">Appendix</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/arch/index.html">Compiler Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/api/index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tirx_guide/api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="tirx_guide/api/tirx.html">tvm.tirx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tirx_guide/api/analysis.html">tvm.tirx.analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tirx_guide/api/stmt_functor.html">tvm.tirx.stmt_functor</a></li>
@@ -366,49 +354,15 @@ TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.<
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="chapter_background/index.html">The GPU Execution and Memory Model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#the-execution-hierarchy">The Execution Hierarchy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#compute-cuda-cores-and-tensor-cores">Compute: CUDA Cores and Tensor Cores</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#memory-spaces">Memory Spaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#cta-clusters">CTA Clusters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#the-gemm-data-pipeline">The GEMM Data Pipeline</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_background/index.html#numbers-to-keep-in-mind">Numbers to Keep in Mind</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_performance/index.html">What Makes a Kernel Fast</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#the-roofline-model">The Roofline Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#arithmetic-intensity-of-real-workloads">Arithmetic Intensity of Real Workloads</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#when-arithmetic-intensity-is-low">When Arithmetic Intensity Is Low</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#the-optimization-ladder">The Optimization Ladder</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#overlap-is-the-lever">Overlap Is the Lever</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#occupancy-and-resource-pressure">Occupancy and Resource Pressure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_performance/index.html#what-this-buys-you-later">What This Buys You Later</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part_data_layout/index.html">Deep Dive into Data Layout</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_data_layout/index.html">What Is Data Layout?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part_memory/index.html">Memory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tmem/index.html">Tensor Memory (TMEM)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part_compute/index.html">Compute</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_async_barriers/index.html">Async Coordination: mbarriers and Phases</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_async_barriers/index.html#the-mbarrier">The mbarrier</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_async_barriers/index.html#phase-tracking">Phase Tracking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chapter_async_barriers/index.html#synchronization-rules">Synchronization Rules</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part_advanced/index.html">Advanced Topics</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chapter_clc/index.html">Cluster Launch Control (CLC)</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_background/index.html">GPU Execution Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_performance/index.html">What Makes a Kernel Fast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_data_layout/index.html">Introduction to Data Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_tmem/index.html">Special Memory: TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -562,7 +516,7 @@ TMA pipelining, persistent scheduling, warp specialization, and 2-CTA clusters.<
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">The GPU Execution and Memory Model</p>
+        <p class="prev-next-title">GPU Execution Model</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

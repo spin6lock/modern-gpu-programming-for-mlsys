@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Cluster Launch Control (CLC) &#8212; Modern GPU Programming For MLSys</title>
+    <title>Advanced Topics: Cluster Launch Control &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=994f5abe" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=98272572" />
     <link rel="stylesheet" type="text/css" href="../_static/demo-embed.css?v=e7774416" />
   
   <!-- So that users can add custom icons -->
@@ -51,7 +51,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="TIRx Basics: Native Level" href="../tirx_guide/native_basics.html" />
-    <link rel="prev" title="Advanced Topics" href="../part_advanced/index.html" />
+    <link rel="prev" title="Async Coordination: mbarriers" href="../chapter_async_barriers/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -157,31 +157,19 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">The GPU Execution and Memory Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_data_layout/index.html">Deep Dive into Data Layout</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_data_layout/index.html">What Is Data Layout?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_memory/index.html">Memory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tmem/index.html">Tensor Memory (TMEM)</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_compute/index.html">Compute</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers and Phases</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../part_advanced/index.html">Advanced Topics</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Cluster Launch Control (CLC)</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tirx_guide/native_basics/cuda.html">CUDA C++/PTX</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/first_kernel.html">Your first kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/functions.html">Defining a function</a></li>
@@ -215,11 +203,11 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Appendix</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/tirx.html">tvm.tirx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/analysis.html">tvm.tirx.analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/stmt_functor.html">tvm.tirx.stmt_functor</a></li>
@@ -300,7 +288,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Cluster Launch Control (CLC)</h1>
+    <h1>Advanced Topics: Cluster Launch Control</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -323,8 +311,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="cluster-launch-control-clc">
-<span id="chap-clc"></span><h1>Cluster Launch Control (CLC)<a class="headerlink" href="#cluster-launch-control-clc" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="advanced-topics-cluster-launch-control">
+<span id="chap-clc"></span><h1>Advanced Topics: Cluster Launch Control<a class="headerlink" href="#advanced-topics-cluster-launch-control" title="Link to this heading">#</a></h1>
 <p>A <em>persistent</em> kernel keeps one CTA resident per SM and has it loop over many output tiles —
 instead of launching a fresh CTA per tile — taking each next tile from a scheduler (the pattern
 Part III builds). With a <em>static</em> assignment — tile = f(grid index) — the work can imbalance: if
@@ -335,7 +323,7 @@ this. Instead of computing its next tile from a fixed formula, a persistent clus
 scheduler — in hardware — for the next not-yet-launched cluster’s work and takes it over. Work is
 handed out dynamically, so an SM that finishes early immediately pulls more.</p>
 <p>Thread block clusters <em>themselves</em> — launching CTAs in clusters with DSMEM and cluster barriers —
-are a Hopper feature (<a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">The GPU Execution and Memory Model</span></a>). CLC is the Blackwell addition that makes their
+are a Hopper feature (<a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">GPU Execution Model</span></a>). CLC is the Blackwell addition that makes their
 <strong>scheduling</strong> dynamic.</p>
 <section id="the-two-instructions">
 <h2>The Two Instructions<a class="headerlink" href="#the-two-instructions" title="Link to this heading">#</a></h2>
@@ -345,7 +333,7 @@ are a Hopper feature (<a class="reference internal" href="../chapter_background/
 asks the scheduler to <em>cancel the launch</em> of the next pending cluster and hand this cluster its
 coordinates instead. The 16-byte response is written to SMEM and an mbarrier is signalled on
 completion (<code class="docutils literal notranslate"><span class="pre">mbarrier::complete_tx::bytes</span></code>), multicast to every CTA in the cluster — so it is
-awaited with the same phase/barrier model as a TMA load (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers and Phases</span></a>).</p></li>
+awaited with the same phase/barrier model as a TMA load (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">query_cancel</span></code></strong> — decodes that response once the barrier fires. If a cluster was successfully
 cancelled (its work stolen), it returns the cancelled cluster’s first <code class="docutils literal notranslate"><span class="pre">ctaid.x</span></code> — the tile to
 process; otherwise it returns a sentinel (<code class="docutils literal notranslate"><span class="pre">0xFFFFFFFF</span></code>) meaning <em>no work left</em>.</p></li>
@@ -382,12 +370,12 @@ exactly the cases where a static schedule leaves SMs idle in the tail.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../part_advanced/index.html"
+       href="../chapter_async_barriers/index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Advanced Topics</p>
+        <p class="prev-next-title">Async Coordination: mbarriers</p>
       </div>
     </a>
     <a class="right-next"

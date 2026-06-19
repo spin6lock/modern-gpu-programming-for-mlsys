@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=994f5abe" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=98272572" />
     <link rel="stylesheet" type="text/css" href="../_static/demo-embed.css?v=e7774416" />
   
   <!-- So that users can add custom icons -->
@@ -52,8 +52,8 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Deep Dive into Data Layout" href="../part_data_layout/index.html" />
-    <link rel="prev" title="The GPU Execution and Memory Model" href="../chapter_background/index.html" />
+    <link rel="next" title="Introduction to Data Layout" href="../chapter_data_layout/index.html" />
+    <link rel="prev" title="GPU Execution Model" href="../chapter_background/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -159,31 +159,19 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">The GPU Execution and Memory Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_data_layout/index.html">Deep Dive into Data Layout</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_data_layout/index.html">What Is Data Layout?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_memory/index.html">Memory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tmem/index.html">Tensor Memory (TMEM)</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_compute/index.html">Compute</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers and Phases</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_advanced/index.html">Advanced Topics</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_clc/index.html">Cluster Launch Control (CLC)</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tirx_guide/native_basics/cuda.html">CUDA C++/PTX</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/first_kernel.html">Your first kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/functions.html">Defining a function</a></li>
@@ -217,11 +205,11 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Appendix</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/tirx.html">tvm.tirx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/analysis.html">tvm.tirx.analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/stmt_functor.html">tvm.tirx.stmt_functor</a></li>
@@ -337,7 +325,7 @@ could this kernel possibly run on this GPU?</em> and <em>which resource is stopp
 technique in this book — tiling, TMA, software pipelining, warp specialization — is an answer
 to the second question for some specific kernel. This chapter installs the vocabulary the rest
 of the book leans on: arithmetic intensity, the roofline, and overlap.</p>
-<p>The numbers here are for the NVIDIA B200. Following the convention of <a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">The GPU Execution and Memory Model</span></a>,
+<p>The numbers here are for the NVIDIA B200. Following the convention of <a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">GPU Execution Model</span></a>,
 we use order-of-magnitude ceilings: <strong>on the order of 2 PFLOP/s</strong> dense fp16/bf16 tensor-core
 throughput and <strong>on the order of 8 TB/s</strong> of HBM3e bandwidth. The exact values depend on SKU
 and clock, so treat them as round numbers for reasoning, not datasheet guarantees.</p>
@@ -353,10 +341,10 @@ performance by whichever of those two is the bottleneck:</p>
 from memory:</p>
 <div class="math notranslate nohighlight">
 \[\text{AI} = \frac{\text{FLOPs}}{\text{bytes moved}} \quad [\text{FLOP/byte}]\]</div>
-<p>Plotting attainable performance against AI gives two ceilings — a sloped <em>memory roof</em>
-(bandwidth × AI) and a flat <em>compute roof</em> (peak FLOP/s) — meeting at the <strong>ridge point</strong>:</p>
+<p>Plotting attainable performance against arithmetic intensity gives two ceilings — a sloped <em>memory roof</em>
+(bandwidth × arithmetic intensity) and a flat <em>compute roof</em> (peak FLOP/s) — meeting at the <strong>ridge point</strong>:</p>
 <p><img alt="Roofline for the B200, with example workloads" src="../_images/roofline.png" /></p>
-<p>For the B200 the ridge sits at roughly <code class="docutils literal notranslate"><span class="pre">2000</span> <span class="pre">/</span> <span class="pre">8</span> <span class="pre">≈</span> <span class="pre">250</span></code> FLOP/byte. A kernel whose AI is <strong>below</strong> the
+<p>For the B200 the ridge sits at roughly <code class="docutils literal notranslate"><span class="pre">2000</span> <span class="pre">/</span> <span class="pre">8</span> <span class="pre">≈</span> <span class="pre">250</span></code> FLOP/byte. A kernel whose arithmetic intensity is <strong>below</strong> the
 ridge can never reach peak compute no matter how good the code is — it is <em>memory-bound</em>, and
 the only lever is moving fewer bytes (or moving them faster). A kernel <strong>above</strong> the ridge is
 <em>compute-bound</em> — the bytes are essentially free, and the job is to keep the tensor cores busy.</p>
@@ -366,10 +354,10 @@ the only lever is moving fewer bytes (or moving them faster). A kernel <strong>a
 <p>Where a kernel lands on the roofline is mostly decided by the algorithm, not the code.</p>
 <ul>
 <li><p><strong>Elementwise and reductions</strong> (GELU, RMSNorm) read and write large tensors but do only a few FLOPs per element. Their
-AI is well below 1 — deep in the memory-bound region. The best such a kernel can do is
+arithmetic intensity is well below 1 — deep in the memory-bound region. The best such a kernel can do is
 saturate HBM bandwidth, so the design goals are coalesced/TMA loads and fusion (do more math
 per byte loaded).</p></li>
-<li><p><strong>GEMM</strong> has AI that grows with size. For a square <code class="docutils literal notranslate"><span class="pre">M=N=K</span></code> fp16 matmul, the ideal is</p>
+<li><p><strong>GEMM</strong> has arithmetic intensity that grows with size. For a square <code class="docutils literal notranslate"><span class="pre">M=N=K</span></code> fp16 matmul, the ideal is</p>
 <div class="math notranslate nohighlight">
 \[\text{AI} = \frac{2N^3}{(3N^2)\cdot 2\,\text{bytes}} = \frac{N}{3}\ \text{FLOP/byte}.\]</div>
 <p>At <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">4096</span></code> that is ≈ 1365 FLOP/byte — far to the right of the ridge. <strong>GEMM at scale is
@@ -379,7 +367,7 @@ naive GEMM is so disappointing — the problem allows peak, but a poor implement
 the tensor cores idle, sitting orders of magnitude below the roof.</p>
 </li>
 <li><p><strong>Attention</strong> sits in between and depends on sequence length and head dimension; Flash
-Attention (<a class="reference internal" href="../chapter_flash_attention/index.html#chap-flash-attention"><span class="std std-ref">Flash Attention 4</span></a>) is largely an exercise in <em>raising</em> AI by keeping
+Attention (<a class="reference internal" href="../chapter_flash_attention/index.html#chap-flash-attention"><span class="std std-ref">Flash Attention 4</span></a>) is largely an exercise in <em>raising</em> arithmetic intensity by keeping
 intermediate tiles in TMEM/SMEM instead of streaming them through HBM.</p></li>
 </ul>
 </section>
@@ -387,21 +375,21 @@ intermediate tiles in TMEM/SMEM instead of streaming them through HBM.</p></li>
 <h2>When Arithmetic Intensity Is Low<a class="headerlink" href="#when-arithmetic-intensity-is-low" title="Link to this heading">#</a></h2>
 <p>If a kernel sits left of the ridge, it is memory-bound: the Tensor Cores will idle no matter how
 good the compute code is, because the bottleneck is bytes, not FLOPs. There are two responses.</p>
-<p><strong>First, try to raise AI — do more work per byte.</strong> This is the higher-leverage move because it
+<p><strong>First, try to raise arithmetic intensity — do more work per byte.</strong> This is the higher-leverage move because it
 can turn a memory-bound kernel into a compute-bound one.</p>
 <ul class="simple">
-<li><p><em>Fuse.</em> The biggest source of low AI is writing an intermediate to global memory and reading it
+<li><p><em>Fuse.</em> The biggest source of low arithmetic intensity is writing an intermediate to global memory and reading it
 straight back. Fusing the producer and consumer keeps that intermediate in registers or SMEM, so
 the bytes never hit HBM. Fusing an elementwise epilogue into a GEMM, or a normalization into the
 op that feeds it, removes whole HBM round trips. Flash Attention is the extreme case: it fuses
 <span class="math notranslate nohighlight">\(QK^\top\)</span>, softmax, and the <span class="math notranslate nohighlight">\(PV\)</span> product so the large score matrix <code class="docutils literal notranslate"><span class="pre">S</span></code> is never written to HBM —
 that fusion is what moves attention rightward on the roofline.</p></li>
 <li><p><em>Block for reuse.</em> Load a tile into SMEM or registers and use it for many operations before
-evicting it. Reuse is exactly what gives GEMM its high AI; any op with reuse benefits the same way.</p></li>
-<li><p><em>Use a smaller dtype.</em> fp16/fp8/fp4 move fewer bytes per element, which directly raises AI (FLOPs
+evicting it. Reuse is exactly what gives GEMM its high arithmetic intensity; any op with reuse benefits the same way.</p></li>
+<li><p><em>Use a smaller dtype.</em> fp16/fp8/fp4 move fewer bytes per element, which directly raises arithmetic intensity (FLOPs
 per byte) and cuts the bandwidth the kernel needs.</p></li>
 </ul>
-<p><strong>Second, if the AI is irreducible — accept the memory roof and saturate it.</strong> A pure copy, or a
+<p><strong>Second, if the arithmetic intensity is irreducible — accept the memory roof and saturate it.</strong> A pure copy, or a
 single-pass elementwise or reduction over a large tensor, has no reuse to exploit; its best possible
 performance <em>is</em> the memory roof, so the job is to actually reach it:</p>
 <ul class="simple">
@@ -500,7 +488,7 @@ spends most of its time idle while one hardware unit waits for another. The fix 
 while the tensor core works on tile <code class="docutils literal notranslate"><span class="pre">k</span></code>, the TMA engine is already fetching tile <code class="docutils literal notranslate"><span class="pre">k+1</span></code>, and the
 epilogue is draining tile <code class="docutils literal notranslate"><span class="pre">k-1</span></code>.</p>
 <p>This is why Blackwell exposes the load (TMA), compute (<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>), and store paths as
-<em>independent asynchronous engines</em>, coordinated by mbarriers (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers and Phases</span></a>).
+<em>independent asynchronous engines</em>, coordinated by mbarriers (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).
 Software pipelining (step 5) and warp specialization (step 7) are the two structural patterns
 for arranging that overlap; Part III builds on both.</p>
 </section>
@@ -521,10 +509,10 @@ it”:</p>
 <li><p>Memory-bound kernels → coalesced/TMA loads and fusion.</p></li>
 <li><p>Compute-bound GEMM (Part III) → tensor cores to raise the ceiling, then TMA + pipelining +
 specialization to reach it.</p></li>
-<li><p>Flash Attention (Part IV) → raise AI by keeping tiles on-chip, then apply the same overlap
+<li><p>Flash Attention (Part IV) → raise arithmetic intensity by keeping tiles on-chip, then apply the same overlap
 toolkit.</p></li>
 </ul>
-<p>When a kernel underperforms, return to this chapter’s question first: compute the AI, find the
+<p>When a kernel underperforms, return to this chapter’s question first: compute the arithmetic intensity, find the
 roof, and optimize the resource that is actually binding.</p>
 </section>
 </section>
@@ -546,15 +534,15 @@ roof, and optimize the resource that is actually binding.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">The GPU Execution and Memory Model</p>
+        <p class="prev-next-title">GPU Execution Model</p>
       </div>
     </a>
     <a class="right-next"
-       href="../part_data_layout/index.html"
+       href="../chapter_data_layout/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Deep Dive into Data Layout</p>
+        <p class="prev-next-title">Introduction to Data Layout</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

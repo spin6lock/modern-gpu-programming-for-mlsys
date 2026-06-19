@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=994f5abe" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=98272572" />
     <link rel="stylesheet" type="text/css" href="../_static/demo-embed.css?v=e7774416" />
   
   <!-- So that users can add custom icons -->
@@ -50,8 +50,8 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Memory" href="../part_memory/index.html" />
-    <link rel="prev" title="What Is Data Layout?" href="../chapter_data_layout/index.html" />
+    <link rel="next" title="Asynchronous Data Movement: TMA" href="../chapter_tma/index.html" />
+    <link rel="prev" title="Introduction to Data Layout" href="../chapter_data_layout/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -157,31 +157,19 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I — Understanding the GPU</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">The GPU Execution and Memory Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../part_data_layout/index.html">Deep Dive into Data Layout</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../chapter_data_layout/index.html">What Is Data Layout?</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Data Layout Through GPU Generations</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_memory/index.html">Memory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tmem/index.html">Tensor Memory (TMEM)</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_compute/index.html">Compute</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers and Phases</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../part_advanced/index.html">Advanced Topics</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../chapter_clc/index.html">Cluster Launch Control (CLC)</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Introduction to Data Layout</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Data Layout Through GPU Generations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Asynchronous Data Movement: TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — Programming a GPU with TIRx</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/native_basics.html">TIRx Basics: Native Level</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tirx_guide/native_basics/cuda.html">CUDA C++/PTX</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/first_kernel.html">Your first kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tirx_guide/native_basics/cuda/functions.html">Defining a function</a></li>
@@ -215,11 +203,11 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Appendix</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/tirx.html">tvm.tirx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/analysis.html">tvm.tirx.analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/api/stmt_functor.html">tvm.tirx.stmt_functor</a></li>
@@ -341,11 +329,11 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="data-layout-through-gpu-generations">
 <span id="chap-layout-generations"></span><h1>Data Layout Through GPU Generations<a class="headerlink" href="#data-layout-through-gpu-generations" title="Link to this heading">#</a></h1>
-<p>Building on the layout notation from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">What Is Data Layout?</span></a> (<code class="docutils literal notranslate"><span class="pre">S[...]</span></code>, named axes, swizzle), this
+<p>Building on the layout notation from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a> (<code class="docutils literal notranslate"><span class="pre">S[...]</span></code>, named axes, swizzle), this
 chapter is organized by generation — <strong>Ampere, Hopper, Blackwell</strong> — because what changed across
 them is exactly <em>how operands reach the tensor core</em>. Each generation’s memory and compute engines
 demand a <em>specific</em> operand layout, and getting it wrong is silently slow (or wrong); the Blackwell
-TMEM specifics are in <a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Tensor Memory (TMEM)</span></a>.</p>
+TMEM specifics are in <a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Special Memory: TMEM</span></a>.</p>
 <section id="two-constraints-that-never-went-away">
 <h2>Two Constraints That Never Went Away<a class="headerlink" href="#two-constraints-that-never-went-away" title="Link to this heading">#</a></h2>
 <p>Two layout rules hold on every generation, tensor cores or not:</p>
@@ -520,7 +508,7 @@ genuinely new here is the <strong>scale factors</strong> of a block-scaled MMA.<
 <code class="docutils literal notranslate"><span class="pre">SFB</span> <span class="pre">(N,</span> <span class="pre">SFK)</span></code>, where <code class="docutils literal notranslate"><span class="pre">SFK</span> <span class="pre">=</span> <span class="pre">K</span> <span class="pre">/</span> <span class="pre">block</span></code> — and, unlike A and B, <strong>the scale factors live in TMEM</strong>,
 not SMEM. They take the SMEM→TMEM detour: a TMA load brings them into SMEM, then <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> copies them into TMEM before the MMA.</p>
 <p>The TMEM layout itself (the PTX <em>tcgen05 MMA scale-factor A layout</em>) is the
-lane-replication example from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">What Is Data Layout?</span></a>: a 128-row scale vector packs into 32 lanes
+lane-replication example from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Introduction to Data Layout</span></a>: a 128-row scale vector packs into 32 lanes
 (row → lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> along TMEM columns at stride <code class="docutils literal notranslate"><span class="pre">epc</span> <span class="pre">=</span> <span class="pre">4</span></code>) and is broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code>
 to all 128 reading lanes (<code class="docutils literal notranslate"><span class="pre">R[4</span> <span class="pre">:</span> <span class="pre">32&#64;TLane]</span></code>).</p>
 <p>What is new here is the byte packing: how many distinct scales a <code class="docutils literal notranslate"><span class="pre">uint32</span></code> column holds depends on
@@ -530,7 +518,7 @@ the <strong>scale_vec</strong> mode, matching the PTX <em>scale-factor A</em> 1x
 holds the M-half matching its A rows) and <strong>SFB is multicast</strong> to both CTAs (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>).</p>
 <p>So the <strong>m8n8 register fragment</strong> recurs across generations: it is what <code class="docutils literal notranslate"><span class="pre">ldmatrix</span></code> builds on
 Ampere, what <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> outputs on Hopper, and what <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> reads TMEM into on Blackwell
-(<a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Tensor Memory (TMEM)</span></a>) — one register layout across all three.</p>
+(<a class="reference internal" href="../chapter_tmem/index.html#chap-tmem"><span class="std std-ref">Special Memory: TMEM</span></a>) — one register layout across all three.</p>
 </section>
 </section>
 <section id="the-throughline">
@@ -583,15 +571,15 @@ consumes it must all agree on the same swizzle, or the tensor core reads scrambl
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">What Is Data Layout?</p>
+        <p class="prev-next-title">Introduction to Data Layout</p>
       </div>
     </a>
     <a class="right-next"
-       href="../part_memory/index.html"
+       href="../chapter_tma/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Memory</p>
+        <p class="prev-next-title">Asynchronous Data Movement: TMA</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
