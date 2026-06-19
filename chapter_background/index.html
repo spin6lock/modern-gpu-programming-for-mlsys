@@ -532,8 +532,8 @@ lengths to keep the Tensor Cores fed. The figures below are for the B200 and are
 </tbody>
 </table>
 </div>
-<p>The exact peak numbers depend on the SKU, the clock, and the sparsity mode, so treat the table as a
-sense of <em>scale</em> rather than as a performance model. The lesson it teaches is a simple one. SMEM is
+<p>The exact peak numbers depend on the specific GPU model, its clock, and the sparsity mode, so treat
+the table as a sense of <em>scale</em> rather than as a performance model. The lesson it teaches is a simple one. SMEM is
 large enough to hold only a handful of staged tiles, TMEM is scarce enough that it must be budgeted,
 and tensor-core throughput is so high that data movement <em>has</em> to overlap compute — there is no other
 way to keep those engines busy.</p>

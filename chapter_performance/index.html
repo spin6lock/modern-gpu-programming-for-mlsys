@@ -318,8 +318,9 @@ not get faster from fewer bytes. This chapter builds the three ideas the rest of
 to ask “is this fast?” — arithmetic intensity, the roofline, and overlap.</p>
 <p>The numbers here are for the NVIDIA B200. Following the convention of <a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">GPU Execution Model</span></a>,
 we use order-of-magnitude ceilings: <strong>on the order of 2 PFLOP/s</strong> dense fp16/bf16 tensor-core
-throughput and <strong>on the order of 8 TB/s</strong> of HBM3e bandwidth. The exact values depend on SKU
-and clock, so treat them as round numbers for reasoning, not datasheet guarantees.</p>
+throughput and <strong>on the order of 8 TB/s</strong> of HBM3e bandwidth. The exact values depend on the
+specific GPU model and its clock, so treat them as round numbers for reasoning, not datasheet
+guarantees.</p>
 <section id="the-roofline-model">
 <h2>The Roofline Model<a class="headerlink" href="#the-roofline-model" title="Link to this heading">#</a></h2>
 <p>Every kernel does two things, no matter how complicated it looks: it moves bytes between memory and
