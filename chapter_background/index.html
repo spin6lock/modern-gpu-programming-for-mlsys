@@ -443,8 +443,13 @@ a pointer, a single thread can bulk-copy a tile out of its own SMEM and into a p
 completion barrier (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>) once the bytes have landed. This is a cluster-scoped
 <code class="docutils literal notranslate"><span class="pre">cp.async.bulk</span></code>. The 2-CTA cluster GEMM in Part III is built on exactly this mechanism, using it to
 share operand tiles across the pair of CTAs without ever routing them back through global memory.</p>
-<p>The figure below shows the extra DSMEM hop that a CTA cluster makes possible.</p>
-<p><img alt="A CTA cluster sharing distributed shared memory" src="../_images/cta_cluster.png" /></p>
+<p>The figure below shows the extra DSMEM hop that a CTA cluster makes possible; click a piece to see
+what each CTA owns and where the cross-CTA read happens.</p>
+<div style="overflow-x:auto;">
+<iframe src="../demo/cta_cluster.html" title="A 2-CTA cluster sharing distributed shared memory" loading="lazy"
+        style="width:100%; min-width:720px; height:580px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
+</div><p><em>Interactive: a 2-CTA cluster — each CTA owns half of A and half of B, reads the other’s B across the
+cluster (DSMEM), and the pair produces a 256×256 output tile.</em></p>
 <p>Two features that build on DSMEM will reappear throughout the GEMM chapters. The first is <strong>2-CTA
 cooperative MMA</strong>, in which two CTAs each contribute their SMEM operands to a single, larger MMA
 tile. The second is <strong>TMA multicast</strong>, in which one TMA load delivers the same GMEM tile to several
