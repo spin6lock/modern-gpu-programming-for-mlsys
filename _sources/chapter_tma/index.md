@@ -20,7 +20,10 @@ covers how a single thread issues that copy, how TMA swizzles the tile so the la
 Tensor Core expects ({ref}`chap_data_layout`), and how loads and stores signal completion — loads
 through an mbarrier ({ref}`chap_async_barriers`), stores through a commit/wait group.
 
-The interactive below shows that division of labor: one thread issues the copy, and the TMA engine moves the tile.
+The interactive demo below shows the whole picture at a glance: TMA moves a tile from global to
+shared memory, and can optionally swizzle it as it lands. The sections that follow then unpack the
+three parts of that picture: how the copy is issued, how the layout is transformed, and how
+completion is signaled.
 
 ```{raw} html
 <div style="overflow-x:auto;">
