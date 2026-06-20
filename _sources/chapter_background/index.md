@@ -37,10 +37,8 @@ nested hierarchy, and it does so because cooperation happens at several differen
 the finest scale, the lanes of a warp march through the same instruction in lockstep. A step coarser,
 the threads of a CTA share a common pool of fast scratch memory. Coarser still, the CTAs of a
 cluster can reach across physically separate SMs to synchronize and to read each other's memory. Each
-level exists to make one of these forms of cooperation cheap, and on Blackwell the levels are the
-following.
-
-The interactive below names those levels from smallest to largest and shows how they nest.
+level exists to make one of these forms of cooperation cheap. The following figure shows the
+hierarchy on Blackwell.
 
 ```{raw} html
 <iframe src="../demo/thread_hierarchy.html" title="Blackwell thread hierarchy" loading="lazy"
