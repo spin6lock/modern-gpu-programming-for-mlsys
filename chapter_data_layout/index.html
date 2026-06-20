@@ -162,7 +162,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — TIRx Overview</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tirx_guide/layout.html">Tensor Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
 <ul class="nav bd-sidenav">
@@ -494,7 +494,7 @@ largest atom the row can still cover.</p>
 relates to the <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> notation: it is <em>not</em> part of that affine map. It is a separate, non-affine
 layer composed on top of it. The <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> layout places an element at a linear memory (<code class="docutils literal notranslate"><span class="pre">&#64;m</span></code>) address,
 and the swizzle then permutes that address — written, in the TIRx layout API, as
-<code class="docutils literal notranslate"><span class="pre">ComposeLayout(swizzle,</span> <span class="pre">tile)</span></code> (<a class="reference internal" href="../tirx_guide/layout.html#chap-data-layouts"><span class="std std-ref">Tensor Layout</span></a>). Your job is only to pick one consistent
+<code class="docutils literal notranslate"><span class="pre">ComposeLayout(swizzle,</span> <span class="pre">tile)</span></code> (<a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx Layout API</span></a>). Your job is only to pick one consistent
 mode across every op that touches the tile and let the composed layout do the rest.</p>
 <p>That same composed layout is also what the hardware fills, and this is where swizzling and tiling
 come together. A TMA descriptor is multi-dimensional, so a single three-dimensional box can describe

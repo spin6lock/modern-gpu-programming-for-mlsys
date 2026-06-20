@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tensor Layout &#8212; Modern GPU Programming For MLSys</title>
+    <title>TIRx Layout API &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -47,7 +47,7 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'tirx_guide/layout';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapter_tirx_layout_api/index';</script>
     <script src="../_static/demo-embed.js?v=1ee8c5fa"></script>
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -164,7 +164,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — TIRx Overview</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tensor Layout</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">TIRx Layout API</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
 <ul class="nav bd-sidenav">
@@ -179,16 +179,16 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="language_reference/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="language_reference/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="language_reference/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="language_reference/cuda/control_flow.html">Control flow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">Parser utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">Data types and expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffers and memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
 </ul>
@@ -262,7 +262,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Tensor Layout</h1>
+    <h1>TIRx Layout API</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -272,6 +272,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layouts-by-example">Layouts by example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-demo">Interactive Demo</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tilelayout">TileLayout</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-mapping">Forward Mapping</a></li>
@@ -301,8 +302,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="tensor-layout">
-<span id="chap-data-layouts"></span><h1>Tensor Layout<a class="headerlink" href="#tensor-layout" title="Link to this heading">#</a></h1>
+  <section id="tirx-layout-api">
+<span id="chap-tirx-layout-api"></span><h1>TIRx Layout API<a class="headerlink" href="#tirx-layout-api" title="Link to this heading">#</a></h1>
 <div class="overview admonition">
 <p class="admonition-title">Overview</p>
 <ul class="simple">
@@ -327,7 +328,7 @@ buffer — either through <code class="docutils literal notranslate"><span class
 tile op that touches that buffer reads its placement straight from the layout, so
 you never repeat the placement at each use site. All of the objects you attach
 live in a single module:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.layout</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.layout</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TileLayout</span><span class="p">,</span> <span class="n">SwizzleLayout</span><span class="p">,</span> <span class="n">ComposeLayout</span><span class="p">,</span>    <span class="c1"># the three layout classes</span>
     <span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span>                                        <span class="c1"># shard / replica spec builders</span>
     <span class="n">laneid</span><span class="p">,</span> <span class="n">warpid</span><span class="p">,</span> <span class="n">tid_in_wg</span><span class="p">,</span> <span class="n">TLane</span><span class="p">,</span> <span class="n">TCol</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span>   <span class="c1"># named axes (a few of many)</span>
@@ -341,6 +342,30 @@ coordinates on the named axes, because one element can genuinely live in several
 places at once. That map breaks cleanly into three parts — shard (<code class="docutils literal notranslate"><span class="pre">D</span></code>), replica
 (<code class="docutils literal notranslate"><span class="pre">R</span></code>), and offset (<code class="docutils literal notranslate"><span class="pre">O</span></code>) — and the rest of the chapter builds it up one piece
 at a time.</p>
+<section id="layouts-by-example">
+<h2>Layouts by example<a class="headerlink" href="#layouts-by-example" title="Link to this heading">#</a></h2>
+<p>Before the formal rules, here is what the API looks like in use. Each call builds a <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>
+from the same <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> / <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> notation as <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Data Layout</span></a>, so the code reads almost
+exactly like the notation on the page:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># An accumulator in tensor memory: logical row -&gt; TMEM lane, column -&gt; TMEM column.</span>
+<span class="n">acc</span> <span class="o">=</span> <span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)])</span>
+
+<span class="c1"># A block-scaled MMA&#39;s scale factors: 32 rows replicated across the warpgroup&#39;s four</span>
+<span class="c1"># warps (the &quot;warpx4&quot; broadcast), via a stride-32 replica.</span>
+<span class="n">scale_factor_layout</span> <span class="o">=</span> <span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">32</span><span class="p">,</span> <span class="n">sf_per_mma</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">32</span><span class="nd">@TLane</span><span class="p">])</span>
+
+<span class="c1"># A tensor-core register fragment, distributed over the lanes of two warps.</span>
+<span class="n">frag</span> <span class="o">=</span> <span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@warpid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Ready-made constructors for the layouts that recur in real kernels:</span>
+<span class="n">acc</span> <span class="o">=</span> <span class="n">tmem_datapath_layout</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>                  <span class="c1"># tcgen05 accumulator</span>
+<span class="n">ld</span>  <span class="o">=</span> <span class="n">tcgen05_atom_layout</span><span class="p">(</span><span class="s2">&quot;32x32b&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>  <span class="c1"># tcgen05.ld register tile</span>
+</pre></div>
+</div>
+<p>The rest of the chapter explains these precisely — how a <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> decomposes into shard,
+replica, and offset, the rule it evaluates by, and how <code class="docutils literal notranslate"><span class="pre">SwizzleLayout</span></code> and <code class="docutils literal notranslate"><span class="pre">ComposeLayout</span></code>
+extend it for swizzled memory.</p>
+</section>
 <section id="interactive-demo">
 <h2>Interactive Demo<a class="headerlink" href="#interactive-demo" title="Link to this heading">#</a></h2>
 <p>Before we get into the mechanics, it helps to have something concrete to poke at.
@@ -412,7 +437,7 @@ lets <code class="docutils literal notranslate"><span class="pre">L(x)</span></c
 several coordinates once <code class="docutils literal notranslate"><span class="pre">R</span></code> is non-empty. Each term is written <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&#64;</span> <span class="pre">axis</span></code>, and
 if a stride is not paired with an axis, the memory axis <code class="docutils literal notranslate"><span class="pre">m</span></code> is assumed by default.</p>
 <p>Written out in TIRx, a shard together with a replica and an offset reads:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@warpid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="nd">@warpid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span><span class="nd">@warpid</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@warpid</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@laneid</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="nd">@warpid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span><span class="nd">@warpid</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Reading this left to right: <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> and <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> build the spec, the <code class="docutils literal notranslate"><span class="pre">+</span></code>
@@ -469,7 +494,7 @@ an actual tensor-core tile and watch a hardware mapping fall out. Consider a log
 <code class="docutils literal notranslate"><span class="pre">(8,</span> <span class="pre">16)</span></code> tile distributed across 2 warps of 32 lanes each, where each lane holds
 part of the tile in its own registers (the <code class="docutils literal notranslate"><span class="pre">reg</span></code> slot is just the default memory
 axis <code class="docutils literal notranslate"><span class="pre">m</span></code>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">):(</span><span class="mi">4</span><span class="nd">@laneid</span><span class="p">,</span><span class="mi">1</span><span class="nd">@warpid</span><span class="p">,</span><span class="mi">1</span><span class="nd">@laneid</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="nd">@warpid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span><span class="nd">@warpid</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">):(</span><span class="mi">4</span><span class="nd">@laneid</span><span class="p">,</span><span class="mi">1</span><span class="nd">@warpid</span><span class="p">,</span><span class="mi">1</span><span class="nd">@laneid</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="nd">@warpid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span><span class="nd">@warpid</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The shard factors the logical indices into four iters of extent <code class="docutils literal notranslate"><span class="pre">8,</span> <span class="pre">2,</span> <span class="pre">4,</span> <span class="pre">2</span></code> over
@@ -566,7 +591,7 @@ the same way. To see that, we point the same model at Blackwell <strong>tensor
 memory</strong>, a 2D address space addressed by <code class="docutils literal notranslate"><span class="pre">TLane</span></code> × <code class="docutils literal notranslate"><span class="pre">TCol</span></code> (both of them
 <em>memory</em> axes). Now every stride binds to a memory axis, so the layout is a pure
 placement: no threads, no replica, no offset, and <code class="docutils literal notranslate"><span class="pre">L(x)</span></code> is a plain singleton:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">112</span><span class="p">):(</span><span class="mi">112</span><span class="nd">@TCol</span><span class="p">,</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span><span class="mi">1</span><span class="nd">@TCol</span><span class="p">)])</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">112</span><span class="p">):(</span><span class="mi">112</span><span class="nd">@TCol</span><span class="p">,</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span><span class="mi">1</span><span class="nd">@TCol</span><span class="p">)])</span>
 </pre></div>
 </div>
 <p>If we take the logical tile shape to equal the shard extents, <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">128,</span> <span class="pre">112)</span></code>,
@@ -620,7 +645,7 @@ factors are where the replica earns its keep. A block-scaled MMA keeps its per-b
 scale factors in tensor memory too, and there a single physical group has to feed
 several warps at the same time — exactly the broadcast that a replica provides. The
 atom looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">32</span><span class="p">,</span> <span class="n">sf_per_mma</span><span class="p">):(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">32</span><span class="nd">@TLane</span><span class="p">])</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">32</span><span class="p">,</span> <span class="n">sf_per_mma</span><span class="p">):(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">32</span><span class="nd">@TLane</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Here we have 32 rows on <code class="docutils literal notranslate"><span class="pre">TLane</span></code> and <code class="docutils literal notranslate"><span class="pre">sf_per_mma</span></code> scale factors on <code class="docutils literal notranslate"><span class="pre">TCol</span></code>, and
@@ -847,6 +872,7 @@ III–IV) rather than to the layout itself.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layouts-by-example">Layouts by example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-demo">Interactive Demo</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tilelayout">TileLayout</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-mapping">Forward Mapping</a></li>

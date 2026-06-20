@@ -53,7 +53,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Pipelining GEMM with TMA" href="../chapter_gemm_async/index.html" />
-    <link rel="prev" title="Tensor Layout" href="../tirx_guide/layout.html" />
+    <link rel="prev" title="TIRx Layout API" href="../chapter_tirx_layout_api/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -164,7 +164,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — TIRx Overview</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tirx_guide/layout.html">Tensor Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III — GEMM: Tiled to SOTA</span></p>
 <ul class="current nav bd-sidenav">
@@ -316,7 +316,7 @@
 <li><p>Correctness comes first; performance is the job of the next two chapters.</p></li>
 </ul>
 </div>
-<p>GEMM is the workload this entire book is built around: it sits under the linear layers, attention projections, and convolutions that dominate a GPU’s time, so the difference between a correct GEMM and a fast one is the difference between leaving most of the chip idle and saturating it. That gap is enormous, and trying to write a saturating kernel in one shot means debugging memory movement, accumulation, tiling, and Tensor Core scheduling all at once, with nothing trustworthy to compare against. The only sane way across is to start from the smallest kernel that produces a correct answer — a single output tile — and grow it one decision at a time, so every later optimization has a working, understandable baseline to improve on. This chapter writes that first correct tiled GEMM. The previous chapters described the TIRx tile primitives in the abstract — the scope / layout / dispatch model from <a class="reference internal" href="../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a> and <a class="reference internal" href="../tirx_guide/layout.html#chap-data-layouts"><span class="std std-ref">Tensor Layout</span></a>. Here we apply them to a real kernel: we begin with a single 128 x 128 output tile and grow it into a kernel that handles full-size matrices, adding K-dimension accumulation and then spatial tiling across many CTAs.</p>
+<p>GEMM is the workload this entire book is built around: it sits under the linear layers, attention projections, and convolutions that dominate a GPU’s time, so the difference between a correct GEMM and a fast one is the difference between leaving most of the chip idle and saturating it. That gap is enormous, and trying to write a saturating kernel in one shot means debugging memory movement, accumulation, tiling, and Tensor Core scheduling all at once, with nothing trustworthy to compare against. The only sane way across is to start from the smallest kernel that produces a correct answer — a single output tile — and grow it one decision at a time, so every later optimization has a working, understandable baseline to improve on. This chapter writes that first correct tiled GEMM. The previous chapters described the TIRx tile primitives in the abstract — the scope / layout / dispatch model from <a class="reference internal" href="../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a> and <a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx Layout API</span></a>. Here we apply them to a real kernel: we begin with a single 128 x 128 output tile and grow it into a kernel that handles full-size matrices, adding K-dimension accumulation and then spatial tiling across many CTAs.</p>
 <p>This is the first of three chapters that walk a single GEMM optimization path from end to end. In this one we build a correct tiled kernel and stop there. The next chapter (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>) replaces the thread copies with TMA and overlaps data movement with compute through pipelining, and <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> goes further still with warp specialization and CTA clusters. Each chapter builds on the one before it, so the kernels accumulate features rather than start over.</p>
 <p>It helps to read each step as an edit to a single contract with three terms: which <strong>scope</strong> runs the operation, which <strong>layout</strong> the operand tiles use, and which <strong>dispatch</strong> path executes it. Most optimizations touch exactly one of these three pillars and leave the other two untouched, so we open each step with a small card that names the pillar that changes. Step 1 establishes the baseline that the rest of the path edits.</p>
 <section id="gemm">
@@ -380,7 +380,7 @@ below changes <em>how</em> one of these hops happens — it never changes the ho
 </section>
 <section id="four-pieces-of-the-first-kernel">
 <h3>Four Pieces of the First Kernel<a class="headerlink" href="#four-pieces-of-the-first-kernel" title="Link to this heading">#</a></h3>
-<p>The full kernel is only a few dozen lines, but it is easier to digest in parts. We will read it in four pieces — memory allocation, the synchronous load, the MMA dispatch, and the writeback — and assemble them into one kernel only afterward. The API names that appear along the way are the TIRx tile-primitive vocabulary introduced in Part II (<a class="reference internal" href="../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a>, <a class="reference internal" href="../tirx_guide/layout.html#chap-data-layouts"><span class="std std-ref">Tensor Layout</span></a>).</p>
+<p>The full kernel is only a few dozen lines, but it is easier to digest in parts. We will read it in four pieces — memory allocation, the synchronous load, the MMA dispatch, and the writeback — and assemble them into one kernel only afterward. The API names that appear along the way are the TIRx tile-primitive vocabulary introduced in Part II (<a class="reference internal" href="../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a>, <a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx Layout API</span></a>).</p>
 <p><strong>Memory allocation.</strong> The kernel begins by carving out shared memory for the operands, along with a slot for the TMEM address and an mbarrier:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pool</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
 <span class="n">tmem_addr</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint32&quot;</span><span class="p">)</span>           <span class="c1"># TMEM address (4 bytes)</span>
@@ -901,12 +901,12 @@ B[by * BLK_N : (by + 1) * BLK_N, k : k + BLK_K]
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../tirx_guide/layout.html"
+       href="../chapter_tirx_layout_api/index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Tensor Layout</p>
+        <p class="prev-next-title">TIRx Layout API</p>
       </div>
     </a>
     <a class="right-next"
