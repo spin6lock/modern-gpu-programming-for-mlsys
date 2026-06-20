@@ -117,9 +117,8 @@ set up. The same SMEM tile is *written* one way and *read* another: it is filled
 along a **row**, and then read by `ldmatrix` along a **column**. With a plain row-major tile the row
 write hits 8 distinct banks and is conflict-free, but the column read hits one bank 8 times — an
 8-way conflict. Switching to a col-major tile does not save us; it merely flips which of the two
-accesses pays the price. No unpermuted layout can make both of them happy:
-
-The figure below shows that row-write / column-read conflict directly.
+accesses pays the price. Without a permutation, one side always loses: row-major favors the write,
+while col-major favors the read.
 
 ![Row write hits 8 distinct banks (conflict-free); column read hits one bank 8 times (conflict)](../img/swizzle_conflict.svg)
 
