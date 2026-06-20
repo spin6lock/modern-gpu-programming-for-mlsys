@@ -73,14 +73,13 @@ differently, so it is worth looking at each in turn.
 
 ![TMA load synchronization flow](../img/tma_sync_flow.png)
 
-The figure above summarizes the load-side completion path that later connects TMA to mbarriers.
-
 A **load (GMEM → SMEM)** ties into an **mbarrier** ({ref}`chap_async_barriers`). Before the transfer
 begins, the issuing thread tells the barrier how many bytes to expect with
 `mbarrier.arrive.expect_tx(bytes)`. As the data lands, the engine emits `complete-tx` signals that
 account for the bytes that have arrived, and the barrier's phase only flips once both the arrival
-count and the tx-count have been satisfied. Consumers wait on that barrier, so they never touch the
-tile until it is fully in place. A **store (SMEM → GMEM)** is simpler, because nothing downstream is
+count and the tx-count have been satisfied, as the figure above summarizes. Consumers wait on that
+barrier, so they never touch the tile until it is fully in place. A **store (SMEM → GMEM)** is
+simpler, because nothing downstream is
 waiting on the result the way a consumer waits on a freshly loaded tile. It uses a lighter-weight
 **commit-group / wait-group** mechanism instead: the kernel commits the store group it issued and
 later waits for that group to drain before it reuses the SMEM buffer.
