@@ -107,9 +107,9 @@ same pattern reappears later when the Tensor Core signals the epilogue.
 *Interactive: a TMA load signalling completion through an mbarrier. The `tcgen05` MMA → epilogue
 handoff works the same way, with the Tensor Core arriving on the barrier instead of TMA.*
 
-The same idea also explains **when a buffer is safe to reuse**. Reuse is just the producer/consumer
-relationship viewed from the buffer's side: before a SMEM or TMEM region can be overwritten or
-freed, every consumer that might still read from it must have finished. That is why the later GEMM
+The same mechanism also governs **resource handoff**. A barrier is not only for handing data from a
+producer to a consumer; it is also how the kernel proves that a SMEM or TMEM region has finished
+serving its current consumers and can be handed off to its next use. That is why the later GEMM
 chapters are full of waits, arrives, and fences around stage reuse. Once you read those sites as
-"this consumer is done, so this buffer can become the next producer's input," the kernels become far
+"this consumer is done, so this buffer can now be reused for the next stage," the kernels become far
 easier to follow.
