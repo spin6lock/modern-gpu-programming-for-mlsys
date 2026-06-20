@@ -108,7 +108,7 @@ same pattern reappears later when the Tensor Core signals the epilogue.
 handoff works the same way, with the Tensor Core arriving on the barrier instead of TMA.*
 
 The same mechanism also governs **resource handoff**. A barrier is not only for handing data from a
-producer to a consumer; it is also how the kernel proves that a SMEM or TMEM region has finished
+producer to a consumer; it is also how the kernel signals that a SMEM or TMEM region has finished
 serving its current consumers and can be handed off to its next use. That is why the later GEMM
 chapters are full of waits, arrives, and fences around stage reuse. Once you read those sites as
 "this consumer is done, so this buffer can now be reused for the next stage," the kernels become far
