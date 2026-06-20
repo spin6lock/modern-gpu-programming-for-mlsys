@@ -1,5 +1,5 @@
 (chap_clc)=
-# Advanced Topics: Cluster Launch Control
+# Advanced: Cluster Launch Control
 
 :::{admonition} Overview
 :class: overview

@@ -159,7 +159,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced Topics: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II — TIRx Overview</span></p>
 <ul class="nav bd-sidenav">
@@ -432,7 +432,7 @@ finite, and large tiles often demand more operand storage, or more reuse, than o
 supply. Hopper’s answer to this was the <strong>thread block cluster</strong>: a group of CTAs that cooperate more
 tightly than independent blocks do, in that they can synchronize together and read and write each
 other’s shared memory. That last ability is called distributed shared memory, or DSMEM. Blackwell
-keeps clusters and adds to them, with dynamic scheduling (<a class="reference internal" href="../chapter_clc/index.html#chap-clc"><span class="std std-ref">Advanced Topics: Cluster Launch Control</span></a>) and 2-CTA cooperative MMA.</p>
+keeps clusters and adds to them, with dynamic scheduling (<a class="reference internal" href="../chapter_clc/index.html#chap-clc"><span class="std std-ref">Advanced: Cluster Launch Control</span></a>) and 2-CTA cooperative MMA.</p>
 <p>The capability that makes clusters interesting is <strong>distributed shared memory (DSMEM)</strong>, and the
 hardware exposes it in two parts that are easiest to understand together. The first part is an
 <em>address</em>: the <code class="docutils literal notranslate"><span class="pre">mapa</span></code> instruction takes a local SMEM pointer and a peer CTA’s rank and returns a
