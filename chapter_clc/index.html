@@ -317,8 +317,9 @@ in clusters that share DSMEM and synchronize through cluster barriers — are a 
 addition that makes their <strong>scheduling</strong> dynamic.</p>
 <section id="the-two-instructions">
 <h2>The Two Instructions<a class="headerlink" href="#the-two-instructions" title="Link to this heading">#</a></h2>
-<p>The whole mechanism is exposed as just two PTX instructions (<code class="docutils literal notranslate"><span class="pre">clusterlaunchcontrol</span></code>, PTX ISA 8.6):
-one asks for the next tile, and the other reads back the answer. Let us look at each in turn.</p>
+<p>We have said CLC hands tiles out on demand; now we can see exactly how a CTA asks for one. The whole
+mechanism is exposed as just two PTX instructions (<code class="docutils literal notranslate"><span class="pre">clusterlaunchcontrol</span></code>, PTX ISA 8.6): one asks the
+grid scheduler for the next tile, and the other reads back the answer. Let us look at each in turn.</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">try_cancel</span></code></strong> — <code class="docutils literal notranslate"><span class="pre">clusterlaunchcontrol.try_cancel.async</span></code>. This is a single asynchronous request
 that asks the scheduler to <em>cancel the launch</em> of the next pending cluster and hand this cluster its
@@ -341,8 +342,9 @@ grid is exhausted.</p>
 </section>
 <section id="the-work-stealing-loop">
 <h2>The Work-Stealing Loop<a class="headerlink" href="#the-work-stealing-loop" title="Link to this heading">#</a></h2>
-<p>Armed with those two instructions, the persistent kernel collapses into a short loop that keeps
-asking for work until there is none left. Each iteration does three things:</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">try_cancel</span></code> to request a tile and <code class="docutils literal notranslate"><span class="pre">query_cancel</span></code> to read the answer in hand, we can see how a
+persistent kernel uses them. The two instructions collapse the kernel into a short loop that keeps
+asking the scheduler for work until there is none left. Each iteration does three things:</p>
 <ol class="arabic simple">
 <li><p>It issues a <code class="docutils literal notranslate"><span class="pre">try_cancel</span></code> for the next cluster. This is an asynchronous request, so it returns
 immediately and leaves us free to do other work.</p></li>

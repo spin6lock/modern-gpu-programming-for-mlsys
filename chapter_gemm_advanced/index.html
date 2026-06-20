@@ -348,6 +348,7 @@
 <p>(The multi-stage SMEM pipeline and the persistent <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code> are reused unchanged from Steps 5–6; only the scope split is new here.)</p>
 <section id="from-sequential-to-concurrent">
 <h3>From Sequential to Concurrent<a class="headerlink" href="#from-sequential-to-concurrent" title="Link to this heading">#</a></h3>
+<p>Before introducing the roles and barriers, it helps to see what specialization buys us on a timeline. The figure below puts the single-warpgroup Step 6 schedule directly above the warp-specialized one so the difference in engine utilization is visible at a glance.</p>
 <p><img alt="Warp Specialization Timeline" src="../_images/warp_specialization_timeline.png" /></p>
 <p>The figure is a before-and-after contrast, and it is worth reading slowly. On top is the single-warpgroup Step 6: the one warp has to finish the MMA before it can issue the next TMA load, so the TMA engine sits idle through the entire MMA and the Tensor Cores sit idle through the entire load. On the bottom, specialization breaks that turn-taking. The TMA producer prefetches the next tile while the MMA consumer is busy computing, and writeback proceeds on its own. Producer warp 3 issues the next load while consumer warp 0 is still grinding through the current MMA, so neither engine has to wait on the other. Of course, overlap is not free — its price is coordination. The warps now have to tell each other when data is ready and when a buffer has been freed up, and two barriers carry those messages:</p>
 <ul class="simple">
@@ -358,7 +359,7 @@
 </section>
 <section id="warp-roles">
 <h3>Warp Roles<a class="headerlink" href="#warp-roles" title="Link to this heading">#</a></h3>
-<p>With <code class="docutils literal notranslate"><span class="pre">WG_NUMBER=2</span></code>, the kernel uses two warpgroups (abbreviated WG in the role table):</p>
+<p>The timeline showed <em>why</em> we split the work; the next question is <em>who</em> does each part. Specialization assigns the three jobs — load, compute, writeback — to specific warps so they can run at once. With <code class="docutils literal notranslate"><span class="pre">WG_NUMBER=2</span></code>, the kernel uses two warpgroups (abbreviated WG in the role table):</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Actor</p></th>
@@ -423,7 +424,7 @@
 </section>
 <section id="pipelinestate">
 <h3>PipelineState<a class="headerlink" href="#pipelinestate" title="Link to this heading">#</a></h3>
-<p>A ring buffer carries two pieces of bookkeeping at once: which slot we are currently on, and which “phase” of that slot’s barrier we are waiting for. Tracking both by hand across a pipelined loop is exactly the kind of thing that breeds off-by-one errors, and an off-by-one here deadlocks the whole kernel. <code class="docutils literal notranslate"><span class="pre">PipelineState</span></code> exists to keep the two together so you do not have to:</p>
+<p>The four barriers tell the roles <em>when</em> a buffer is ready; something still has to track <em>which</em> buffer each role is on as the pipeline cycles. That bookkeeping is what <code class="docutils literal notranslate"><span class="pre">PipelineState</span></code> manages. A ring buffer carries two pieces of bookkeeping at once: which slot we are currently on, and which “phase” of that slot’s barrier we are waiting for. Tracking both by hand across a pipelined loop is exactly the kind of thing that breeds off-by-one errors, and an off-by-one here deadlocks the whole kernel. <code class="docutils literal notranslate"><span class="pre">PipelineState</span></code> exists to keep the two together so you do not have to:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tma_ps</span> <span class="o">=</span> <span class="n">PipelineState</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># Producer starts ready (phase=1)</span>
 <span class="c1"># tma_ps.stage = current stage index</span>
 <span class="c1"># tma_ps.phase = current phase (0 or 1)</span>
@@ -670,7 +671,7 @@
 </ul>
 <section id="cluster-tile-shape">
 <h3>Cluster Tile Shape<a class="headerlink" href="#cluster-tile-shape" title="Link to this heading">#</a></h3>
-<p>The whole optimization rests on a single hardware capability: with <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>, the MMA is allowed to read operand tiles staged by <em>both</em> CTAs, not just the one it lives on. Each CTA loads one 128-row slice of stored B — which, after the transpose, becomes 128 logical output columns — and the cooperative MMA stitches the two slices back together into one operand:</p>
+<p>The whole optimization rests on a single hardware capability: with <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>, the MMA is allowed to read operand tiles staged by <em>both</em> CTAs, not just the one it lives on. Each CTA loads one 128-row slice of stored B — which, after the transpose, becomes 128 logical output columns — and the cooperative MMA stitches the two slices back together into one operand. The figure below traces how the two CTAs’ A and B slices combine into the single 256×256 cluster tile:</p>
 <p><img alt="2-CTA Cluster" src="../_images/cta_cluster.png" /></p>
 <p><strong>Why A and B are split across the cluster</strong>: To see how the 256×256 tile gets partitioned, recall that the tutorial stores GEMM as <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">A</span> <span class="pre">&#64;</span> <span class="pre">B.T</span></code>, where stored B has shape <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">x</span> <span class="pre">K</span></code>. With two CTAs in a cluster, the split falls out cleanly:</p>
 <ul class="simple">
@@ -722,6 +723,7 @@
 </section>
 <section id="cluster-scope-changes">
 <h3>Cluster-Scope Changes<a class="headerlink" href="#cluster-scope-changes" title="Link to this heading">#</a></h3>
+<p>Those six edits all stem from the same shift: the cooperating scope is now the cluster rather than a single CTA. The points below spell out what that widening means in practice — how each CTA finds its place, whose barriers the cluster coordinates on, and which CTA actually issues the cooperative MMA.</p>
 <ul class="simple">
 <li><p><strong>Cluster CTA ID</strong>: <code class="docutils literal notranslate"><span class="pre">cbx</span></code> tells each CTA its position in the cluster (0 or 1). CTA-0 handles A rows 0-127, CTA-1 handles rows 128-255.</p></li>
 <li><p><strong>Remote barrier view</strong>: In a cluster, each CTA has its own SMEM and its own barriers, which raises an obvious question — if CTA-1 needs to wait on something CTA-0 produces, whose barrier does it actually touch? The answer is to nominate CTA-0’s barriers as the single coordination point and let any CTA in the cluster reach them. <code class="docutils literal notranslate"><span class="pre">map_shared_rank(tma2mma.ptr_to([0]),</span> <span class="pre">0)</span></code> returns a cluster-wide pointer to CTA-0’s barrier, with the TIRx wrapper <code class="docutils literal notranslate"><span class="pre">tma2mma.remote_view(0)</span></code>, and from then on every arrive and wait targets CTA-0’s copy.</p></li>
@@ -934,7 +936,7 @@
 </ul>
 <section id="multi-consumer-structure">
 <h3>Multi-Consumer Structure<a class="headerlink" href="#multi-consumer-structure" title="Link to this heading">#</a></h3>
-<p>With <code class="docutils literal notranslate"><span class="pre">NUM_CONSUMER=2</span></code> and <code class="docutils literal notranslate"><span class="pre">WG_NUMBER=3</span></code>, the kernel now spans three warpgroups (abbreviated WG in the role table):</p>
+<p>Adding a second consumer means the kernel now has more distinct roles to lay out: two MMA warps instead of one, and a matching second writeback warpgroup to drain the extra accumulator. With <code class="docutils literal notranslate"><span class="pre">NUM_CONSUMER=2</span></code> and <code class="docutils literal notranslate"><span class="pre">WG_NUMBER=3</span></code>, the kernel now spans three warpgroups (abbreviated WG in the role table):</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Warpgroup</p></th>
@@ -970,6 +972,7 @@
 </section>
 <section id="changes-from-step-8">
 <h3>Changes from Step 8<a class="headerlink" href="#changes-from-step-8" title="Link to this heading">#</a></h3>
+<p>Concretely, supporting the second consumer touches the kernel in a handful of places, and every change traces back to one fact: there are now two A blocks and two TMEM ranges to feed and drain per stage, while B stays shared. The edits below stage an extra A block, give each consumer its own barrier slot, and adjust the tile addressing for the taller 512×256 cluster tile.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span> <span class="pre">=</span> <span class="pre">pool.alloc((PIPE_DEPTH,</span> <span class="pre">NUM_CONSUMER,</span> <span class="pre">BLK_M,</span> <span class="pre">BLK_K),</span> <span class="pre">...)</span></code> — 2 A blocks per stage, one per consumer</p></li>
 <li><p>TMA loads both <code class="docutils literal notranslate"><span class="pre">Asmem[stage,</span> <span class="pre">0]</span></code> and <code class="docutils literal notranslate"><span class="pre">Asmem[stage,</span> <span class="pre">1]</span></code>, with TMA arrive bytes now <code class="docutils literal notranslate"><span class="pre">CTA_GROUP</span> <span class="pre">*</span> <span class="pre">(NUM_CONSUMER</span> <span class="pre">*</span> <span class="pre">BLK_M</span> <span class="pre">*</span> <span class="pre">BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N</span> <span class="pre">*</span> <span class="pre">BLK_K)</span> <span class="pre">*</span> <span class="pre">F16_SIZE</span></code> (extra A block)</p></li>
@@ -1324,7 +1327,7 @@
 </section>
 <section id="crashes-xid-43-illegal-memory-access">
 <h3>Crashes (XID 43 / Illegal Memory Access)<a class="headerlink" href="#crashes-xid-43-illegal-memory-access" title="Link to this heading">#</a></h3>
-<p>These corrupt the CUDA context, and the tell-tale sign is that a <em>later</em>, perfectly innocent <code class="docutils literal notranslate"><span class="pre">torch.randn</span></code> fails too. All three causes are allocation- or warp-shape mistakes:</p>
+<p>Where a deadlock hangs, a crash fails fast and loud. These crashes corrupt the CUDA context, and the tell-tale sign is that a <em>later</em>, perfectly innocent <code class="docutils literal notranslate"><span class="pre">torch.randn</span></code> fails too. All three causes are allocation- or warp-shape mistakes:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">pool.alloc</span></code> after <code class="docutils literal notranslate"><span class="pre">pool.commit()</span></code>.</strong> Barrier wrappers call <code class="docutils literal notranslate"><span class="pre">alloc</span></code> internally. Correct order: <code class="docutils literal notranslate"><span class="pre">tmem_addr</span> <span class="pre">→</span> <span class="pre">barrier</span> <span class="pre">wrappers</span> <span class="pre">→</span> <span class="pre">move_base_to(1024)</span> <span class="pre">→</span> <span class="pre">Asmem</span> <span class="pre">/</span> <span class="pre">Bsmem</span> <span class="pre">/</span> <span class="pre">Dsmem</span> <span class="pre">→</span> <span class="pre">commit()</span></code>.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.alloc</span></code> / <code class="docutils literal notranslate"><span class="pre">dealloc</span></code> with a lane guard.</strong> They require all 32 lanes of the warp to participate; <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">lane_id</span> <span class="pre">==</span> <span class="pre">0:</span></code> runs one thread, which is undefined behavior — often observed as an illegal-instruction or context error, a hang, or (worst) silently wrong results.</p></li>
@@ -1333,7 +1336,7 @@
 </section>
 <section id="wrong-results">
 <h3>Wrong Results<a class="headerlink" href="#wrong-results" title="Link to this heading">#</a></h3>
-<p>The tell here lives in the error pattern itself. Mismatch counts that come out as exact multiples of 128 (128, 256, or 384 rows) point to a sync race rather than bad arithmetic — whole warpgroup-sized stripes are wrong because a handoff slipped, not because any single number was computed incorrectly.</p>
+<p>The third failure class is the quietest: the kernel runs to completion but the numbers are wrong. The tell for these lives in the error pattern itself. Mismatch counts that come out as exact multiples of 128 (128, 256, or 384 rows) point to a sync race rather than bad arithmetic — whole warpgroup-sized stripes are wrong because a handoff slipped, not because any single number was computed incorrectly.</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> outside <code class="docutils literal notranslate"><span class="pre">elect_sync</span></code></strong> — all 32 threads create commit groups; the 31 empty ones signal the mbarrier immediately. TMA overwrites SMEM before MMA reads it. Output is zeros or garbage.</p></li>
 <li><p><strong>Missing <code class="docutils literal notranslate"><span class="pre">fence.proxy_async(&quot;shared::cta&quot;)</span></code> before TMA store</strong> — TMA engine doesn’t see SMEM writes from threads.</p></li>
@@ -1345,7 +1348,7 @@
 </section>
 <section id="end-to-end-result">
 <h2>End-to-End Result<a class="headerlink" href="#end-to-end-result" title="Link to this heading">#</a></h2>
-<p>Reference numbers on NVIDIA B200, M=N=K=4096, fp16, locked clocks, 1000-iteration timed benchmark:</p>
+<p>With all nine steps in hand, it is worth lining them up to see where the time actually went. The table below collects every step from the naive baseline through the warp-specialized cluster kernel, alongside the cuBLAS reference, so the cumulative effect of the chapter reads top to bottom in one place. Reference numbers on NVIDIA B200, M=N=K=4096, fp16, locked clocks, 1000-iteration timed benchmark:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Step</p></th>
@@ -1417,6 +1420,7 @@
 <li><p><strong>CTA Clusters</strong> — a 2-SM cooperative MMA improves B-tile reuse across CTAs (~1.8× from Step 7 → Step 8 in this benchmark).</p></li>
 <li><p><strong>Multi-Consumer</strong> — two MMA warps for higher compute density (~8% from Step 8 → Step 9).</p></li>
 </ol>
+<p>Plotted step by step, those same four contributions trace the descent from the naive baseline to the cuBLAS reference. The figure below shows the full trajectory:</p>
 <p><img alt="GEMM Optimization Journey" src="../_images/gemm_perf.png" /></p>
 <p>Across this benchmark the path runs from 70 ms down to 0.12 ms, landing close to the cuBLAS reference above.</p>
 <p>Notice that the gains shrink as we go down the list, and there is a structural reason for it rather than any weakening of effort. The early steps go after <em>memory</em> bottlenecks — TMA replaces software copies, clusters raise arithmetic intensity — and that is where most of the 70 ms was actually being spent, so those steps pay off the most. By Step 8 the kernel is already within ~18% of cuBLAS (0.13 vs 0.11 ms) and is close to <em>compute-bound</em>, which means there is very little memory stall left to hide; Step 9’s multi-consumer overlap recovers most of what little remains. A single-digit final gain is exactly what to expect near the compute ceiling — it is the diminishing return of a problem that is nearly solved, not the sign of a weak optimization.</p>

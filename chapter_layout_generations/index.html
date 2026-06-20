@@ -336,7 +336,9 @@ them: the specific layout the <em>tensor core</em> itself insists on for its ope
 </section>
 <section id="ampere-register-fragment-over-warp-lane">
 <h2>Ampere — Register Fragment over Warp/Lane<a class="headerlink" href="#ampere-register-fragment-over-warp-lane" title="Link to this heading">#</a></h2>
-<p>On Ampere-class GPUs (<code class="docutils literal notranslate"><span class="pre">sm_80</span></code>) the tensor-core instruction is the warp-level
+<p>With those two memory rules in place, we can turn to the third demand — the one the tensor core itself
+makes — starting with the earliest of our three generations. On Ampere-class GPUs (<code class="docutils literal notranslate"><span class="pre">sm_80</span></code>) the
+tensor-core instruction is the warp-level
 <code class="docutils literal notranslate"><span class="pre">mma.sync.aligned.m16n8k*</span></code>, and the defining fact about it is where it reads its operands from:
 <strong>registers</strong>. A, B, and the C/D accumulator are all per-thread register fragments, spread across the
 warp’s 32 lanes. Almost everything else about the Ampere data path follows from this one constraint,
@@ -347,7 +349,8 @@ afterward:</p>
 </div>
 <section id="what-the-tensor-core-expects-an-m8n8-register-fragment">
 <h3>What the Tensor Core Expects: an m8n8 Register Fragment<a class="headerlink" href="#what-the-tensor-core-expects-an-m8n8-register-fragment" title="Link to this heading">#</a></h3>
-<p>To use the instruction at all, we have to know precisely which value sits in which lane’s register —
+<p>Because the Ampere operands live in registers, the first thing to pin down is their register layout.
+To use the <code class="docutils literal notranslate"><span class="pre">mma.sync</span></code> instruction at all, we have to know precisely which value sits in which lane’s register —
 the layout is not an implementation detail we can ignore, it is part of the instruction’s contract.
 The register fragment is built from <strong>8×8 (“m8n8”) sub-tiles</strong>, which are the unit that <code class="docutils literal notranslate"><span class="pre">ldmatrix</span></code>
 moves and the tensor core reads. Take <code class="docutils literal notranslate"><span class="pre">mma.m16n8k16</span></code> (fp16/bf16 in, fp32 accumulate) as the concrete
@@ -411,7 +414,8 @@ along a <strong>row</strong>, and then read by <code class="docutils literal not
 write hits 8 distinct banks and is conflict-free, but the column read hits one bank 8 times — an
 8-way conflict. Switching to a col-major tile does not save us; it merely flips which of the two
 accesses pays the price. Without a permutation, one side always loses: row-major favors the write,
-while col-major favors the read.</p>
+while col-major favors the read. The figure below contrasts the two accesses on a plain row-major
+tile, showing the row write spread across distinct banks while the column read collides on one.</p>
 <p><img alt="Row write hits 8 distinct banks (conflict-free); column read hits one bank 8 times (conflict)" src="../_images/swizzle_conflict.svg" /></p>
 <p>The way out is the XOR <strong>swizzle</strong> from <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Data Layout</span></a>: we store element <code class="docutils literal notranslate"><span class="pre">(r,</span> <span class="pre">c)</span></code> at column
 <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">⊕</span> <span class="pre">r</span></code>, and that single permutation makes the row write <em>and</em> the column read conflict-free at the
@@ -422,6 +426,8 @@ live in hand-written index math.</p>
 </section>
 <section id="hopper-wgmma-smem-descriptors-and-swizzle-formats">
 <h2>Hopper — <code class="docutils literal notranslate"><span class="pre">wgmma</span></code>, SMEM Descriptors, and Swizzle Formats<a class="headerlink" href="#hopper-wgmma-smem-descriptors-and-swizzle-formats" title="Link to this heading">#</a></h2>
+<p>Ampere paid for its register fragment on every MMA. The next generation keeps the same <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">AB</span> <span class="pre">+</span> <span class="pre">C</span></code>
+but rethinks where the operands come from, and that one decision reshapes the whole input path.</p>
 <section id="what-the-tensor-core-expects-a-smem-matrix-descriptor">
 <h3>What the Tensor Core Expects: a SMEM Matrix Descriptor<a class="headerlink" href="#what-the-tensor-core-expects-a-smem-matrix-descriptor" title="Link to this heading">#</a></h3>
 <p>Recall that the Ampere data path spends real instructions shuffling operands through registers.
@@ -489,6 +495,9 @@ Moving the accumulator out of registers altogether is the change that waits for 
 </section>
 <section id="blackwell-tcgen05-and-tmem">
 <h2>Blackwell — <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> and TMEM<a class="headerlink" href="#blackwell-tcgen05-and-tmem" title="Link to this heading">#</a></h2>
+<p>Hopper moved the operands into SMEM but left the accumulator in registers. The third generation
+finishes the move, relocating the accumulator out of the register file and introducing a new operand
+that has no place to live anywhere else.</p>
 <section id="what-the-tensor-core-expects-smem-operands-and-a-tmem-accumulator">
 <h3>What the Tensor Core Expects: SMEM Operands and a TMEM Accumulator<a class="headerlink" href="#what-the-tensor-core-expects-smem-operands-and-a-tmem-accumulator" title="Link to this heading">#</a></h3>
 <p>Blackwell (<code class="docutils literal notranslate"><span class="pre">sm_100</span></code>) inherits Hopper’s SMEM matrix descriptor for the A/B operands — and an A operand
@@ -502,7 +511,8 @@ the one we will focus on here, is the <strong>scale factors</strong> of a block-
 </section>
 <section id="scale-factor-layout-in-tmem">
 <h3>Scale-Factor Layout in TMEM<a class="headerlink" href="#scale-factor-layout-in-tmem" title="Link to this heading">#</a></h3>
-<p>A block-scaled MMA (mxfp8, nvfp4) carries two extra operands beyond A and B — <code class="docutils literal notranslate"><span class="pre">SFA</span> <span class="pre">(M,</span> <span class="pre">SFK)</span></code> and
+<p>The new operand promised above is the per-block scale. A block-scaled MMA (mxfp8, nvfp4) carries two
+extra operands beyond A and B — <code class="docutils literal notranslate"><span class="pre">SFA</span> <span class="pre">(M,</span> <span class="pre">SFK)</span></code> and
 <code class="docutils literal notranslate"><span class="pre">SFB</span> <span class="pre">(N,</span> <span class="pre">SFK)</span></code>, where <code class="docutils literal notranslate"><span class="pre">SFK</span> <span class="pre">=</span> <span class="pre">K</span> <span class="pre">/</span> <span class="pre">block</span></code>. The thing that sets them apart is where they live: unlike A
 and B, <strong>the scale factors reside in TMEM</strong> rather than SMEM, so they cannot simply ride the ordinary
 operand path. Instead they take a small SMEM→TMEM detour: a TMA load first brings them into SMEM, and

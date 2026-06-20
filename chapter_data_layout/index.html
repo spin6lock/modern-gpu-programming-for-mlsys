@@ -314,11 +314,11 @@ learning system runs into. We will close with <strong>swizzling</strong>, the me
 row-wise and column-wise access to a tile efficient at the same time.</p>
 <section id="the-shapestride-model">
 <h2>The Shape–Stride Model<a class="headerlink" href="#the-shapestride-model" title="Link to this heading">#</a></h2>
-<p>It is worth starting from the simplest possible layout, because everything else in the chapter is
-built on top of it. At its core, a layout is just two things: a <strong>shape</strong> and a matching set of
-<strong>strides</strong>. We write the pair as <code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>, and to find where a logical index lives
-we take the dot product of that index with the strides. A row-major 4×4 matrix, for instance, looks
-like this:</p>
+<p>Before we reach the GPU-specific layouts, it is worth starting from the simplest possible one, because
+everything else in the chapter is built on top of it. At its core, a layout is just two things: a
+<strong>shape</strong> and a matching set of <strong>strides</strong>. We write the pair as <code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>, and to
+find where a logical index lives we take the dot product of that index with the strides. A row-major
+4×4 matrix, for instance, looks like this:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(4, 4) : (4, 1)]        addr(i, j) = i·4 + j·1
 </pre></div>
 </div>
@@ -377,10 +377,10 @@ coordinates and then mapped to a physical address.</p>
 </section>
 <section id="named-axes">
 <h2>Named Axes<a class="headerlink" href="#named-axes" title="Link to this heading">#</a></h2>
-<p>Up to this point we have treated an address as a location in linear memory. On a GPU, though, data
-can live in more than one place: besides memory, a tile may be spread across warp lanes, across
-thread registers, or across TMEM lanes and columns. To describe all of these uniformly, we extend
-the notation with <strong>named axes</strong>. The idea is to let each stride coefficient carry an axis tag that
+<p>Up to this point every stride in <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> has named an offset into linear memory, and we have treated
+an address as a location there. On a GPU, though, data can live in more than one place: besides
+memory, a tile may be spread across warp lanes, across thread registers, or across TMEM lanes and
+columns. To describe all of these uniformly, we extend the notation with <strong>named axes</strong>. The idea is to let each stride coefficient carry an axis tag that
 says which space it moves through — <code class="docutils literal notranslate"><span class="pre">&#64;m</span></code> for ordinary memory, <code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> for warp lanes, <code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code> for
 registers, <code class="docutils literal notranslate"><span class="pre">&#64;warpid</span></code> for warps, and <code class="docutils literal notranslate"><span class="pre">&#64;TLane</span></code> / <code class="docutils literal notranslate"><span class="pre">&#64;TCol</span></code> for TMEM coordinates. With the tags in hand, a
 single layout can describe not only where data sits in memory but also how it is distributed across
@@ -401,22 +401,26 @@ lanes and per-lane registers, rather than placing them in linear memory.</p>
 <section id="distributed-layout">
 <h2>Distributed Layout<a class="headerlink" href="#distributed-layout" title="Link to this heading">#</a></h2>
 <p>What makes named axes so useful is that they let us describe placement uniformly across many levels
-of the system. We have just used them for lanes and registers inside a single GPU, but the very same
-idea reaches across devices: axes such as <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_y</span></code> can say where data lives in a GPU
-mesh, and with them the notation captures the sharding patterns that show up in distributed training
-and inference. One thing the axes do not yet capture is <em>replication</em> — data that is copied to more
-than one place — so we add the notation <code class="docutils literal notranslate"><span class="pre">R[n</span> <span class="pre">:</span> <span class="pre">stride]</span></code>, where <code class="docutils literal notranslate"><span class="pre">R</span></code> marks the replicated dimension.
-For example, <code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;gpuid_x]</span></code> describes replication along the <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> axis. The interactive demo
-below shows several ways to express sharding and replication on a 2×2 GPU mesh:</p>
+of the system, including placement <em>across whole devices</em>. We have just used them for lanes and
+registers inside a single GPU, but the very same idea reaches outward: axes such as <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&#64;gpuid_y</span></code> can say where data lives in a GPU mesh, and with them the notation captures the sharding
+patterns that show up in distributed training and inference. One thing the axes do not yet capture
+is <em>replication</em> — data that is copied to more than one place — so we add the notation <code class="docutils literal notranslate"><span class="pre">R[n</span> <span class="pre">:</span> <span class="pre">stride]</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">R</span></code> marks the replicated dimension. For example, <code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;gpuid_x]</span></code> describes replication along
+the <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> axis. Putting the two together, a single expression can both shard a tensor across a
+2×2 GPU mesh and replicate it along one axis:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(2, 4, 8) : (1@gpuid_y, 8@m, 1@m)] + R[2 : 1@gpuid_x]
 </pre></div>
 </div>
-<p>The demo below shows that combined partition-and-replication pattern on a small GPU mesh.</p>
+<p>The demo below shows that combined partition-and-replication pattern on a small GPU mesh; trace one
+tensor element to see which device holds it, and watch how the <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> replication places an
+identical copy on the paired device.</p>
 <iframe src="../demo/tile_distributed.html" title="Distributed layout across a GPU mesh" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: a layout distributed over a 2×2 GPU mesh.</em></p>
 <section id="intra-kernel-replication-pattern-scale-factors-in-tmem">
 <h3>Intra-Kernel Replication Pattern: Scale Factors in TMEM<a class="headerlink" href="#intra-kernel-replication-pattern-scale-factors-in-tmem" title="Link to this heading">#</a></h3>
-<p>The same replication dimension turns out to describe something that happens entirely inside a single
+<p>The replication dimension <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> we just introduced for the GPU mesh is not only about multiple
+devices. The same construct turns out to describe something that happens entirely inside a single
 kernel as well: data that the hardware <em>broadcasts across lanes</em>. Blackwell’s block-scaled MMA
 (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Data Layout Across GPU Generations</span></a>) is a good example. Its scale factors live in TMEM, where a 128-row
 scale vector is stored in only <strong>32 TMEM lanes</strong> — logical row <code class="docutils literal notranslate"><span class="pre">r</span></code> goes to TMEM lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, with
@@ -465,11 +469,10 @@ same column is spread across eight distinct banks and reads in a single cycle.</
 <p>The little 8×8 example captures the core idea, but real GPU memories have many more banks than that
 toy picture suggests. To make swizzling work at full scale, we do not treat the whole tile as one
 monolithic object. Instead, we cut memory into small segments and apply the swizzle pattern within
-each segment. The next figure shows the most common case in practice, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, where the
-layout is organized around 128-byte segments so the same row/column-remapping trick fits naturally
-into a 32-bank memory system:</p>
-<p>This interactive shows one concrete hardware swizzle, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, so the repeating pattern is
-visible before we generalize across formats.</p>
+each segment. The most common case in practice is <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, organized around 128-byte segments
+so the same row/column-remapping trick fits naturally into a 32-bank memory system.</p>
+<p>The interactive below shows that one concrete hardware swizzle, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, so the repeating
+segment-by-segment pattern is visible before we generalize across formats.</p>
 <iframe src="../demo/swizzle_128B.html" title="SWIZZLE_128B layout" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: the <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> pattern, applied within 128-byte segments.</em></p>
 <p>The same idea extends beyond this 128-byte case. To simplify the visualization, we will now use a
@@ -477,9 +480,10 @@ single color block to refer to one segment, instead of drawing individual banks.
 hardware defines a small repeating <strong>atom</strong> on which the permutation is applied, and different
 swizzle modes choose different atom sizes. <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> uses an 8 × 128 B atom, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> an
 8 × 64 B atom, and <code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code> an 8 × 32 B atom; the whole tile is then tiled by whichever atom
-is in use. The demo shows the element arrangement inside one atom for each format:</p>
-<p>The final interactive lets you switch formats and inspect the atom directly, which is the right
-level of detail for reasoning about which swizzle a load/store instruction expects.</p>
+is in use.</p>
+<p>The final interactive lets you switch between these formats and inspect the element arrangement
+inside one atom directly, which is the right level of detail for reasoning about which swizzle a
+load/store instruction expects.</p>
 <iframe src="../demo/swizzle_atom_general.html" title="Swizzle atom layout per format (128B/64B/32B)" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: pick a swizzle format to see its atom shape (8 × N B) and how elements are permuted inside it.</em></p>
 <p>Which mode should you pick? The rule of thumb is to prefer the <em>largest</em> atom the tile can fill. An

@@ -317,7 +317,7 @@
 <p>The clearest way in is to follow a single tile as it flows through the kernel. <code class="docutils literal notranslate"><span class="pre">Q</span></code>, <code class="docutils literal notranslate"><span class="pre">K</span></code>, and <code class="docutils literal notranslate"><span class="pre">V</span></code> enter as input tiles, loaded from GMEM into SMEM. The score MMA multiplies <code class="docutils literal notranslate"><span class="pre">Q</span></code> and <code class="docutils literal notranslate"><span class="pre">K</span></code> into a score tile <code class="docutils literal notranslate"><span class="pre">S</span></code> in TMEM. Softmax then turns <code class="docutils literal notranslate"><span class="pre">S</span></code> into a numerator tile <code class="docutils literal notranslate"><span class="pre">P</span></code>, and the value MMA combines <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">V</span></code> to update the output accumulator <code class="docutils literal notranslate"><span class="pre">O</span></code>. So far this looks like two matmuls glued together, but there is one twist that GEMM never had to deal with: whenever the running softmax maximum changes, the <code class="docutils literal notranslate"><span class="pre">O</span></code> accumulated so far is suddenly in the wrong scale, and it must be rescaled before the next value MMA can safely add into it. The sections below trace this path first, and only then show how TIRx hands each stage to a warpgroup and wires the stages together.</p>
 <section id="algorithm-shape">
 <h2>Algorithm Shape<a class="headerlink" href="#algorithm-shape" title="Link to this heading">#</a></h2>
-<p>For one query block, Flash Attention computes:</p>
+<p>Before we can place tiles in memory, we need the algorithm those tiles serve. For one query block, Flash Attention computes:</p>
 <div class="math notranslate nohighlight">
 \[O = \text{softmax}(QK^{\top} / \sqrt{d})V\]</div>
 <p>The most direct reading of this formula is also the one we cannot use. It says: form the full score matrix <code class="docutils literal notranslate"><span class="pre">S</span> <span class="pre">=</span> <span class="pre">QKᵀ</span></code>, softmax it, then multiply by <code class="docutils literal notranslate"><span class="pre">V</span></code>. The trouble is that the full <code class="docutils literal notranslate"><span class="pre">S</span></code> is enormous. At seq=4096 it holds roughly 16M elements per head, about 64 MB in fp32, which is orders of magnitude larger than SMEM or the single 128×512 TMEM region. There is simply nowhere on-chip to put it. Flash Attention’s answer is to never materialize <code class="docutils literal notranslate"><span class="pre">S</span></code> at all. Instead it streams <code class="docutils literal notranslate"><span class="pre">K/V</span></code> in blocks and carries three per-row running states that summarize everything seen so far:</p>
@@ -349,7 +349,7 @@ row_max = m_new
 </section>
 <section id="tile-primitive-graph">
 <h2>Tile-Primitive Graph<a class="headerlink" href="#tile-primitive-graph" title="Link to this heading">#</a></h2>
-<p>For one K/V block, the kernel walks this tile path top to bottom:</p>
+<p>With the running states and their homes in hand, we can lay the algorithm out as a concrete sequence of tile moves. For one K/V block, the kernel walks this tile path top to bottom:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Q, K, V in GMEM
   -&gt; Q, K, V in SMEM        by TMA load
   -&gt; S in TMEM              by score MMA: QK^T
@@ -523,7 +523,7 @@ P, V -&gt; value MMA -&gt; O
 <p>The compute code never speaks in raw TMEM column numbers. Instead the kernel carves its single TMEM allocation into per-stage views — <code class="docutils literal notranslate"><span class="pre">S_region</span></code>, <code class="docutils literal notranslate"><span class="pre">P_region</span></code>, <code class="docutils literal notranslate"><span class="pre">O_region</span></code> — and indexes them by pipeline stage (<code class="docutils literal notranslate"><span class="pre">S_region[q_stage]</span></code>, <code class="docutils literal notranslate"><span class="pre">O_region[i_q]</span></code>, <code class="docutils literal notranslate"><span class="pre">P_region[i_q,</span> <span class="pre">0:K_SPLIT]</span></code>). Those views are defined with <code class="docutils literal notranslate"><span class="pre">T.TMEMStages</span></code> in the <a class="reference internal" href="#tmem-layout-and-reuse">TMEM Layout and Reuse</a> section; for now it is enough to treat each region as a named slice of the same physical TMEM.</p>
 <section id="score-mma">
 <h3>Score MMA<a class="headerlink" href="#score-mma" title="Link to this heading">#</a></h3>
-<p>The score MMA computes:</p>
+<p>The first of the two phases is the score MMA, the matmul that opens every K/V iteration. It computes:</p>
 <div class="math notranslate nohighlight">
 \[S = Q_{\text{block}}K_{\text{block}}^{\top}\]</div>
 <p>and writes the <code class="docutils literal notranslate"><span class="pre">128</span> <span class="pre">x</span> <span class="pre">128</span></code> score tile to TMEM:</p>
@@ -552,6 +552,7 @@ P, V -&gt; value MMA -&gt; O
 </section>
 <section id="softmax-between-mmas">
 <h3>Softmax Between MMAs<a class="headerlink" href="#softmax-between-mmas" title="Link to this heading">#</a></h3>
+<p>Between the two MMAs sits softmax, the stage that turns the score tile <code class="docutils literal notranslate"><span class="pre">S</span></code> into the numerator tile <code class="docutils literal notranslate"><span class="pre">P</span></code>. Its readout card is:</p>
 <blockquote>
 <div><p><strong>Tile-primitive readout — Softmax</strong></p>
 <ul class="simple">
@@ -585,7 +586,7 @@ P, V -&gt; value MMA -&gt; O
 </section>
 <section id="value-mma">
 <h3>Value MMA<a class="headerlink" href="#value-mma" title="Link to this heading">#</a></h3>
-<p>The value MMA computes:</p>
+<p>The second phase, and the one that closes each K/V iteration, is the value MMA. It computes:</p>
 <div class="math notranslate nohighlight">
 \[O = O + P_{\text{block}}V_{\text{block}}\]</div>
 <p>By the time this MMA runs, <code class="docutils literal notranslate"><span class="pre">O</span></code> has already been put into the right state for the current K/V block — initialized on the first block, rescaled on later ones — so all the MMA has to do is accumulate. What sets it apart from GEMM is where the operands live: the A operand is <code class="docutils literal notranslate"><span class="pre">P</span></code> in TMEM, the B operand is <code class="docutils literal notranslate"><span class="pre">V</span></code> in SMEM, and the accumulator <code class="docutils literal notranslate"><span class="pre">O</span></code> is in TMEM as well:</p>
@@ -940,6 +941,7 @@ q_head  = row % GQA_RATIO
 </section>
 <section id="differences-from-gemm">
 <h2>Differences from GEMM<a class="headerlink" href="#differences-from-gemm" title="Link to this heading">#</a></h2>
+<p>Now that the whole kernel has run, it is worth setting it side by side with GEMM, the kernel it builds on, to see exactly which axes attention stretches. The table collects those axes:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>

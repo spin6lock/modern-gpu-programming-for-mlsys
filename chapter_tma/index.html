@@ -314,7 +314,8 @@ completion is signaled.</p>
 </div><p><em>Interactive: the TMA engine copying a tile from global to shared memory.</em></p>
 <section id="one-thread-issues-hardware-moves-the-tile">
 <h2>One Thread Issues, Hardware Moves the Tile<a class="headerlink" href="#one-thread-issues-hardware-moves-the-tile" title="Link to this heading">#</a></h2>
-<p>The idea behind TMA is to split the work between the threads and the hardware. Instead of every
+<p>Start with the first part of that picture, the copy itself. The idea behind TMA is to split the work
+between the threads and the hardware. Instead of every
 thread running its own load/store loop, a single thread issues one tile copy, and the engine carries
 out the transfer in the background while the rest of the warp gets on with the math. To issue the
 copy, that thread hands the engine a tensor-map descriptor — a compact record of the global tensor’s
@@ -346,7 +347,9 @@ wants to read them, and the computation will be wrong.</p>
 had to worry about. Because the issuing thread returns immediately — long before the bytes have
 actually arrived — how does the kernel know the transfer has finished before something tries to read
 the data? The answer is that TMA needs an explicit completion signal. Loads and stores handle this
-differently, so it is worth looking at each in turn.</p>
+differently, so it is worth looking at each in turn. The figure below traces the load path end to
+end: watch how the expected byte count, the engine’s arrivals, and the consumer’s wait line up to
+flip the barrier’s phase.</p>
 <p><img alt="TMA load synchronization flow" src="../_images/tma_sync_flow.png" /></p>
 <p>A <strong>load (GMEM → SMEM)</strong> ties into an <strong>mbarrier</strong> (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>). Before the transfer
 begins, the issuing thread tells the barrier how many bytes to expect with

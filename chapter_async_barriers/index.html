@@ -307,6 +307,11 @@ tracking, and finally the small set of synchronization rules a tensor-core kerne
 (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 <section id="the-mbarrier">
 <h2>The mbarrier<a class="headerlink" href="#the-mbarrier" title="Link to this heading">#</a></h2>
+<p>Start with the object itself. An mbarrier (“memory barrier”) is the small piece of shared-memory
+state that every handoff in this chapter is built on, so it is worth seeing exactly what it holds and
+what a kernel can do to it. The demo below lays out that state — the arrival counter and the phase
+bit — alongside the three APIs that touch it; watch how <code class="docutils literal notranslate"><span class="pre">init</span></code>, <code class="docutils literal notranslate"><span class="pre">arrive</span></code>, and <code class="docutils literal notranslate"><span class="pre">wait</span></code> each move the
+counter and the bit.</p>
 <div style="overflow-x:auto;">
 <iframe src="../demo/mbarrier_mechanism.html" title="mbarrier data structure and APIs" loading="lazy"
         style="width:100%; min-width:1320px; height:620px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
@@ -344,6 +349,11 @@ arrives once its data is ready, and the consumer simply waits before touching it
 </section>
 <section id="phase-tracking">
 <h2>Phase Tracking<a class="headerlink" href="#phase-tracking" title="Link to this heading">#</a></h2>
+<p>We have seen <em>that</em> a barrier carries a phase bit; now we turn to <em>why</em>. A single barrier has to serve
+a loop that repeats the same handoff over and over, and the phase bit is what keeps those repetitions
+apart. The demo below replays one barrier across several pipeline iterations; watch the phase bit flip
+from 0 to 1 and back each time its arrivals complete, and notice that each iteration waits on the
+opposite phase from the one before.</p>
 <div style="overflow-x:auto;">
 <iframe src="../demo/phase_tracking.html" title="mbarrier phase tracking" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
@@ -362,8 +372,9 @@ pool of SMEM buffers and barriers across a long K-loop (<a class="reference inte
 </section>
 <section id="synchronization-rules">
 <h2>Synchronization Rules<a class="headerlink" href="#synchronization-rules" title="Link to this heading">#</a></h2>
-<p>Despite the hardware details, the synchronization model comes down to one rule: <strong>whenever one path
-produces data and another consumes it, make the handoff explicit.</strong> In practice, tensor-core kernels
+<p>With the barrier and its phase in hand, we can step back and ask how a whole kernel is wired
+together. Despite the hardware details, the synchronization model comes down to one rule: <strong>whenever
+one path produces data and another consumes it, make the handoff explicit.</strong> In practice, tensor-core kernels
 mostly reuse the same three handoff patterns:</p>
 <ul class="simple">
 <li><p><strong>Thread code → engine.</strong> When threads write SMEM and a later MMA or TMA store reads it, insert a

@@ -322,11 +322,12 @@ each case, the MMA writes its partial sums into TMEM rather than registers.</p>
 </div><p><em>Interactive: a few <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> configurations and their TMEM accumulator behavior.</em></p>
 <section id="the-tcgen05-mma">
 <h2>The <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA<a class="headerlink" href="#the-tcgen05-mma" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> is Blackwell’s tensor-core instruction family, and it is worth being precise about what it
-does and does not cover. It is <em>only</em> the compute path — the unit that actually multiplies the
+<p>With the accumulator’s new home in view, we can turn to the instruction that fills it. <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> is
+Blackwell’s tensor-core instruction family, and it is worth being precise about what it does and does
+not cover. It is <em>only</em> the compute path — the unit that actually multiplies the
 tiles. Getting the operands into place beforehand is a separate job, and that job belongs to TMA
-(<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>). So when you issue an MMA, what you are really configuring are the three design elements we
-introduced earlier, and each one answers a different question:</p>
+(<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>). So when you issue an MMA, what you are really configuring are three design
+elements, and each one answers a different question:</p>
 <ol class="arabic simple">
 <li><p><strong>Scope — who cooperates.</strong> An MMA is issued for a warpgroup. On Blackwell, some modes go a step
 further and let two CTAs in a cluster cooperate on one larger MMA tile. Either way, the
@@ -403,7 +404,8 @@ A (M, K) and B (N, K) in its SMEM and the accumulator in its TMEM. Because there
 as many rows as there are lanes, the mapping is the obvious one — row <code class="docutils literal notranslate"><span class="pre">m</span></code> goes to lane <code class="docutils literal notranslate"><span class="pre">m</span></code>, and
 column <code class="docutils literal notranslate"><span class="pre">n</span></code> goes to a TMEM column. C fills all 128 lanes × N columns, with nothing left idle. This is
 the picture to keep in your head as the default; every other mode is best understood as a variation
-on what to do when the row count and the lane count no longer line up so neatly.</p>
+on what to do when the row count and the lane count no longer line up so neatly. The figure
+below shows this identity mapping.</p>
 <p><img alt="cta_group::1, M=128: identity — row m maps to TMEM lane m" src="../_images/mma_cg1_m128.svg" /></p>
 <p><strong><code class="docutils literal notranslate"><span class="pre">cta_group::1</span></code>, M = 64.</strong> Here the row count and the lane count come apart: there are only 64 rows
 to place into 128 lanes. The naive thing would be to pack them into lanes 0–63, but that would leave
@@ -413,7 +415,7 @@ out instead, as four runs of 16 rows at a <strong>lane stride of 32</strong>: ro
 16–31, 48–63, 80–95, and 112–127 free. Those gaps are not waste; they are there on purpose. A
 <code class="docutils literal notranslate"><span class="pre">lane_align</span></code> of 16 shifts the whole pattern up by 16, so <strong>two independent M = 64 MMAs can share the
 same 128 lanes</strong>, one running at align 0 and the other at align 16. Throughout all of this, the
-columns stay the full N.</p>
+columns stay the full N. The figure below traces the four runs and the gaps they leave behind.</p>
 <p><img alt="cta_group::1, M=64: four 16-row runs at lane stride 32, gaps free for a second M=64 tile" src="../_images/mma_cg1_m64.svg" /></p>
 <p>When one CTA’s TMEM simply cannot hold the tile — anything taller than 128 rows — we step up to
 <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> and let a pair of CTAs cooperate. <strong><code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code>, M = 256</strong> is the cleanest version
@@ -423,7 +425,7 @@ helps to be explicit about what this means physically: the (256, N) accumulator 
 128-row TMEM regions, one per CTA — not a single buffer that somehow spans both. Each CTA keeps its
 own 128 A-rows in SMEM, and the <strong>even CTA</strong> is the one that issues the instruction and commits the
 completion barrier on behalf of the pair. This is exactly the mode the 2-CTA cluster GEMM in
-<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> is built on.</p>
+<a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> is built on. The figure below shows the contiguous split across the pair.</p>
 <p><img alt="cta_group::2, M=256: M split contiguously, 128 rows per CTA across the pair" src="../_images/mma_cg2_m256.svg" /></p>
 <p><strong><code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code>, M = 128</strong> is the same CTA pairing, but applied to a shorter tile, and the
 interesting twist is what happens to the slack. With only 128 rows to share between two CTAs, there
@@ -431,7 +433,7 @@ is room to spare in M, and the hardware spends it on N instead. Each CTA takes o
 (CTA 0 gets rows 0–63, CTA 1 gets rows 64–127), and N is split in half: within each CTA, the low-N
 half occupies lanes 0–63 and the high-N half stacks on top into lanes 64–127. The result is that
 both CTAs again use all 128 lanes — packing 64 rows × two N-halves — rather than leaving the upper
-lanes empty.</p>
+lanes empty. The figure below shows how the N-halves stack within each CTA.</p>
 <p><img alt="cta_group::2, M=128: 64 rows per CTA with N split across the lower/upper 64 lanes" src="../_images/mma_cg2_m128.svg" /></p>
 <p>It is worth pausing on what stays the same across all four modes, since it is easy to lose sight of
 amid the row-and-lane bookkeeping. In every one of them, B (N, K) lives in SMEM, and under
@@ -441,7 +443,9 @@ rather than a hard rule: the <code class="docutils literal notranslate"><span cl
 </section>
 <section id="block-scaled-mma-mxfp8-nvfp4">
 <h2>Block-Scaled MMA (mxfp8 / nvfp4)<a class="headerlink" href="#block-scaled-mma-mxfp8-nvfp4" title="Link to this heading">#</a></h2>
-<p>Very low precision buys compute efficiency, but it comes with a real catch: a tiny <strong>dynamic range</strong>. An fp8 or fp4 element simply cannot span
+<p>The modes so far take their operands straight from SMEM. <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> also runs a <em>block-scaled</em> MMA for
+the very low precision formats, and that is the variant we turn to now. Very low precision buys compute
+efficiency, but it comes with a real catch: a tiny <strong>dynamic range</strong>. An fp8 or fp4 element simply cannot span
 the spread of magnitudes that a real matrix contains, so if you try to cover everything with a single
 global scale, you are forced into a bad trade: either you clip the large values, or you flush the
 small ones to zero. The way out is to stop scaling globally and start scaling finely. That is exactly
@@ -533,7 +537,8 @@ lanes. The full layout is spelled out in <a class="reference internal" href="../
 <strong>SFA follows A</strong>, so each CTA holds the M-half that matches its own A rows. <strong>SFB, by contrast, is
 multicast to both CTAs</strong>, because each CTA’s M-half has to multiply against the very same per-N column
 scales. In the kernels, this is what surfaces as the familiar “load SFA per-CTA (single-CTA mask),
-broadcast SFB (pair mask)” pattern, with per-CTA <code class="docutils literal notranslate"><span class="pre">SFA</span></code> and multicast <code class="docutils literal notranslate"><span class="pre">SFB</span></code>.</p>
+broadcast SFB (pair mask)” pattern, with per-CTA <code class="docutils literal notranslate"><span class="pre">SFA</span></code> and multicast <code class="docutils literal notranslate"><span class="pre">SFB</span></code>. The figure below
+collects the full placement: where each operand lives and how SFA and SFB split across the pair.</p>
 <p><img alt="Block-scaled MMA placement: A/B packed in SMEM; SFA, SFB, and C in TMEM, with SFA split by M and SFB multicast across the CTA pair" src="../_images/mma_block_scaled.svg" /></p>
 </section>
 </section>

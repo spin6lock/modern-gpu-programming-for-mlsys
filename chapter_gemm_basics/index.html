@@ -334,7 +334,7 @@
 \[\text{TFLOPS} = \frac{2 \times M \times N \times K}{t_{\text{seconds}} \times 10^{12}}\]</div>
 <section id="gemm-data-path">
 <h3>GEMM Data Path<a class="headerlink" href="#gemm-data-path" title="Link to this heading">#</a></h3>
-<p>Every optimization in this tutorial comes down to where the data lives and how it moves, so it is worth mapping that out before we write any code. At heart, a Blackwell GEMM kernel is organized around just two activities: moving tiles between memories, and computing on them.</p>
+<p>Every optimization in this tutorial comes down to where the data lives and how it moves, so it is worth mapping that out before we write any code. At heart, a Blackwell GEMM kernel is organized around just two activities: moving tiles between memories, and computing on them. The figure below traces a tile through every memory it touches on its way from input to output:</p>
 <p><img alt="Memory Data Flow" src="../_images/memory_dataflow.png" /></p>
 <p>The figure above shows the baseline path that every later optimization edits but never replaces.
 Read it from left to right: operand tiles first move from GMEM to SMEM; <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> then
@@ -369,7 +369,7 @@ below changes <em>how</em> one of these hops happens — it never changes the ho
 </div></blockquote>
 <section id="single-tile-dataflow">
 <h3>Single-Tile Dataflow<a class="headerlink" href="#single-tile-dataflow" title="Link to this heading">#</a></h3>
-<p>This first kernel walks the core GEMM data path exactly once. It allocates its working memory, loads the operands, computes the product, writes the result back, and cleans up after itself:</p>
+<p>With the baseline contract fixed, the next thing to pin down is the order in which one tile travels through it. This first kernel walks the core GEMM data path exactly once — the same GMEM -&gt; SMEM -&gt; TMEM -&gt; registers -&gt; GMEM chain from the data-flow figure, with no loop wrapped around it. It allocates its working memory, loads the operands, computes the product, writes the result back, and cleans up after itself:</p>
 <ol class="arabic simple">
 <li><p><strong>Allocate</strong>: SMEM (pool allocator), TMEM (<code class="docutils literal notranslate"><span class="pre">tcgen05.alloc</span></code>), mbarrier</p></li>
 <li><p><strong>Load</strong>: All 128 threads cooperatively copy A and B tiles from GMEM to SMEM (sync <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code>)</p></li>
@@ -613,7 +613,7 @@ below changes <em>how</em> one of these hops happens — it never changes the ho
 </div></blockquote>
 <section id="k-loop-mechanics">
 <h3>K-Loop Mechanics<a class="headerlink" href="#k-loop-mechanics" title="Link to this heading">#</a></h3>
-<p>To cover a K larger than 64, we walk K in chunks of <code class="docutils literal notranslate"><span class="pre">BLK_K=64</span></code>. Each iteration loads the next A and B K-slice into SMEM and issues <code class="docutils literal notranslate"><span class="pre">Tx.gemm_async</span></code>. The <code class="docutils literal notranslate"><span class="pre">accum</span></code> flag is what stitches these chunks together into one dot product: on the first chunk, <code class="docutils literal notranslate"><span class="pre">accum=False</span></code> initializes the TMEM accumulator, and on every later chunk, <code class="docutils literal notranslate"><span class="pre">accum=True</span></code> adds that chunk’s product into the running sum already sitting in TMEM.</p>
+<p>Step 1 contracted over a single 64-wide K tile; here we keep its single output tile but let K run as long as the matrices demand. To cover a K larger than 64, we walk K in chunks of <code class="docutils literal notranslate"><span class="pre">BLK_K=64</span></code>. Each iteration loads the next A and B K-slice into SMEM and issues <code class="docutils literal notranslate"><span class="pre">Tx.gemm_async</span></code>. The <code class="docutils literal notranslate"><span class="pre">accum</span></code> flag is what stitches these chunks together into one dot product: on the first chunk, <code class="docutils literal notranslate"><span class="pre">accum=False</span></code> initializes the TMEM accumulator, and on every later chunk, <code class="docutils literal notranslate"><span class="pre">accum=True</span></code> adds that chunk’s product into the running sum already sitting in TMEM.</p>
 <p>Synchronization is where the care is needed. We reuse a single mbarrier for every MMA completion, and reusing it safely comes down to tracking which barrier phase we are waiting on. An mbarrier carries a 1-bit phase, either 0 or 1, and it flips to the other value each time the expected arrival lands. The subtle part is the wait condition itself: <code class="docutils literal notranslate"><span class="pre">try_wait(bar,</span> <span class="pre">phase)</span></code> blocks until the barrier’s internal phase <em>differs</em> from the <code class="docutils literal notranslate"><span class="pre">phase</span></code> argument. So the argument we pass has to name the phase we expect to leave behind, not the one we are waiting to reach:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>

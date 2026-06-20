@@ -344,9 +344,9 @@ places at once. That map breaks cleanly into three parts — shard (<code class=
 at a time.</p>
 <section id="layouts-by-example">
 <h2>Layouts by example<a class="headerlink" href="#layouts-by-example" title="Link to this heading">#</a></h2>
-<p>Before the formal rules, here is what the API looks like in use. Each call builds a <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>
-from the same <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> / <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> notation as <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Data Layout</span></a>, so the code reads almost
-exactly like the notation on the page:</p>
+<p>Before the formal rules, here is what the layout API looks like in use. Each call below builds a
+<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> — the chapter’s central object — from the same <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> / <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> notation as
+<a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Data Layout</span></a>, so the code reads almost exactly like the notation on the page:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># An accumulator in tensor memory: logical row -&gt; TMEM lane, column -&gt; TMEM column.</span>
 <span class="n">acc</span> <span class="o">=</span> <span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)])</span>
 
@@ -400,7 +400,8 @@ description of what you can watch happen here.</p>
 </script></section>
 <section id="tilelayout">
 <h2>TileLayout<a class="headerlink" href="#tilelayout" title="Link to this heading">#</a></h2>
-<p>We write a <strong>TileLayout</strong> as <code class="docutils literal notranslate"><span class="pre">S[shape</span> <span class="pre">:</span> <span class="pre">strides]</span></code>. The <code class="docutils literal notranslate"><span class="pre">S</span></code> marks a shard spec,
+<p>The examples above all reduced to one object, so let us build it from the ground up.
+A <strong>TileLayout</strong> is written <code class="docutils literal notranslate"><span class="pre">S[shape</span> <span class="pre">:</span> <span class="pre">strides]</span></code>. The <code class="docutils literal notranslate"><span class="pre">S</span></code> marks a shard spec,
 which you can read as “a tile of this <em>shape</em>, with each logical index mapped by
 these per-axis <em>strides</em>”; when an element needs to be replicated, you extend it
 with a replica set and write <code class="docutils literal notranslate"><span class="pre">S[...]</span> <span class="pre">+</span> <span class="pre">R[...]</span></code>. Until replication enters the
@@ -455,7 +456,8 @@ free axes of a 2D scratchpad; <code class="docutils literal notranslate"><span c
 <code class="docutils literal notranslate"><span class="pre">TCol</span></code> address Blackwell tensor memory.</p>
 <section id="forward-mapping">
 <h3>Forward Mapping<a class="headerlink" href="#forward-mapping" title="Link to this heading">#</a></h3>
-<p>Evaluating a layout means taking a logical coordinate and working out where it
+<p>We have built a <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> out of shard, replica, and offset; now we evaluate
+it. Evaluating a layout means taking a logical coordinate and working out where it
 lands. The method <code class="docutils literal notranslate"><span class="pre">layout.apply(*coord)</span></code> does exactly this: it hands you back a
 dict from axis name to coordinate, such as <code class="docutils literal notranslate"><span class="pre">{&quot;laneid&quot;:</span> <span class="pre">…,</span> <span class="pre">&quot;warpid&quot;:</span> <span class="pre">…,</span> <span class="pre">&quot;m&quot;:</span> <span class="pre">…}</span></code>,
 and the four steps below are precisely what it runs inside. Concretely, evaluating
@@ -489,8 +491,9 @@ it happens to be handed.</p>
 </section>
 <section id="case-study-nvidia-tensor-core-tile">
 <h3>Case Study: NVIDIA Tensor-Core Tile<a class="headerlink" href="#case-study-nvidia-tensor-core-tile" title="Link to this heading">#</a></h3>
-<p>The quickest way to see that these four steps do something real is to run them on
-an actual tensor-core tile and watch a hardware mapping fall out. Consider a logical
+<p>With the four steps — flatten, split, accumulate, broadcast — in hand, the quickest
+way to see that they do something real is to run them on an actual tensor-core tile
+and watch a hardware mapping fall out. Consider a logical
 <code class="docutils literal notranslate"><span class="pre">(8,</span> <span class="pre">16)</span></code> tile distributed across 2 warps of 32 lanes each, where each lane holds
 part of the tile in its own registers (the <code class="docutils literal notranslate"><span class="pre">reg</span></code> slot is just the default memory
 axis <code class="docutils literal notranslate"><span class="pre">m</span></code>):</p>
@@ -729,8 +732,8 @@ banks, and we will close the loop on this very tile in the worked example.</p>
 </section>
 <section id="the-transform">
 <h3>The Transform<a class="headerlink" href="#the-transform" title="Link to this heading">#</a></h3>
-<p>The idea behind the cure is simple: make a column’s addresses depend on the row, so
-that they scatter across banks instead of stacking on one. An XOR achieves this
+<p>The idea behind the swizzle is simple: make a column’s addresses depend on the row,
+so that they scatter across banks instead of stacking on one. An XOR achieves this
 cheaply, with no multiply and no table lookup. A <code class="docutils literal notranslate"><span class="pre">SwizzleLayout</span></code> is controlled by
 three integer parameters — <code class="docutils literal notranslate"><span class="pre">per_element</span></code> (M), <code class="docutils literal notranslate"><span class="pre">swizzle_len</span></code> (B), and
 <code class="docutils literal notranslate"><span class="pre">atom_len</span></code> (S) — and maps a linear element address <code class="docutils literal notranslate"><span class="pre">m</span></code> as follows, leaving the
