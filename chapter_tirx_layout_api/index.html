@@ -278,7 +278,6 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-mapping">Forward Mapping</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-nvidia-tensor-core-tile">Case Study: NVIDIA Tensor-Core Tile</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-blackwell-tensor-memory">Case Study: Blackwell Tensor Memory</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-model-many-targets">One Model, Many Targets</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ready-made-layouts">Ready-Made Layouts</a></li>
 </ul>
 </li>
@@ -664,18 +663,6 @@ and double-buffering. The payoff is that a single <code class="docutils literal 
 both the accumulator (a pure placement, no replica) and its scale factors (a
 replicated, routed placement) within the very same tensor-memory address space.</p>
 </section>
-<section id="one-model-many-targets">
-<h3>One Model, Many Targets<a class="headerlink" href="#one-model-many-targets" title="Link to this heading">#</a></h3>
-<p>The two case studies were not special cases at all; they were the one model pointed
-at two different pieces of hardware, and that generality is the whole reason for
-naming axes in the first place. Bind strides to the block and cluster axes (<code class="docutils literal notranslate"><span class="pre">bx</span></code>
-… <code class="docutils literal notranslate"><span class="pre">cbz</span></code>) and the layout <strong>shards a tile across the grid</strong>; bind them to on-chip
-memory axes instead and it expresses the native accelerator memories — a
-2D-partitioned scratchpad (partition <code class="docutils literal notranslate"><span class="pre">P</span></code> and free <code class="docutils literal notranslate"><span class="pre">F</span></code> axes), shared-memory banks
-(<code class="docutils literal notranslate"><span class="pre">Bank</span></code>), or NVIDIA Blackwell tensor memory with its native 2D addressing
-(<code class="docutils literal notranslate"><span class="pre">TLane</span></code> × <code class="docutils literal notranslate"><span class="pre">TCol</span></code>). The demo ships a preset for each of these, so you can swap
-the target hardware without ever leaving the layout language.</p>
-</section>
 <section id="ready-made-layouts">
 <h3>Ready-Made Layouts<a class="headerlink" href="#ready-made-layouts" title="Link to this heading">#</a></h3>
 <p>In practice you rarely hand-write the hardware tiles above. The placements that come
@@ -881,7 +868,6 @@ III–IV) rather than to the layout itself.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-mapping">Forward Mapping</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-nvidia-tensor-core-tile">Case Study: NVIDIA Tensor-Core Tile</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-blackwell-tensor-memory">Case Study: Blackwell Tensor Memory</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-model-many-targets">One Model, Many Targets</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ready-made-layouts">Ready-Made Layouts</a></li>
 </ul>
 </li>
