@@ -684,7 +684,7 @@ and the pair produces one 256×256 output tile.</em></p>
 <li><p>With <code class="docutils literal notranslate"><span class="pre">cta_group=2</span></code>, the MMA hardware reads B from <strong>both</strong> CTAs’ SMEM via cross-CTA shared memory access, so it sees the full logical output-column span.</p></li>
 <li><p>Result: the two CTAs cooperate on one 256x256 output tile. Each CTA writes a 128x256 row stripe of that tile.</p></li>
 </ul>
-<p>It is worth pausing to see why this is a real win and not just a reshuffle of work. Each CTA still loads only 128×K of A and 128×K of B, so the cluster as a whole stages about 2× a single CTA’s operands, and yet it produces a 256×256 tile, which carries about 4× the output FLOPs of a 128×128 tile. The MMA therefore does roughly twice the work per staged-operand byte, because each CTA’s B slice is reused against the other CTA’s A slice through the cooperative MMA. In other words, arithmetic intensity roughly doubles, and that is exactly the lever a still memory-leaning kernel needs: the ~1.8× speedup in the End-to-End table comes from feeding the same bytes to more math.</p>
+<p>It is worth pausing to see why this is a real win and not just a reshuffle of work. Each CTA still loads only 128×K of A and 128×K of B, so the cluster as a whole stages about 2× a single CTA’s operands, and yet it produces a 256×256 tile, which carries about 4× the output FLOPs of a 128×128 tile. The MMA therefore does roughly twice the work per staged-operand byte, because each CTA’s B slice is reused against the other CTA’s A slice through the cooperative MMA. In other words, arithmetic intensity roughly doubles, and that is exactly the lever a still memory-leaning kernel needs: the ~2.2× speedup in the End-to-End table comes from feeding the same bytes to more math.</p>
 </section>
 <section id="tile-address-calculation">
 <h3>Tile Address Calculation<a class="headerlink" href="#tile-address-calculation" title="Link to this heading">#</a></h3>
@@ -915,7 +915,7 @@ and the pair produces one 256×256 output tile.</em></p>
 <li><p>Writeback splits the 256 output columns into two 128-column chunks — reading all 256 TMEM columns at once exceeds register capacity. Step 9 shrinks the chunk further to <code class="docutils literal notranslate"><span class="pre">EPI_N=64</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cluster_sync()</span></code> replaces <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> at the end (ensures all CTAs are done before TMEM dealloc)</p></li>
 </ul>
-<p>All that extra arithmetic intensity shows up directly on the wall clock: Step 8 reaches <strong>0.13 ms</strong> at 4096³, about 538× over the 70 ms Step-1 algorithm at the same size (see the End-to-End table). The kernel is now leaning toward compute-bound, and that is precisely what sets up Step 9, where we add a second MMA consumer to keep even more Tensor Core work in flight.</p>
+<p>All that extra arithmetic intensity shows up directly on the wall clock: Step 8 reaches <strong>0.104 ms</strong> at 4096³, about 676× over the 70 ms Step-1 algorithm at the same size (see the End-to-End table). The kernel is now leaning toward compute-bound, and that is precisely what sets up Step 9, where we add a second MMA consumer to keep even more Tensor Core work in flight.</p>
 <p>If Step 8 comes out <em>slower</em> than Step 7, the culprit is almost always one of the new cluster contracts entered slightly wrong. Three things are worth checking first: that the TMA arrive byte count is <code class="docutils literal notranslate"><span class="pre">CTA_GROUP</span> <span class="pre">*</span> <span class="pre">(BLK_M*BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N*BLK_K)</span> <span class="pre">*</span> <span class="pre">F16_SIZE</span></code>; that the scheduler dimensions are <code class="docutils literal notranslate"><span class="pre">num_m_tiles=M//256,</span> <span class="pre">num_n_tiles=N//256</span></code> for the 256×256 cluster tile; and that writeback issues two TMA stores, one per 128-column chunk, each of which drains before Dsmem is reused.</p>
 <hr class="docutils" />
 <p>Clusters raised reuse <em>across</em> CTAs. The final step turns inward and raises compute density <em>within</em> each CTA, by giving the producer a second MMA consumer to keep fed.</p>
@@ -1374,13 +1374,13 @@ and the pair produces one 256×256 output tile.</em></p>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
 <td><p>Spatial tiling</p></td>
-<td><p>—</p></td>
-<td><p>Handle multiple M and N tiles</p></td>
+<td><p>53.6 ms</p></td>
+<td><p>~1.3×</p></td>
 </tr>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p>TMA async load</p></td>
-<td><p>0.50 ms</p></td>
-<td><p>~140×</p></td>
+<td><p>0.49 ms</p></td>
+<td><p>~142×</p></td>
 </tr>
 <tr class="row-even"><td><p>5</p></td>
 <td><p>Software pipeline</p></td>
@@ -1395,39 +1395,39 @@ and the pair produces one 256×256 output tile.</em></p>
 <tr class="row-even"><td><p>7</p></td>
 <td><p>Warp specialization</p></td>
 <td><p>0.23 ms</p></td>
-<td><p>~304×</p></td>
+<td><p>~309×</p></td>
 </tr>
 <tr class="row-odd"><td><p>8</p></td>
 <td><p>2-CTA cluster</p></td>
-<td><p>0.13 ms</p></td>
-<td><p>~538×</p></td>
+<td><p>0.104 ms</p></td>
+<td><p>~676×</p></td>
 </tr>
 <tr class="row-even"><td><p>9</p></td>
 <td><p>Multi-consumer</p></td>
-<td><p>0.12 ms</p></td>
-<td><p>~583×</p></td>
+<td><p>0.094 ms</p></td>
+<td><p>~744×</p></td>
 </tr>
 <tr class="row-odd"><td><p>—</p></td>
 <td><p>cuBLAS (reference)</p></td>
-<td><p>0.11 ms</p></td>
-<td><p>~636×</p></td>
+<td><p>0.094 ms</p></td>
+<td><p>~744×</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Every time in this table, the 70 ms Step 1 baseline included, is measured at the same M=N=K=4096 size, which is what makes the speedup chain comparable end to end. It is worth being precise about what that 70 ms actually is, since it is easy to misread. It is <em>not</em> the single-tile Step-1 kernel from <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> run at 4096³; that kernel only ever computes one 128×128 tile and only runs at small sizes. The 70 ms is instead a naive full-size baseline that takes the same sequential, single-tile approach and scales it up to the full 4096³ problem. Steps 1–3 are introduced in <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> at small sizes (128×128 and 256³) to keep those first walkthroughs simple, and the dashes (Steps 2, 3, 5, 6) mark steps shown for structure but not timed on their own.</p>
+<p>Every time in this table, the 70 ms Step 1 baseline included, is measured at the same M=N=K=4096 size, which is what makes the speedup chain comparable end to end. It is worth being precise about what that 70 ms actually is, since it is easy to misread. It is <em>not</em> the single-tile Step-1 kernel from <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> run at 4096³; that kernel only ever computes one 128×128 tile and only runs at small sizes. The 70 ms is instead a naive full-size baseline that takes the same sequential, single-tile approach and scales it up to the full 4096³ problem. Steps 1–3 are introduced in <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> at small sizes (128×128 and 256³) to keep those first walkthroughs simple; the Step 1 and Step 3 rows here are their full-size benchmark counterparts. The remaining dashes (Steps 2, 5, 6) mark steps shown for structure but not timed on their own.</p>
 <p>Read these numbers as a single B200 reference run under controlled conditions, not as a leaderboard entry. The <code class="docutils literal notranslate"><span class="pre">{.python</span> <span class="pre">.input}</span></code> benchmark cells embedded in each step are smoke benchmarks: they are good for spotting trends, not for claiming peak performance.</p>
 <p>If you stand back from the table, four techniques account for nearly all of the gain:</p>
 <ol class="arabic simple">
-<li><p><strong>TMA Async Data Movement</strong>: a hardware copy engine replaces the software copy (~140× from Step 1 → Step 4). It is important to read this 140× correctly: it reflects going from a single 128×128-tile kernel (grid 1×1) all the way to a full tiled-and-parallel kernel with a K-loop, spatial tiling, and many CTAs, <em>together with</em> TMA; it is not TMA’s contribution in isolation. Isolating TMA would mean comparing two full-size kernels that differ only in the copy mechanism.</p></li>
+<li><p><strong>TMA Async Data Movement</strong>: a hardware copy engine replaces the software copy (~142× from Step 1 → Step 4). It is important to read this 142× correctly: it reflects going from a single 128×128-tile kernel (grid 1×1) all the way to a full tiled-and-parallel kernel with a K-loop, spatial tiling, and many CTAs, <em>together with</em> TMA; it is not TMA’s contribution in isolation. Isolating TMA would mean comparing two full-size kernels that differ only in the copy mechanism.</p></li>
 <li><p><strong>Software Pipelining + Warp Specialization</strong>: overlap load and compute by giving each its own dedicated role (~2.2× from Step 4 → Step 7).</p></li>
-<li><p><strong>CTA Clusters</strong>: a 2-SM cooperative MMA improves B-tile reuse across CTAs (~1.8× from Step 7 → Step 8 in this benchmark).</p></li>
-<li><p><strong>Multi-Consumer</strong>: two MMA warps for higher compute density (~8% from Step 8 → Step 9).</p></li>
+<li><p><strong>CTA Clusters</strong>: a 2-SM cooperative MMA improves B-tile reuse across CTAs (~2.2× from Step 7 → Step 8 in this benchmark).</p></li>
+<li><p><strong>Multi-Consumer</strong>: two MMA warps for higher compute density (~10% from Step 8 → Step 9).</p></li>
 </ol>
-<p>Plotted step by step, those same four contributions trace the descent from the naive baseline to the cuBLAS reference. The figure below shows the full trajectory:</p>
+<p>Plotted at the measured milestones, those same four contributions trace the descent from the synchronous tiled kernel toward the cuBLAS reference. The figure below shows the selected measured points:</p>
 <p><img alt="GEMM Optimization Journey" src="../_images/gemm_perf.png" /></p>
-<p>Across this benchmark the path runs from 70 ms down to 0.12 ms, landing close to the cuBLAS reference above.</p>
-<p>Notice that the gains shrink as we go down the list, and there is a structural reason for it rather than any weakening of effort. The early steps go after <em>memory</em> bottlenecks (TMA replaces software copies, clusters raise arithmetic intensity), and that is where most of the 70 ms was actually being spent, so those steps pay off the most. By Step 8 the kernel is already within ~18% of cuBLAS (0.13 vs 0.11 ms) and is close to <em>compute-bound</em>, which means there is very little memory stall left to hide; Step 9’s multi-consumer overlap recovers most of what little remains. A single-digit final gain is exactly what to expect near the compute ceiling: it is the diminishing return of a problem that is nearly solved, not the sign of a weak optimization.</p>
+<p>Across the table, the path runs from the 70 ms baseline down to 0.094 ms, matching the rounded cuBLAS reference in this run.</p>
+<p>Notice that the gains shrink as we go down the list, and there is a structural reason for it rather than any weakening of effort. The early steps go after <em>memory</em> bottlenecks (TMA replaces software copies, clusters raise arithmetic intensity), and that is where most of the 70 ms was actually being spent, so those steps pay off the most. By Step 8 the kernel is already within ~10% of cuBLAS (0.104 vs 0.094 ms) and is close to <em>compute-bound</em>, which means there is very little memory stall left to hide; Step 9’s multi-consumer overlap recovers most of what little remains. A roughly 10% final gain is exactly what to expect near the compute ceiling: it is the diminishing return of a problem that is nearly solved, not the sign of a weak optimization.</p>
 <p>Everything we built in this chapter (TMA loads, the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA, TMEM readback, and warp-specialized barriers) carries straight over into the next one. Flash Attention reuses all of it, and then raises the difficulty by wedging an online-softmax step between two MMA phases rather than simply repeating a single one.</p>
 </section>
 <section id="exercises">
