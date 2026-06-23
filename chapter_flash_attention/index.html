@@ -182,7 +182,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -353,7 +353,7 @@ row_max = m_new
 <li><p><code class="docutils literal notranslate"><span class="pre">P</span></code> is the softmax numerator tile. Softmax reads <code class="docutils literal notranslate"><span class="pre">S</span></code> from TMEM into registers, computes <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">=</span> <span class="pre">exp((S</span> <span class="pre">-</span> <span class="pre">m_new)</span> <span class="pre">/</span> <span class="pre">sqrt(d))</span></code>, and writes <code class="docutils literal notranslate"><span class="pre">P</span></code> back to TMEM.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">O</span></code> is the output accumulator tile. The value MMA reads <code class="docutils literal notranslate"><span class="pre">P</span></code> from TMEM and <code class="docutils literal notranslate"><span class="pre">V</span></code> from SMEM, then accumulates into <code class="docutils literal notranslate"><span class="pre">O</span></code> in TMEM.</p></li>
 </ul>
-<p>The rescale we flagged earlier is also a tile operation, not a piece of scalar bookkeeping: when <code class="docutils literal notranslate"><span class="pre">row_max</span></code> changes, the old <code class="docutils literal notranslate"><span class="pre">O</span></code> is read from TMEM, multiplied in registers, and written back to TMEM before the next value MMA accumulates into it. Seen this way, every step is just a tile moving between SMEM, TMEM, and registers, and reading the rest of the chapter through that lens is what keeps it legible.</p>
+<p>The rescale we flagged earlier is also a tile operation, not a piece of scalar bookkeeping: when <code class="docutils literal notranslate"><span class="pre">row_max</span></code> changes, the old <code class="docutils literal notranslate"><span class="pre">O</span></code> is read from TMEM, multiplied in registers, and written back to TMEM before the next value MMA accumulates into it. Every later section follows that same structure: a tile placement, a hardware path, and the barrier that proves the next consumer may run.</p>
 </section>
 <section id="tile-primitive-graph">
 <h2>Tile-Primitive Graph<a class="headerlink" href="#tile-primitive-graph" title="Link to this heading">#</a></h2>
@@ -415,7 +415,7 @@ row_max = m_new
 </tbody>
 </table>
 </div>
-<p>The middle rows may look unfamiliar, but they are still ordinary tile operations. Softmax reads a score tile from TMEM into warpgroup registers, does its row-wise math, and writes a <code class="docutils literal notranslate"><span class="pre">P</span></code> tile back to TMEM; correction reads an <code class="docutils literal notranslate"><span class="pre">O</span></code> tile from TMEM, rescales it, and writes it back. It is the same SMEM/TMEM/register vocabulary we already know from GEMM, only there is more of it.</p>
+<p>The new rows are softmax and correction. Both add TMEM -&gt; register -&gt; TMEM traffic, and both create extra handoffs between the score MMA and the value MMA.</p>
 <p><strong>Try with your agent</strong>: Ask it to trace only the short path above. For each arrow, name the producer stage, consumer stage, source tile, destination tile, and hardware path. Then ask which arrows did not exist in the GEMM chapters.</p>
 </section>
 <section id="warp-roles-and-scopes">
@@ -503,7 +503,7 @@ row_max = m_new
 <td><p>WG2 per-row flag: whether the old <code class="docutils literal notranslate"><span class="pre">O</span></code> needs rescaling before the next value MMA (reduced across the warpgroup with <code class="docutils literal notranslate"><span class="pre">any_sync</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rescale_threshold</span></code></p></td>
-<td><p>skip threshold for small row-max changes: if the new max does not clear it, the kernel keeps the old max and sets <code class="docutils literal notranslate"><span class="pre">acc_scale</span></code> to exactly 1.0 (8.0)</p></td>
+<td><p>skip threshold for small row-max changes; the current kernel uses <code class="docutils literal notranslate"><span class="pre">8.0</span></code>, and a skipped rescale sets <code class="docutils literal notranslate"><span class="pre">acc_scale</span></code> to exactly <code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scale_log2</span></code></p></td>
 <td><p>the softmax scale in log2 units, <code class="docutils literal notranslate"><span class="pre">log2(e)/√d</span></code>, so <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">=</span> <span class="pre">exp2((S</span> <span class="pre">-</span> <span class="pre">m)</span> <span class="pre">·</span> <span class="pre">scale_log2)</span></code></p></td>
@@ -621,7 +621,7 @@ P, V -&gt; value MMA -&gt; O
 <li><p>Handoff: waits <code class="docutils literal notranslate"><span class="pre">p_o_rescale</span></code>, <code class="docutils literal notranslate"><span class="pre">p_ready_2</span></code>, <code class="docutils literal notranslate"><span class="pre">kv_load.full</span></code>; arrives <code class="docutils literal notranslate"><span class="pre">o_ready</span></code> (→ epilogue).</p></li>
 </ul>
 </div></blockquote>
-<p>This operand placement is really the whole hardware difference between the two MMAs:</p>
+<p>This operand placement is the hardware difference between the two MMAs:</p>
 <ul class="simple">
 <li><p>Score MMA reads both operands from SMEM: Q and K.</p></li>
 <li><p>Value MMA reads one operand, <code class="docutils literal notranslate"><span class="pre">P</span></code>, from TMEM.</p></li>
@@ -666,7 +666,7 @@ share one TMEM allocation, so the barrier protocol is what makes the reuse legal
 <span class="n">P_region</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">TMEMStages</span><span class="p">(</span><span class="n">tmem_as_f16</span><span class="p">,</span> <span class="n">col_start</span><span class="o">=</span><span class="n">MMA_N</span><span class="p">,</span>                   <span class="n">width</span><span class="o">=</span><span class="n">BLK_N</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="n">SMEM_PIPE_DEPTH_Q</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">MMA_N</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">*</span> <span class="pre">2</span></code> in <code class="docutils literal notranslate"><span class="pre">P_region</span></code>’s <code class="docutils literal notranslate"><span class="pre">col_start</span></code> and <code class="docutils literal notranslate"><span class="pre">stride</span></code> is the one place the aliasing visibly leaks into the code. <code class="docutils literal notranslate"><span class="pre">S_region</span></code> and <code class="docutils literal notranslate"><span class="pre">O_region</span></code> are measured in fp32 <code class="docutils literal notranslate"><span class="pre">tmem</span></code> columns, while <code class="docutils literal notranslate"><span class="pre">P_region</span></code> is measured in fp16 <code class="docutils literal notranslate"><span class="pre">tmem_as_f16</span></code> columns, which are half as wide, so its offsets need the doubling to land on the same physical bytes. Once the regions are defined, though, the compute code stays clean: it writes <code class="docutils literal notranslate"><span class="pre">S_region[q_stage]</span></code>, reads <code class="docutils literal notranslate"><span class="pre">S_region[wg_id,</span> <span class="pre">...]</span></code>, writes <code class="docutils literal notranslate"><span class="pre">P_region[wg_id,</span> <span class="pre">...]</span></code>, and accumulates into <code class="docutils literal notranslate"><span class="pre">O_region[i_q]</span></code>, never once touching a raw column index.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">*</span> <span class="pre">2</span></code> in <code class="docutils literal notranslate"><span class="pre">P_region</span></code>’s stride is the one place the aliasing visibly leaks into the code. <code class="docutils literal notranslate"><span class="pre">S_region</span></code> and <code class="docutils literal notranslate"><span class="pre">O_region</span></code> are measured in fp32 <code class="docutils literal notranslate"><span class="pre">tmem</span></code> columns, while <code class="docutils literal notranslate"><span class="pre">P_region</span></code> is measured in fp16 <code class="docutils literal notranslate"><span class="pre">tmem_as_f16</span></code> columns, which are half as wide, so stage-to-stage movement needs the doubled stride to land on the same physical bytes. Once the regions are defined, though, the compute code stays clean: it writes <code class="docutils literal notranslate"><span class="pre">S_region[q_stage]</span></code>, reads <code class="docutils literal notranslate"><span class="pre">S_region[wg_id,</span> <span class="pre">...]</span></code>, writes <code class="docutils literal notranslate"><span class="pre">P_region[wg_id,</span> <span class="pre">...]</span></code>, and accumulates into <code class="docutils literal notranslate"><span class="pre">O_region[i_q]</span></code>, never once touching a raw column index.</p>
 <p><strong>Try with your agent</strong>: Ask it to explain the fp32 (<code class="docutils literal notranslate"><span class="pre">tmem</span></code>) and fp16 (<code class="docutils literal notranslate"><span class="pre">tmem_as_f16</span></code>) views in this FA4 kernel. Which physical TMEM regions hold <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">P</span></code>, and <code class="docutils literal notranslate"><span class="pre">O</span></code>, and why does <code class="docutils literal notranslate"><span class="pre">P_region</span></code>’s stride use <code class="docutils literal notranslate"><span class="pre">MMA_N</span> <span class="pre">*</span> <span class="pre">2</span></code>? Save the reuse question for the next section: after the barrier table, check which consumers must finish before each region can be reused.</p>
 </section>
 <section id="how-barriers-connect-the-roles">
@@ -902,7 +902,7 @@ q_head  = row % GQA_RATIO
 </pre></div>
 </div>
 <p>K and V are never expanded in memory, and that is the whole point of GQA: the single K/V tile for <code class="docutils literal notranslate"><span class="pre">kv_head_idx</span></code> is reused by all <code class="docutils literal notranslate"><span class="pre">GQA_RATIO</span></code> query heads packed into the Q rows. The output side mirrors the input, with a matching 3D view storing the packed rows back to <code class="docutils literal notranslate"><span class="pre">O[batch,</span> <span class="pre">seq,</span> <span class="pre">qo_head,</span> <span class="pre">dim]</span></code> after the epilogue.</p>
-<p>The nice consequence is that GQA lives entirely at the Q-load and O-store boundaries. Inside the compute path the score MMA still sees a plain <code class="docutils literal notranslate"><span class="pre">128</span> <span class="pre">x</span> <span class="pre">HEAD_DIM</span></code> Q tile, and the rest of the tile-primitive graph is untouched. It is a feature confined to the edges of the kernel.</p>
+<p>The consequence is that GQA lives entirely at the Q-load and O-store boundaries. Inside the compute path the score MMA still sees a plain <code class="docutils literal notranslate"><span class="pre">128</span> <span class="pre">x</span> <span class="pre">HEAD_DIM</span></code> Q tile, and the rest of the tile-primitive graph is untouched.</p>
 </section>
 <section id="tile-scheduling">
 <h2>Tile Scheduling<a class="headerlink" href="#tile-scheduling" title="Link to this heading">#</a></h2>
@@ -956,7 +956,7 @@ q_head  = row % GQA_RATIO
 </section>
 <section id="differences-from-gemm">
 <h2>Differences from GEMM<a class="headerlink" href="#differences-from-gemm" title="Link to this heading">#</a></h2>
-<p>Now that the whole kernel has run, it is worth setting it side by side with GEMM, the kernel it builds on, to see exactly which axes attention stretches. The table collects those axes:</p>
+<p>The table below compares FA4 with GEMM along the axes that changed:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
@@ -1003,7 +1003,7 @@ q_head  = row % GQA_RATIO
 <li><p>the layout says where the tile lives,</p></li>
 <li><p>the barrier says when the next role may consume it.</p></li>
 </ul>
-<p>So FA4 is harder than GEMM not because it relies on different hardware, but because there are simply more tile values and more handoffs between them. The lens we read it through is the same; there is just more to look at.</p>
+<p>So FA4 is harder than GEMM not because it relies on different hardware, but because there are simply more tile values and more handoffs between them.</p>
 </section>
 <section id="exercises">
 <h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>

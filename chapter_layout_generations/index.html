@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -493,7 +493,6 @@ TCol  = s
 </section>
 <section id="the-throughline">
 <h2>The Throughline<a class="headerlink" href="#the-throughline" title="Link to this heading">#</a></h2>
-<p>The direction across the three generations is clear.</p>
 <p>On Ampere, the kernel explicitly builds Tensor Core register fragments. Shared memory swizzle is mostly the kernel’s responsibility through index math.</p>
 <p>On Hopper, the Tensor Core can read operands directly from shared memory through matrix descriptors. Swizzle becomes a named descriptor format shared by TMA and <code class="docutils literal notranslate"><span class="pre">wgmma</span></code>.</p>
 <p>On Blackwell, the input side still uses shared memory operands, but the accumulator moves to TMEM. Block-scaled MMA also adds scale-factor operands that must be staged into TMEM.</p>

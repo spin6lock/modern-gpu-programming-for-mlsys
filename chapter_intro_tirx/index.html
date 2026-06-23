@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -312,7 +312,6 @@ runs every runnable example in the book.</p>
 <p>Part I explained what the hardware is. To make it compute anything, we need a way to program it.</p>
 <p>We could write raw CUDA or PTX, and many fast kernels are written exactly that way. The problem is that the decisions that actually determine a kernel’s behavior are hard to see there: which threads run an operation, where each tile of data lives, and which hardware path executes it. Those choices are buried in intrinsic arguments, address arithmetic, and convention.</p>
 <p>TIRx (Tensor IR neXt) is a Python DSL that lifts those three decisions into the open: <strong>scope</strong> (which threads run an operation), <strong>layout</strong> (where the operand tiles live), and <strong>dispatch</strong> (which hardware path executes it). It still names hardware concepts directly, including threads, shared and tensor memory, barriers, and <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA. The difference is that those choices are now structured IR the compiler can lower, check, and schedule.</p>
-<p>Like the framework in <em>Dive into Deep Learning</em>, TIRx is the consistent medium through which every concept in this book becomes runnable code. This chapter introduces it through one small end-to-end kernel.</p>
 <p>Rather than introduce these ideas in the abstract, we will work from a single complete kernel: a minimal single-MMA GEMM. We get it running first, and only then read it back, line by line, to see how scope, layout, and dispatch each shape it and how the kernel is compiled. The tensor layout model that the kernel relies on is developed in its own right in <a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx Layout API</span></a>, and the full language-feature set in <a class="reference internal" href="../tirx_guide/language_reference/index.html#chap-language-reference"><span class="std std-ref">TIRx Language Reference</span></a>; here we keep the focus on the one kernel and the three design elements.</p>
 <section id="a-first-kernel-single-mma-gemm">
 <h2>A First Kernel: Single-MMA GEMM<a class="headerlink" href="#a-first-kernel-single-mma-gemm" title="Link to this heading">#</a></h2>

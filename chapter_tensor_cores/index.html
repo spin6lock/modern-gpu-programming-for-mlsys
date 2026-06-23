@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -287,7 +287,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-scaled-mma">Block-Scaled MMA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-scale-factors-live">Where the Scale Factors Live</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scale-factors-in-cta-group-2">Scale Factors in <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#putting-it-together">Putting It Together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keeping-the-mma-contracts-matched">Keeping the MMA Contracts Matched</a></li>
 </ul>
             </nav>
         </div>
@@ -420,11 +420,11 @@ SFA, SFB: global memory to SMEM, then tcgen05.cp copies SMEM to TMEM, then MMA r
 <p>This is the source of the common loading pattern in block-scaled cluster GEMM. SFA is loaded per CTA, using the mask for the CTA’s own M slice. SFB is broadcast to the pair, because both CTAs need the same N-side scale factors.</p>
 <p><img alt="Block-scaled MMA placement: A and B packed in SMEM; SFA, SFB, and C in TMEM, with SFA split by M across CTAs and SFB multicast across the CTA pair" src="../_images/mma_block_scaled.svg" /></p>
 </section>
-<section id="putting-it-together">
-<h2>Putting It Together<a class="headerlink" href="#putting-it-together" title="Link to this heading">#</a></h2>
+<section id="keeping-the-mma-contracts-matched">
+<h2>Keeping the MMA Contracts Matched<a class="headerlink" href="#keeping-the-mma-contracts-matched" title="Link to this heading">#</a></h2>
 <p>A Blackwell GEMM tile moves through several specialized paths.</p>
 <p>TMA brings A and B from global memory into SMEM. For block-scaled modes, it also brings scale factors into SMEM. <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> moves those scale factors into TMEM when needed. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> reads its operands, runs asynchronously on the Tensor Core, and accumulates into TMEM. The completion barrier tells the kernel when that accumulator is ready. The epilogue then uses <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> to load the accumulator from TMEM back into registers and store the final output.</p>
-<p>That is the practical model for <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>. The Tensor Core computes the tile. SMEM feeds the data operands. TMEM holds the accumulator and, for block-scaled modes, the scale factors. The kernel is responsible for matching all three pieces: operand layout, TMEM layout, and asynchronous completion.</p>
+<p>Across those paths, the kernel has to keep three contracts matched: the SMEM operand layout, the TMEM accumulator or scale-factor layout, and the asynchronous completion signal that makes the next consumer safe to run.</p>
 </section>
 </section>
 
@@ -488,7 +488,7 @@ SFA, SFB: global memory to SMEM, then tcgen05.cp copies SMEM to TMEM, then MMA r
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-scaled-mma">Block-Scaled MMA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-scale-factors-live">Where the Scale Factors Live</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scale-factors-in-cta-group-2">Scale Factors in <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#putting-it-together">Putting It Together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keeping-the-mma-contracts-matched">Keeping the MMA Contracts Matched</a></li>
 </ul>
   </nav></div>
 

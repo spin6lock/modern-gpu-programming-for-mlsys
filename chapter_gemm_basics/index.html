@@ -182,7 +182,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -650,7 +650,7 @@ below changes <em>how</em> one of these hops happens; it never changes the hops 
 </tbody>
 </table>
 </div>
-<p>The single line <code class="docutils literal notranslate"><span class="pre">phase_mma</span> <span class="pre">^=</span> <span class="pre">1</span></code> is what keeps that table honest. Drop it, and the second iteration still calls <code class="docutils literal notranslate"><span class="pre">try_wait(bar,</span> <span class="pre">0)</span></code>, but the barrier already flipped to phase 1 after the first MMA, so the wait sees a mismatch and returns immediately, before the second MMA has even been issued. The kernel then reads a half-computed accumulator and reports a wrong answer with no error at all. This is a bug that compiles and runs perfectly, which is exactly why the phase flip is worth this much attention.</p>
+<p>The single line <code class="docutils literal notranslate"><span class="pre">phase_mma</span> <span class="pre">^=</span> <span class="pre">1</span></code> is what keeps that table honest. Drop it, and the second iteration still calls <code class="docutils literal notranslate"><span class="pre">try_wait(bar,</span> <span class="pre">0)</span></code>, but the barrier already flipped to phase 1 after the first MMA, so the wait sees a mismatch and returns immediately, before the second MMA has finished. The kernel then reads a half-computed accumulator and reports a wrong answer with no error at all. This is a bug that compiles and runs perfectly, which is exactly why the phase flip is worth this much attention.</p>
 </section>
 <section id="id1">
 <h3>Complete Kernel<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>

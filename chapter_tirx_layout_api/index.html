@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -478,7 +478,7 @@
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>Read left to right, the shard places the logical tile, the replica copies it across two warp groups, and the offset shifts the whole placement to start at <code class="docutils literal notranslate"><span class="pre">warpid</span> <span class="pre">=</span> <span class="pre">5</span></code>.</p>
+<p>Read left to right, the shard places the logical tile, the replica creates a second copy four warp IDs away, and the offset shifts the whole placement to start at <code class="docutils literal notranslate"><span class="pre">warpid</span> <span class="pre">=</span> <span class="pre">5</span></code>.</p>
 <p>If the iters have already been built as objects, the same layout can be constructed directly:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TileLayout</span><span class="o">.</span><span class="n">from_iters</span><span class="p">(</span><span class="n">shard</span><span class="p">,</span> <span class="n">replica</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
 </pre></div>

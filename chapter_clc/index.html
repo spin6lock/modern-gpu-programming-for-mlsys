@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -303,7 +303,6 @@
 <p>The simplest answer is a static formula. For example, the kernel can compute the tile coordinate from the CTA id, then advance by a grid stride. That is easy to implement, and it works well when all tiles have roughly the same cost and the tile count is evenly distributed across the GPU. But the schedule is decided before the work actually runs. If a few tiles take longer, or if the last few tiles are unevenly assigned, some SMs finish their share early while others are still working through the tail.</p>
 <p>Cluster Launch Control, or CLC, changes that scheduling model. Instead of deciding the whole assignment up front, a persistent cluster can ask the hardware grid scheduler for another not-yet-launched cluster’s work. If the request succeeds, the current cluster takes over that cluster coordinate and computes the corresponding tile. If the request fails, there is no more work to steal, and the loop exits.</p>
 <p>This is not the same thing as thread block clusters themselves. Thread block clusters (CTAs launched together, with cluster-level synchronization and access to distributed shared memory) were introduced with Hopper (<a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">GPU Execution Model</span></a>). CLC is the Blackwell addition that makes scheduling over those cluster coordinates dynamic. The cluster is already the unit of launch; CLC lets an already-running cluster cancel a pending launch and inherit its coordinates.</p>
-<p>The rest of this chapter follows that mechanism in three steps: the two PTX instructions, the persistent work-stealing loop, and the connection back to the persistent GEMM scheduler used later.</p>
 <section id="the-two-instructions">
 <h2>The Two Instructions<a class="headerlink" href="#the-two-instructions" title="Link to this heading">#</a></h2>
 <p>Cluster Launch Control is exposed through two PTX instructions. The first instruction sends an asynchronous request to the grid scheduler. The second instruction reads the response.</p>

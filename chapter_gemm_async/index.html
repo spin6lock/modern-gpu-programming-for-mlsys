@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -534,21 +534,21 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </section>
 <section id="step-5-software-pipeline-pipe-depth-2">
 <span id="chap-software-pipeline"></span><h2>Step 5: Software Pipeline (PIPE_DEPTH=2)<a class="headerlink" href="#step-5-software-pipeline-pipe-depth-2" title="Link to this heading">#</a></h2>
-<p>Why couldn’t Step 4 overlap the load with the compute, when the two engines are clearly independent? The obstacle turns out to be storage. With only one SMEM tile pair, the next load has nowhere to go: it cannot begin until the current MMA has finished reading that pair, since starting early would overwrite data still in use. Step 5 removes the conflict in the simplest possible way, by double-buffering shared memory. With two stages instead of one, the kernel can fill one stage while it computes on the other. We are still at the full M=N=K=4096 size.</p>
+<p>Why couldn’t Step 4 overlap the load with the compute, when the two engines are clearly independent? The obstacle turns out to be storage. With only one SMEM tile pair, the next load has nowhere to go: it cannot begin until the current MMA has finished reading that pair, since starting early would overwrite data still in use. Step 5 removes that storage conflict by double-buffering shared memory. The single-warpgroup loop still waits for each MMA before launching the next TMA load, but it now has distinct stages to prefetch into and reuse. We are still at the full M=N=K=4096 size.</p>
 <blockquote>
 <div><p><strong>What this step changes: Layout</strong></p>
 <ul class="simple">
 <li><p>Scope: unchanged, one warpgroup.</p></li>
 <li><p>Layout: the single SMEM tile pair becomes a <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code>-stage ring buffer.</p></li>
-<li><p>Dispatch: unchanged, TMA load and <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA, now overlapped across stages.</p></li>
+<li><p>Dispatch: unchanged, TMA load and <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA; this step adds prefetch and stage reuse, while full load/compute overlap arrives in Step 7.</p></li>
 </ul>
 </div></blockquote>
 <section id="pipeline-walkthrough">
 <h3>Pipeline Walkthrough<a class="headerlink" href="#pipeline-walkthrough" title="Link to this heading">#</a></h3>
-<p>Doubling the SMEM buffer is the whole idea of Step 5, so before reading the code it helps to see what schedule that extra stage is meant to unlock. With <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>, the kernel allocates two SMEM stages, giving the load path and the MMA path separate slots to work on.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>, the kernel allocates two SMEM stages, giving the load path and the MMA path separate slots to work on.</p>
 <p>Read the figure below as the pipeline structure that the two-stage buffer is meant to enable, not as an exact execution trace of this single-warpgroup kernel. Step 5 builds the ring buffer and prefetches later stages, but the main loop still waits for the current MMA before it issues the next TMA load. Full load/compute overlap arrives in Step 7, when warp specialization gives TMA and MMA separate roles.</p>
 <p><img alt="Pipeline PIPE_DEPTH=2, the target schedule; this single-warpgroup step only prefetches, full overlap arrives with warp specialization in Step 7" src="../_images/pipe_depth2.png" /></p>
-<p>Once it is primed, the schedule settles into a steady alternation. Two TMA loads fill both stages up front; from then on, while MMA computes on <code class="docutils literal notranslate"><span class="pre">k0</span></code>, TMA loads <code class="docutils literal notranslate"><span class="pre">k2</span></code> into the stage that will be reused next, and while MMA computes on <code class="docutils literal notranslate"><span class="pre">k1</span></code>, TMA loads <code class="docutils literal notranslate"><span class="pre">k3</span></code>, and so the dance continues. The reason this works is that the two engines are genuinely independent of each other: TMA moves GMEM -&gt; SMEM tiles, while <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> consumes an already-loaded SMEM stage and writes its accumulator to TMEM. Give each of them its own buffer and neither one blocks the other.</p>
+<p>Once it is primed, the loop alternates through the two stages. Two TMA loads fill both stages up front; after that, the loop waits for the current stage, runs MMA on it, waits for that MMA to finish reading the stage, and then launches the load for <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">PIPE_DEPTH</span></code> into the stage that just became reusable. This is not yet a concurrent TMA/MMA schedule, but it establishes the ring-buffer structure that Step 7 will split across producer and consumer roles.</p>
 <p>Concretely, the code differs from Step 4 in four places:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span></code> and <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> gain a leading <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> dimension, so each stage has its own SMEM storage.</p></li>
@@ -559,7 +559,6 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </section>
 <section id="pipeline-mechanics">
 <h3>Pipeline Mechanics<a class="headerlink" href="#pipeline-mechanics" title="Link to this heading">#</a></h3>
-<p>The four code changes that turn Step 4 into a two-stage pipeline really revolve around three concerns, namely priming the buffers, iterating in steady state, and tracking the barrier phases, and we will take them in that order.</p>
 <p><strong>1. Prefetch</strong>: before the main loop ever runs, we load the first <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> stages, so that the loop always finds data waiting for it on the very first iteration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">K_TILES</span><span class="p">)):</span>
     <span class="n">tma_load</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
@@ -592,7 +591,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.cuda.operator.tile_primitive.tma_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">tma_shared_layout</span><span class="p">,</span> <span class="n">SwizzleMode</span>
 </pre></div>
 </div>
-<p>It is wrapped in <code class="docutils literal notranslate"><span class="pre">hgemm_v5(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code>. The <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> constant sets the number of pipeline stages (two of them here, which is exactly double buffering), and it is really the single knob that turns a one-stage kernel into a pipelined one:</p>
+<p>It is wrapped in <code class="docutils literal notranslate"><span class="pre">hgemm_v5(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code>. The <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> constant sets the number of pipeline stages (two of them here, which is exactly double buffering):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PIPE_DEPTH</span> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">hgemm_v5</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>

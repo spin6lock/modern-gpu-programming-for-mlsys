@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -296,15 +296,6 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-from-step-8">Changes from Step 8</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging-warp-specialized-kernels">Debugging Warp-Specialized Kernels</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspecting-generated-code">Inspecting Generated Code</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reference-generated-cuda-skeleton">Reference: Generated CUDA Skeleton</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#symptom-map">Symptom Map</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlocks">Deadlocks</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crashes-xid-43-illegal-memory-access">Crashes (XID 43 / Illegal Memory Access)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wrong-results">Wrong Results</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#end-to-end-result">End-to-End Result</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
 </ul>
@@ -356,7 +347,7 @@
 <h3>From Sequential to Concurrent<a class="headerlink" href="#from-sequential-to-concurrent" title="Link to this heading">#</a></h3>
 <p>Before introducing the roles and barriers, it helps to isolate the scheduling bottleneck that warp specialization removes. The figure below uses a Step-4-style sequential timeline as a compact reference for the pre-specialization kernels in Steps 4-6, then puts it above the Step 7 warp-specialized schedule so the difference in engine utilization is visible at a glance.</p>
 <p><img alt="Warp Specialization Timeline" src="../_images/warp_specialization_timeline.png" /></p>
-<p>The figure is a before-and-after contrast, and it is worth reading slowly. On top is the pre-specialization single-warpgroup pattern: the same unspecialized thread group owns both the load path and the MMA path, so one engine can easily go idle while the other is active. Steps 5 and 6 improve that baseline with double buffering and persistent scheduling, but they do not yet split loading and compute into independent producer and consumer roles. On the bottom, specialization breaks that turn-taking. The TMA producer prefetches the next tile while the MMA consumer is busy computing, and writeback proceeds on its own. Producer warp 3 issues the next load while consumer warp 0 is still grinding through the current MMA, so neither engine has to wait on the other. Of course, overlap is not free; its price is coordination. The warps now have to tell each other when data is ready and when a buffer has been freed up, and two barriers carry those messages:</p>
+<p>On top is the pre-specialization single-warpgroup pattern: the same unspecialized thread group owns both the load path and the MMA path, so one engine can easily go idle while the other is active. Steps 5 and 6 improve that baseline with double buffering and persistent scheduling, but they do not yet split loading and compute into independent producer and consumer roles. On the bottom, specialization breaks that turn-taking. The TMA producer prefetches the next tile while the MMA consumer is busy computing, and writeback proceeds on its own. Producer warp 3 issues the next load while consumer warp 0 is still working through the current MMA, so neither engine has to wait on the other. The load/MMA handoff uses two barriers:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">tma2mma</span></code></strong> (TMA → MMA): signals that the loaded SMEM data is ready for MMA to consume.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">mma2tma</span></code></strong> (MMA → TMA): signals that MMA has finished reading a buffer, so TMA can reuse it for the next load.</p></li>
@@ -651,7 +642,7 @@
 </section>
 <section id="when-step-7-misbehaves">
 <h3>When Step 7 Misbehaves<a class="headerlink" href="#when-step-7-misbehaves" title="Link to this heading">#</a></h3>
-<p>The same concurrency that makes Step 7 fast also makes it the first GEMM kernel that is genuinely easy to break. With TMA, MMA, and writeback all in flight at once, a single misplaced barrier can deadlock the kernel, crash the CUDA context, or quietly corrupt the output. These same failure modes come back in Steps 8 and 9, so rather than repeat them three times, we have gathered the whole debugging playbook into <em>Debugging Warp-Specialized Kernels</em> at the end of this chapter; turn to it whenever something goes wrong.</p>
+<p>Step 7 is the first GEMM kernel where TMA load, <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA, and writeback are all in flight at once. The same failure patterns come back in Steps 8 and 9: mismatched barrier counts, role guards in the wrong place, missing fences, or a staging buffer reused before the TMA store has drained. The debugging checklist for these cases is collected in <a class="reference internal" href="../appendix/debugging_warp_specialized.html#chap-warp-spec-debug"><span class="std std-ref">Debugging Warp-Specialized Kernels</span></a>.</p>
 <p><strong>Pipeline depth tuning.</strong> The Step 7 kernel runs at <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>, the minimum. Pushing it to 4 or 6 lets the TMA producer race further ahead of the MMA consumer and hide more memory latency, but it does so by spending more SMEM, and SMEM is finite. The B200 offers 228 KB per SM (see <em>Numbers to Keep in Mind</em> in <a class="reference internal" href="../chapter_background/index.html#chap-background"><span class="std std-ref">GPU Execution Model</span></a>). With <code class="docutils literal notranslate"><span class="pre">BLK_M=BLK_N=128,</span> <span class="pre">BLK_K=64,</span> <span class="pre">fp16</span></code>, each pipeline stage costs <code class="docutils literal notranslate"><span class="pre">(128*64</span> <span class="pre">+</span> <span class="pre">128*64)</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">=</span> <span class="pre">32</span> <span class="pre">KB</span></code> for A and B together, and the <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> writeback staging buffer adds another 32 KB on top. That puts <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=4</span></code> at roughly 160 KB and <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=6</span></code> at roughly 224 KB, right up against the budget. To go any deeper than that, you would have to rethink the writeback staging strategy.</p>
 <hr class="docutils" />
 <p>Warp specialization got the threads of one CTA cooperating. The next step widens that cooperation across the boundary of the CTA itself, putting two of them to work on a single larger tile.</p>
@@ -703,7 +694,7 @@
 </section>
 <section id="code-changes-from-step-7">
 <h3>Code Changes from Step 7<a class="headerlink" href="#code-changes-from-step-7" title="Link to this heading">#</a></h3>
-<p>For all the conceptual weight behind it, the actual diff against Step 7 is only six edits, each one encoding a single piece of the cluster contract we just described:</p>
+<p>The diff against Step 7 has six edits, each one encoding a single piece of the cluster contract we just described:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Cluster launch</span>
 <span class="n">cbx</span><span class="p">,</span> <span class="n">cby</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">cta_id_in_cluster</span><span class="p">([</span><span class="n">CTA_GROUP</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>   <span class="c1"># cbx = CTA index within cluster (0 or 1)</span>
 
@@ -1182,182 +1173,12 @@
 <p><strong>Implementation notes.</strong></p>
 <ul class="simple">
 <li><p>In this Step 9 design, <code class="docutils literal notranslate"><span class="pre">mma2ld</span></code> and <code class="docutils literal notranslate"><span class="pre">ld2mma</span></code> are each a single shared object with <code class="docutils literal notranslate"><span class="pre">depth=NUM_CONSUMER</span></code>, rather than separate per-consumer objects. Slot 0 connects MMA warp 0 to Warpgroup 0, and slot 1 connects MMA warp 1 to Warpgroup 1; the MMA side indexes by <code class="docutils literal notranslate"><span class="pre">warp_id</span></code>, the writeback side by <code class="docutils literal notranslate"><span class="pre">wg_id</span></code>.</p></li>
-<li><p>This is the most heavily optimized GEMM structure we show in the tutorial.</p></li>
-</ul>
-</section>
-</section>
-<section id="debugging-warp-specialized-kernels">
-<span id="chap-warp-spec-debug"></span><h2>Debugging Warp-Specialized Kernels<a class="headerlink" href="#debugging-warp-specialized-kernels" title="Link to this heading">#</a></h2>
-<p>Steps 7, 8, and 9 tend to fail in the same handful of ways, and for the same underlying reason: TMA, MMA, and writeback all run concurrently, so a single wrong barrier can deadlock the kernel, crash the CUDA context, or corrupt the output. The good news is that the failures are stereotyped. Once you learn to recognize the <em>shape</em> of a bug, the fix is usually a one-liner. Keep this checklist close, because these bugs come up again and again.</p>
-<section id="inspecting-generated-code">
-<h3>Inspecting Generated Code<a class="headerlink" href="#inspecting-generated-code" title="Link to this heading">#</a></h3>
-<p>When a warp-specialized kernel misbehaves, the first thing to do is look at what the compiler actually emitted, in particular whether the role guards and barrier inits landed where you expected them to. For any compiled kernel:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cuda_source</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">mod</span><span class="o">.</span><span class="n">imports</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">inspect_source</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">cuda_source</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The generated code maps TIRx constructs to CUDA like this:</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>TIRx</p></th>
-<th class="head"><p>Generated CUDA</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(warp_id_in_cta</span> <span class="pre">&gt;&gt;</span> <span class="pre">2)</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">1</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(warp_id_in_cta</span> <span class="pre">&gt;&gt;</span> <span class="pre">2)</span> <span class="pre">==</span> <span class="pre">1</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">warp_id</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(warp_id_in_cta</span> <span class="pre">&amp;</span> <span class="pre">3)</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">warp_id</span> <span class="pre">==</span> <span class="pre">3</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(warp_id_in_cta</span> <span class="pre">&amp;</span> <span class="pre">3)</span> <span class="pre">==</span> <span class="pre">3</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lane_id</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(((int)threadIdx.x)</span> <span class="pre">%</span> <span class="pre">32)</span> <span class="pre">==</span> <span class="pre">0</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.init()</span></code> internal guard</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">((int)threadIdx.x)</span> <span class="pre">&lt;</span> <span class="pre">1</span></code> (CTA thread 0 only)</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tvm_builtin_elect_one_sync_op()</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="reference-generated-cuda-skeleton">
-<h3>Reference: Generated CUDA Skeleton<a class="headerlink" href="#reference-generated-cuda-skeleton" title="Link to this heading">#</a></h3>
-<p>A correctly compiled Step 7 kernel has the top-level skeleton below. When you are debugging, run <code class="docutils literal notranslate"><span class="pre">inspect_source()</span></code> and check that your output matches this structure:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// (1) Barrier inits: top level, CTA thread 0 only</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">mbarrier_init</span><span class="p">(</span><span class="n">tma2mma</span><span class="p">[</span><span class="mf">0..1</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
-<span class="w">  </span><span class="n">mbarrier_init</span><span class="p">(</span><span class="n">mma2tma</span><span class="p">[</span><span class="mf">0..1</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
-<span class="w">  </span><span class="n">mbarrier_init</span><span class="p">(</span><span class="n">mma2ld</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
-<span class="w">  </span><span class="n">mbarrier_init</span><span class="p">(</span><span class="n">ld2mma</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">);</span><span class="w">   </span><span class="c1">// arrived by all 128 WG0 threads</span>
-<span class="p">}</span>
-
-<span class="c1">// (2) TMEM alloc: WG0 warp 0, all 32 lanes (no lane guard)</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wg_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">warp_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">tcgen05_alloc</span><span class="p">(...,</span><span class="w"> </span><span class="mi">512</span><span class="p">);</span>
-
-<span class="c1">// (3) Fences + cta_sync, then phase init: producer=1, consumer=0</span>
-
-<span class="c1">// (4) Warp-specialized loop</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wg_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">warp_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">elect_sync</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* TMA  */</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">valid</span><span class="p">){</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="n">next_tile</span><span class="p">();</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wg_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">warp_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">elect_sync</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* MMA  */</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">valid</span><span class="p">){</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="n">next_tile</span><span class="p">();</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wg_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">                                </span><span class="p">{</span><span class="w"> </span><span class="cm">/* WB   */</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">valid</span><span class="p">){</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="n">next_tile</span><span class="p">();</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-
-<span class="c1">// (5) Cleanup: warp 0, no lane guard</span>
-<span class="n">cta_sync</span><span class="p">();</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">warp_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">tcgen05_relinquish_alloc_permit</span><span class="p">();</span><span class="w"> </span><span class="n">tcgen05_dealloc</span><span class="p">(...,</span><span class="w"> </span><span class="mi">512</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
-</pre></div>
-</div>
-<p>Things to verify in your generated code:</p>
-<ul class="simple">
-<li><p>Barrier inits sit at <strong>top level</strong> (not inside a <code class="docutils literal notranslate"><span class="pre">wg_id</span></code> guard); see <em>Deadlocks</em>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tcgen05_alloc</span></code>/<code class="docutils literal notranslate"><span class="pre">dealloc</span></code> have a <strong>warp guard but no lane guard</strong>; all 32 lanes participate.</p></li>
-<li><p>TMA and MMA loops both iterate <code class="docutils literal notranslate"><span class="pre">K_TILES</span></code> times.</p></li>
-<li><p>Phase init: producer=<code class="docutils literal notranslate"><span class="pre">1</span></code>, consumer=<code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
-</ul>
-</section>
-<section id="symptom-map">
-<h3>Symptom Map<a class="headerlink" href="#symptom-map" title="Link to this heading">#</a></h3>
-<p>Before you reach for any tool, the symptom alone usually narrows the search to one of the sections below:</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Symptom</p></th>
-<th class="head"><p>Failure class</p></th>
-<th class="head"><p>Where to look</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Kernel hangs ~30 s, then “unspecified launch failure”</p></td>
-<td><p>Deadlock</p></td>
-<td><p><em>Deadlocks</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>Crash within ms; subsequent <code class="docutils literal notranslate"><span class="pre">torch.randn</span></code> also fails</p></td>
-<td><p>XID 43 / illegal memory access</p></td>
-<td><p><em>Crashes</em></p></td>
-</tr>
-<tr class="row-even"><td><p>Output max-err in multiples of 128 (128 / 256 / 384 rows)</p></td>
-<td><p>Sync race</p></td>
-<td><p><em>Wrong results</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>Output <code class="docutils literal notranslate"><span class="pre">NaN</span></code> everywhere</p></td>
-<td><p>MMA descriptor / TMA descriptor mismatch</p></td>
-<td><p><em>Wrong results</em></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="deadlocks">
-<h3>Deadlocks<a class="headerlink" href="#deadlocks" title="Link to this heading">#</a></h3>
-<p>Almost every deadlock comes down to <em>one</em> of the following, so it pays to work through the list in order:</p>
-<ul>
-<li><p><strong>Arrival count ≠ init count.</strong> Common case: <code class="docutils literal notranslate"><span class="pre">MBarrier.init(128)</span></code> but <code class="docutils literal notranslate"><span class="pre">arrive</span></code> is guarded by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">warp_id</span> <span class="pre">==</span> <span class="pre">0:</span> <span class="pre">if</span> <span class="pre">lane_id</span> <span class="pre">==</span> <span class="pre">0:</span></code>, so only 1 thread arrives, the wait never returns. Reference:</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Barrier</p></th>
-<th class="head"><p>init(count)</p></th>
-<th class="head"><p>Who arrives</p></th>
-<th class="head"><p>Arrivals</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TMABar</span></code> (tma→mma)</p></td>
-<td><p>1</p></td>
-<td><p>TMA engine via <code class="docutils literal notranslate"><span class="pre">arrive(stage,</span> <span class="pre">bytes)</span></code></p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TCGen05Bar</span></code> (mma→tma, mma→ld)</p></td>
-<td><p>1</p></td>
-<td><p>MMA warp via <code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code></p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MBarrier</span></code> (ld→mma)</p></td>
-<td><p>128</p></td>
-<td><p>All WG0 threads via <code class="docutils literal notranslate"><span class="pre">arrive</span></code></p></td>
-<td><p>128</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</li>
-<li><p><strong>Barrier init nested inside a <code class="docutils literal notranslate"><span class="pre">wg_id</span></code> guard.</strong> <code class="docutils literal notranslate"><span class="pre">.init()</span></code> lowers to <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">threadIdx.x</span> <span class="pre">&lt;</span> <span class="pre">1:</span></code> (i.e., thread 0 of the CTA, which lives in WG0). Nest it inside <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">1:</span></code> and <strong>no</strong> thread satisfies both, so the barrier stays uninitialized. Inits must be at top level; <code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">mbarrier_init</span></code> in <code class="docutils literal notranslate"><span class="pre">inspect_source()</span></code> to verify.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> inside a warpgroup branch.</strong> <code class="docutils literal notranslate"><span class="pre">cta_sync</span></code> is <code class="docutils literal notranslate"><span class="pre">__syncthreads()</span></code>, which requires <em>all</em> CTA threads. Inside <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">0:</span></code>, WG1 never reaches it. Use <code class="docutils literal notranslate"><span class="pre">T.cuda.warpgroup_sync(10)</span></code> instead.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tile_scheduler.next_tile()</span></code> not called by all threads in the consumer warpgroup.</strong> The scheduler tracks per-thread state; threads that skip it loop forever.</p></li>
-<li><p><strong>TMA and MMA disagree on K-tile count.</strong> If MMA does <code class="docutils literal notranslate"><span class="pre">K_TILES</span> <span class="pre">-</span> <span class="pre">1</span></code> instead of <code class="docutils literal notranslate"><span class="pre">K_TILES</span></code>, barrier phases drift and the second outer tile deadlocks.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">PipelineState</span></code> initial phase wrong.</strong> Producer must start at <code class="docutils literal notranslate"><span class="pre">phase=1</span></code> (first wait passes); consumer at <code class="docutils literal notranslate"><span class="pre">phase=0</span></code> (first wait blocks). Same starting phase ⇒ instant deadlock.</p></li>
-</ul>
-</section>
-<section id="crashes-xid-43-illegal-memory-access">
-<h3>Crashes (XID 43 / Illegal Memory Access)<a class="headerlink" href="#crashes-xid-43-illegal-memory-access" title="Link to this heading">#</a></h3>
-<p>Where a deadlock hangs, a crash fails fast and loud. These crashes corrupt the CUDA context, and the tell-tale sign is that a <em>later</em>, perfectly innocent <code class="docutils literal notranslate"><span class="pre">torch.randn</span></code> fails too. All three causes are allocation- or warp-shape mistakes:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">pool.alloc</span></code> after <code class="docutils literal notranslate"><span class="pre">pool.commit()</span></code>.</strong> Barrier wrappers call <code class="docutils literal notranslate"><span class="pre">alloc</span></code> internally. Correct order: <code class="docutils literal notranslate"><span class="pre">tmem_addr</span> <span class="pre">→</span> <span class="pre">barrier</span> <span class="pre">wrappers</span> <span class="pre">→</span> <span class="pre">move_base_to(1024)</span> <span class="pre">→</span> <span class="pre">Asmem</span> <span class="pre">/</span> <span class="pre">Bsmem</span> <span class="pre">/</span> <span class="pre">Dsmem</span> <span class="pre">→</span> <span class="pre">commit()</span></code>.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.alloc</span></code> / <code class="docutils literal notranslate"><span class="pre">dealloc</span></code> with a lane guard.</strong> They require all 32 lanes of the warp to participate; <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">lane_id</span> <span class="pre">==</span> <span class="pre">0:</span></code> runs one thread, which is undefined behavior, often observed as an illegal-instruction or context error, a hang, or (worst) silently wrong results.</p></li>
-<li><p><strong>Missing <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> before <code class="docutils literal notranslate"><span class="pre">tcgen05.dealloc</span></code></strong>: TMEM is freed while writeback is still reading.</p></li>
-</ul>
-</section>
-<section id="wrong-results">
-<h3>Wrong Results<a class="headerlink" href="#wrong-results" title="Link to this heading">#</a></h3>
-<p>The third failure class is the quietest: the kernel runs to completion but the numbers are wrong. The tell for these lives in the error pattern itself. Mismatch counts that come out as exact multiples of 128 (128, 256, or 384 rows) point to a sync race rather than bad arithmetic: whole warpgroup-sized stripes are wrong because a handoff slipped, not because any single number was computed incorrectly.</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tcgen05.commit</span></code> outside <code class="docutils literal notranslate"><span class="pre">elect_sync</span></code></strong>: all 32 threads create commit groups; the 31 empty ones signal the mbarrier immediately. TMA overwrites SMEM before MMA reads it. Output is zeros or garbage.</p></li>
-<li><p><strong>Missing <code class="docutils literal notranslate"><span class="pre">fence.proxy_async(&quot;shared::cta&quot;)</span></code> before TMA store</strong>: TMA engine doesn’t see SMEM writes from threads.</p></li>
-<li><p><strong>Missing <code class="docutils literal notranslate"><span class="pre">cp_async.bulk.commit_group()</span></code> + <code class="docutils literal notranslate"><span class="pre">wait_group(0)</span></code> after TMA store</strong>: next tile reuses Dsmem before the store drains.</p></li>
-<li><p><strong>Persistent kernel, intermittent fails at small sizes (e.g., 1024×1024)</strong>: not GPU flakiness. Larger sizes mask the race with longer K-loops. Re-check phase reset between tiles and the TMA-store commit/wait.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">fence.after_thread_sync()</span></code> is usually not the cause.</strong> The MMA-completion mbarrier already carries release→acquire semantics. Steps 8 and 9 here add it conservatively on the writeback edge (after <code class="docutils literal notranslate"><span class="pre">mma2ld.wait</span></code>, before the first <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>), but it is not a general MMA-boundary fix. Do not add it routinely on the TMA→MMA edge; if your output is wrong, check the barrier and store-drain bullets first.</p></li>
 </ul>
 </section>
 </section>
 <section id="end-to-end-result">
 <h2>End-to-End Result<a class="headerlink" href="#end-to-end-result" title="Link to this heading">#</a></h2>
-<p>With all nine steps in hand, it is worth lining them up to see where the time actually went. The table below collects every step from the naive baseline through the warp-specialized cluster kernel, alongside the cuBLAS reference, so the cumulative effect of the chapter reads top to bottom in one place. Reference numbers on NVIDIA B200, M=N=K=4096, fp16, locked clocks, 1000-iteration timed benchmark:</p>
+<p>The table below reports the measured milestones from the naive baseline through the warp-specialized cluster kernel, alongside the cuBLAS reference. Reference numbers on NVIDIA B200, M=N=K=4096, fp16, locked clocks, 1000-iteration timed benchmark:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Step</p></th>
@@ -1422,7 +1243,7 @@
 </div>
 <p>Every time in this table, the 70 ms Step 1 baseline included, is measured at the same M=N=K=4096 size, which is what makes the speedup chain comparable end to end. It is worth being precise about what that 70 ms actually is, since it is easy to misread. It is <em>not</em> the single-tile Step-1 kernel from <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> run at 4096³; that kernel only ever computes one 128×128 tile and only runs at small sizes. The 70 ms is instead a naive full-size baseline that takes the same sequential, single-tile approach and scales it up to the full 4096³ problem. Steps 1–3 are introduced in <a class="reference internal" href="../chapter_gemm_basics/index.html#chap-gemm-basics"><span class="std std-ref">Building a Tiled GEMM</span></a> at small sizes (128×128 and 256³) to keep those first walkthroughs simple; the Step 1 and Step 3 rows here are their full-size benchmark counterparts. The remaining dashes (Steps 2, 5, 6) mark steps shown for structure but not timed on their own.</p>
 <p>Read these numbers as a single B200 reference run under controlled conditions, not as a leaderboard entry. The <code class="docutils literal notranslate"><span class="pre">{.python</span> <span class="pre">.input}</span></code> benchmark cells embedded in each step are smoke benchmarks: they are good for spotting trends, not for claiming peak performance.</p>
-<p>If you stand back from the table, four techniques account for nearly all of the gain:</p>
+<p>Four techniques account for nearly all of the gain:</p>
 <ol class="arabic simple">
 <li><p><strong>TMA Async Data Movement</strong>: a hardware copy engine replaces the software copy (~142× from Step 1 → Step 4). It is important to read this 142× correctly: it reflects going from a single 128×128-tile kernel (grid 1×1) all the way to a full tiled-and-parallel kernel with a K-loop, spatial tiling, and many CTAs, <em>together with</em> TMA; it is not TMA’s contribution in isolation. Isolating TMA would mean comparing two full-size kernels that differ only in the copy mechanism.</p></li>
 <li><p><strong>Software Pipelining + Warp Specialization</strong>: overlap load and compute by giving each its own dedicated role (~2.2× from Step 4 → Step 7).</p></li>
@@ -1431,7 +1252,6 @@
 </ol>
 <p>Plotted at the measured milestones, those same four contributions trace the descent from the synchronous tiled kernel toward the cuBLAS reference. The figure below shows the selected measured points:</p>
 <p><img alt="GEMM Optimization Journey" src="../_images/gemm_perf.png" /></p>
-<p>Across the table, the path runs from the 70 ms baseline down to 0.094 ms, matching the rounded cuBLAS reference in this run.</p>
 <p>Notice that the gains shrink as we go down the list, and there is a structural reason for it rather than any weakening of effort. The early steps go after <em>memory</em> bottlenecks (TMA replaces software copies, clusters raise arithmetic intensity), and that is where most of the 70 ms was actually being spent, so those steps pay off the most. By Step 8 the kernel is already within ~10% of cuBLAS (0.104 vs 0.094 ms) and is close to <em>compute-bound</em>, which means there is very little memory stall left to hide; Step 9’s multi-consumer overlap recovers most of what little remains. A roughly 10% final gain is exactly what to expect near the compute ceiling: it is the diminishing return of a problem that is nearly solved, not the sign of a weak optimization.</p>
 <p>Everything we built in this chapter (TMA loads, the <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA, TMEM readback, and warp-specialized barriers) carries straight over into the next one. Flash Attention reuses all of it, and then raises the difficulty by wedging an online-softmax step between two MMA phases rather than simply repeating a single one.</p>
 </section>
@@ -1513,15 +1333,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-9-multi-consumer-warp-specialization">Step 9: Multi-Consumer Warp Specialization</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-consumer-structure">Multi-Consumer Structure</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-from-step-8">Changes from Step 8</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging-warp-specialized-kernels">Debugging Warp-Specialized Kernels</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspecting-generated-code">Inspecting Generated Code</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reference-generated-cuda-skeleton">Reference: Generated CUDA Skeleton</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#symptom-map">Symptom Map</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlocks">Deadlocks</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crashes-xid-43-illegal-memory-access">Crashes (XID 43 / Illegal Memory Access)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wrong-results">Wrong Results</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#end-to-end-result">End-to-End Result</a></li>

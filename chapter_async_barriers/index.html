@@ -180,7 +180,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
 </ul>
@@ -302,7 +302,6 @@
 <p>That is useful because it lets memory movement and compute overlap. It also means that program order is not enough to prove that data is ready. A later instruction may run before the earlier asynchronous operation has completed. If TMA is still writing a shared-memory tile when MMA starts reading it, the MMA reads incomplete data. If the epilogue reads TMEM before the Tensor Core has finished writing the accumulator, it reads the wrong value. If the kernel waits on the wrong condition, it may never make progress.</p>
 <p>The kernel therefore needs an explicit completion signal at every asynchronous handoff. An <code class="docutils literal notranslate"><span class="pre">mbarrier</span></code> is that signal. A producer arrives on the barrier when its work is complete, and a consumer waits on the barrier before using the produced data. The same mechanism is used for TMA-to-MMA handoff, MMA-to-epilogue handoff, and buffer reuse across pipeline stages.</p>
 <p>A barrier is not just a one-shot flag. It carries a phase bit, and that phase bit changes every time the barrier completes a round of arrivals. The phase is what lets one barrier be reused across many loop iterations without confusing the completion of one iteration with the completion of another.</p>
-<p>This chapter first describes the barrier object itself, then explains phase tracking, and finally summarizes the synchronization rules used by tensor-core kernels. The same rules will show up again in the pipelined GEMM chapter (<a class="reference internal" href="../chapter_gemm_async/index.html#chap-gemm-async"><span class="std std-ref">Pipelining GEMM with TMA</span></a>).</p>
 <section id="the-mbarrier">
 <h2>The mbarrier<a class="headerlink" href="#the-mbarrier" title="Link to this heading">#</a></h2>
 <p>An <code class="docutils literal notranslate"><span class="pre">mbarrier</span></code>, short for memory barrier, is a hardware synchronization object stored in shared memory. Conceptually, it contains two pieces of state: an arrival counter and a phase bit. The counter tells the barrier how many arrivals are still missing in the current round. The phase bit tells the kernel which round the barrier is currently in.</p>
