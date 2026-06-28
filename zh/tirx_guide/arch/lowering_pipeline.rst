@@ -148,7 +148,7 @@ LowerTIRx 内部
         T.device_entry(); bx = T.cta_id([1]); tx = T.thread_id([256])
         B[tx] = A[tx] * T.float32(2.0)
 
-**``LowerTIRx`` 之后** ，作用域 id 已是真实的线程轴，layout 也已应用
+**``LowerTIRx`` 之后**，作用域 id 已是真实的线程轴，layout 也已应用
 （``A_1`` / ``B_1`` 是拍平后的一维视图）：
 
 .. code-block:: python
@@ -166,9 +166,9 @@ LowerTIRx 内部
 
     @I.ir_module
     class Module:
-        def main(...):          # host：packed-API 启动器（计算 grid/block 并启动）
+        def main(...):          # host:packed-API 启动器(计算 grid/block 并启动)
             ...
-        def scale_kernel(...):  # device：__global__ 函数体，在 GPU 上运行
+        def scale_kernel(...):  # device:__global__ 函数体,在 GPU 上运行
 
 随后 CUDA 后端把 ``scale_kernel`` 渲染成 ``__global__`` 函数
 （``B_ptr[threadIdx.x] = A_ptr[threadIdx.x] * 2.0f`` ）。

@@ -496,7 +496,7 @@ SwizzleLayout(...)
 ComposeLayout(swizzle, tile)
 ```
 
-tile 布局先产生一个线性内存地址,swizzle 再对该地址做置换。把这两层保持分离,比把 XOR 置换硬塞进仿射布局模型更干净。
+tile 布局先产生一个线性内存地址,swizzle 再对该地址做置换。把这两层保持分离,比把 XOR 置换硬塞进仿射布局模型更清晰。
 
 ## 为什么要 swizzle
 

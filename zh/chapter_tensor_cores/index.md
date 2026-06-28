@@ -4,13 +4,13 @@
 :::{admonition} Overview
 :class: overview
 
-- `tcgen05` 是 Blackwell 的 Tensor Core(张量核)指令族。其 MMA(矩阵乘加)指令以协作方式完成分块矩阵乘加,指令由一个被选中的 thread(线程)提交。
+- `tcgen05` 是 Blackwell 的 Tensor Core(张量核)指令族。其 MMA(矩阵乘加)指令以协作方式完成分块矩阵乘加,由一个被选中的 thread 提交。
 - 累加器存放在 TMEM(张量内存)而非寄存器中。收尾阶段随后通过 `tcgen05.ld` 把它读回寄存器。
 - `cta_group::1` 与 `cta_group::2` 控制一次 MMA 由一个 CTA(协作线程阵列)还是两个 CTA 协作完成。该选择还会改变 M 维度到 TMEM 的映射方式。
 - 块缩放(block-scaled)MMA 模式(例如 `mxfp8` 和 `nvfp4`)会增加缩放因子操作数。数据操作数位于 SMEM(共享显存),而缩放因子则经 TMEM 暂存。
 :::
 
-稠密线性代数是现代 GPU 完成大部分有效计算的地方。普通的 CUDA core(核)矩阵乘无法逼近芯片标称的峰值({ref}`chap_background`)。快速的 GEMM(通用矩阵乘)与 attention(注意力)内核通过以正确的分块形状、布局和同步方式喂给 Tensor Core 来达到该峰值。
+稠密线性代数是现代 GPU 完成大部分有效计算的地方。普通的 CUDA core(核)矩阵乘无法逼近芯片标称的峰值({ref}`chap_background`)。快速的 GEMM(通用矩阵乘)与 attention(注意力)内核通过以正确的分块形状、布局和同步方式向 Tensor Core 供数来达到该峰值。
 
 其基本思想自 Volta 起并未改变。Tensor Core 消费矩阵分块,把它们相乘并累加结果。代与代之间变化的是:指令如何派发、操作数如何布局、以及累加器存放在何处。
 
@@ -34,7 +34,7 @@ Blackwell 对最后这一点做了大幅改动。`tcgen05` 的累加器不再作
 
 第一个问题是谁在协作。普通模式使用一个 CTA,写作 `cta_group::1`。更大的模式使用 cluster 中的两个 CTA,写作 `cta_group::2`。两种情形下,该指令都代表针对一个分块的一次 Tensor Core 操作,而不是某个 thread 的一次标量操作。
 
-第二个问题是操作数与结果存放在哪里。数据操作数通常位于 SMEM。某些变体也可以从 TMEM 读入 A 操作数。累加器写入 TMEM。操作数布局必须与 Tensor Core 期望的布局一致,包括数据操作数所使用的经过 swizzle(混排)的共享显存布局({ref}`chap_data_layout`)。
+第二个问题是操作数与结果存放在哪里。数据操作数通常位于 SMEM。某些变体也可以从 TMEM 读入 A 操作数。累加器写入 TMEM。操作数布局必须与 Tensor Core 期望的布局一致,包括数据操作数所使用的 swizzled 共享显存布局({ref}`chap_data_layout`)。
 
 第三个问题是如何观察到完成。`tcgen05.mma` 是异步的。派发 MMA 并不意味着乘加已经完成。该指令在操作提交后即返回,而 Tensor Core 继续运行。内核通过一个 commit group(提交组)和一道 `mbarrier`(内存屏障)来获知结果何时就绪({ref}`chap_async_barriers`)。
 

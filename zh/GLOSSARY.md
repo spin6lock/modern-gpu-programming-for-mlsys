@@ -19,6 +19,7 @@
 | Tensor Core | 张量核 | |
 | Blackwell | Blackwell(架构代号) | 不译 |
 | mbarrier | 内存屏障 / 屏障 | 保留 |
+| swizzle | swizzle | 保留英文;必要时首现说明为地址重映射 |
 | MoE | 混合专家(Mixture-of-Experts) | |
 | GQA | 分组查询注意力(Grouped-Query Attention) | |
 | FlashAttention | FlashAttention | 不译 |
@@ -50,6 +51,8 @@
 | accumulator | 累加器 |
 | register / registers | 寄存器 |
 | thread | 线程 |
+| lane | lane | 保留英文 |
+| bank | bank | 保留英文 |
 | streaming multiprocessor (SM) | 流式多处理器 |
 | prefetch | 预取 |
 | double buffering | 双缓冲 |
@@ -79,7 +82,9 @@
 ## C. 易错点
 
 - **warp / warpgroup**:全书保留英文,不要译成「线程束」并替换掉英文(若替换会让与代码/硬件文档脱节)。首现可补释义,正文用英文。
+- **warp specialization**:作为固定技术短语时译为「线程束特化」;若与具体 warp/warpgroup 角色并列,可保留英文并括注中文。
 - **TMA vs TMEM**:TMA = 异步拷贝引擎(动);TMEM = 张量内存(存储,静)。勿混。
+- **swizzle**:保留英文,不要译成「混洗」或「混淆」。需要解释时写作「swizzle 地址重映射」。
 - **CTA vs SM**:CTA 是编程/调度单元,SM 是硬件单元。勿互译。
 - **tile**:作名词=分块,作动词 tiling=分块化。灵活处理。
 - **GEMM 的 $D=AB^\top$**:数学不译,周围叙述里 GEMM 保留英文。

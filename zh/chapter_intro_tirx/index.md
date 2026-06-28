@@ -186,7 +186,7 @@ print("PASS")
 
 在使用这个演示时,留意三个问题:
 
-- **Scope:谁运行这个操作?** `Tx.cta.copy(...)` 是 CTA(协作线程阵列)作用域的,所以全部 128 个线程都参与 GMEM -> SMEM 的拷贝。`Tx.gemm_async(...)` 由一个被选中的线程派发一次,因为每条降级后的 `tcgen05.mma` 指令本身就已经是一次协作式 MMA 启动。`Tx.wg.copy_async(...)` 是 warpgroup(线程束组)作用域的,所以该 warpgroup 的 128 个线程逐行瓜分 TMEM 的回读。
+- **Scope:谁运行这个操作?** `Tx.cta.copy(...)` 是 CTA(协作线程阵列)作用域的,所以全部 128 个线程都参与 GMEM -> SMEM 的拷贝。`Tx.gemm_async(...)` 由一个被选中的线程派发一次,因为每条降级后的 `tcgen05.mma` 指令本身就已经是一次协作式 MMA 启动。`Tx.wg.copy_async(...)` 是 warpgroup(线程束组)作用域的,所以该 warpgroup 的 128 个线程按行分担 TMEM 回读。
 - **Layout:每个分块放在哪里?** A 和 B 使用 `tcgen05.mma` 所期望的 swizzle SMEM 布局。累加器位于 TMEM 中,采用 `TLane`/`TCol` 布局。寄存器回读视图把行映射到 `tid_in_wg`,于是每个 warpgroup 线程拥有一段行片段。
 - **Dispatch:由哪条硬件路径执行?** `Tx.gemm_async(..., dispatch="tcgen05", ...)` 选择 Blackwell 的 Tensor Core 路径。拷贝操作也有 dispatch 选择:这第一个内核使用普通的线程拷贝,后续的 GEMM 步骤会在不改变周围 scope 或 layout 的前提下,把这些拷贝换成 TMA(张量内存加速器)。
 

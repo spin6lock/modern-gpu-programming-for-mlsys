@@ -7,7 +7,7 @@
 - 在 Ampere、Hopper 和 Blackwell 三代中,Tensor Core(张量核)仍然执行同样的高层运算:`D = A B + C`。
 - 各世代之间变化的是:操作数如何抵达 Tensor Core、支持哪些分块形状与 dtype(数据类型),以及累加器存放在何处。
 - Ampere 使用 warp(线程束)级的寄存器片段。共享内存(SMEM)分块通过 `ldmatrix` 加载进该片段,累加器保留在寄存器中。
-- Hopper 允许 `wgmma` 通过矩阵描述符直接从共享内存读取操作数。描述符指定了 Tensor Core 所期望的共享内存 swizzle(混淆)格式。
+- Hopper 允许 `wgmma` 通过矩阵描述符直接从共享内存读取操作数。描述符指定了 Tensor Core 所期望的共享内存 swizzle 格式。
 - Blackwell 保留了共享内存操作数通路,但把累加器搬进了 TMEM(张量内存)。块缩放 MMA 也会通过 TMEM 暂存其缩放因子。
 - 在所有世代中都一直存在两条内存约束:全局内存合并访问与共享内存 bank(存储体)冲突。
 :::
@@ -197,7 +197,7 @@ Blackwell 改变了这一输出侧。
 
 Blackwell 为数据操作数保留了共享内存描述符的思路。A 和 B 仍以 Tensor Core 所期望的布局在共享内存中备好。某些模式还能从 TMEM 读取 A 操作数。
 
-主要变化在累加器。`tcgen05.mma` 把累加器写入 Tensor Memory(张量内存,TMEM),而不是让它作为一个长寿命的寄存器片段留存。在计算阶段,累加器留在 TMEM 中。收尾随后用 `tcgen05.ld` 把它装回寄存器。
+主要变化在累加器。`tcgen05.mma` 把累加器写入 TMEM(张量内存),而不是让它作为一个长寿命的寄存器片段留存。在计算阶段,累加器留在 TMEM 中。收尾随后用 `tcgen05.ld` 把它装回寄存器。
 
 这把输出布局问题从寄存器挪到了 TMEM。内核必须分配 TMEM、选择正确的 TMEM 布局、等待 MMA 完成,然后用匹配的 `tcgen05.ld` 通路为收尾恢复累加器片段。
 

@@ -4,8 +4,8 @@
 :::{admonition} Overview
 :class: overview
 
-- 一个 kernel(内核)在一个线程层次结构(thread → warp → warpgroup → CTA → cluster → grid)上运行,跨越多个不同的存储空间(寄存器、SMEM、GMEM、TMEM)。
-- 计算分为 CUDA cores 与 Tensor Cores(张量核);TMA(张量内存加速器)等专用引擎负责搬移喂给它们的数据。
+- 一个内核运行在线程层次结构(thread → warp → warpgroup → CTA → cluster → grid)之上,并跨越多个不同的存储空间(寄存器、SMEM、GMEM、TMEM)。
+- 计算由 CUDA cores 与 Tensor Cores(张量核)承担;TMA(张量内存加速器)等专用引擎负责搬运供它们消费的数据。
 - 一个 kernel 是一条流水线,把数据逐级送过这些存储空间,并在相互独立的计算引擎与数据搬运引擎之间交接工作;反复出现的目标,就是让这些引擎同时保持忙碌。
 :::
 
@@ -34,7 +34,7 @@
 - **Thread(线程)**:执行的标量单元。每个线程有自己的程序计数器和自己的寄存器,并在其所在的 warp 内由一个 lane ID 标识。
 - **Warp**:32 个线程,以 SIMT(*单指令多线程*)方式执行。一个 warp 的各 lane 一起发射同一条指令,但每个 lane 各自保留自己的寄存器,并且可以被单独掩码掉,这正是让单个 warp 的各 lane 能够走上不同分支的机制。
 - **Warpgroup(线程束组)**:四个连续的 warp,即 128 个线程。Hopper 引入了 warpgroup,把它作为发射 warpgroup 级 MMA(`wgmma`)的单元,而在 Blackwell 上它又承担了第二个角色:它是 Tensor Memory 访问的协作单元,128 个线程一起把一个 TMEM 分块搬进或搬出寄存器。
-- **CTA**(*Cooperative Thread Array*,即 CUDA 中所称的 thread block):硬件调度的基本单元。一个 CTA 运行在单个 SM 上,并在其中拥有一份私有的共享内存分配。多个 CTA 可以同时驻留在同一个 SM 上,此时它们共同瓜分该 SM 的共享内存容量。
+- **CTA**(*Cooperative Thread Array*,即 CUDA 中所称的 thread block):硬件调度的基本单元。一个 CTA 运行在单个 SM 上,并在其中拥有一份私有的共享内存分配。多个 CTA 可以同时驻留在同一个 SM 上,此时它们共同共享该 SM 的共享内存容量。
 - **Cluster(集群)**:一组协作的 CTA,可能分布在不同 SM 上。一个 cluster 内的 CTA 可以相互同步,并读写彼此的共享内存,这一能力被称为分布式共享内存(distributed shared memory)。
 
 这些层级值得反复体会,因为与早期架构不同,Blackwell 的关键操作**并非全由同一组线程发射**。一次 TMA 拷贝由单个线程发起,再由硬件执行。一次 TMEM 到寄存器的加载是 warpgroup 分布式的:四个 warp 协作,各自搬动它那一部分 TMEM 分块。一次 `tcgen05` MMA 由一个被选出的线程提交,而一次集群级 MMA 会一次跨越两个 CTA。因此,每个操作都有它自己的天然粒度,执行该操作的线程集合,就是我们所说的该操作的**作用域(scope)**,这是本书反复回到的三个反复出现的设计要素(作用域、布局、派发)中的第一个。

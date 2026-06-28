@@ -150,7 +150,7 @@ attention computed without materializing the full score matrix
 
 第二种应对是接受内存屋顶并试图达到它。有些内核没有足够的工作可融合,也没有足够的复用可利用。纯粹的拷贝、简单的逐元素操作,或对大张量的单遍归约,可能本质上就是 memory-bound 的。
 
-在这种情况下,目标不是击穿屋顶,而是打满它。
+在这种情况下,目标不是突破屋顶线,而是尽量贴近它。
 
 这意味着:
 

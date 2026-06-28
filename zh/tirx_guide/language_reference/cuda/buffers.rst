@@ -186,11 +186,11 @@ buffer 的 ``data`` 指针是一个不可变 ``Var`` (``alloc_buffer`` 定义它
 池语法糖
 ~~~~~~~~~~
 
-``T.SMEMPool`` 自动完成这套 arena 簿记——它会 bump 分配各偏移,这样你就不必手动 ``decl`` 视图。除了 ``alloc`` / ``commit`` 之外,它还提供逐 buffer 的 ``align=``、一个能为你构造与 MMA 兼容的 swizzle 布局的 ``alloc_mma`` 辅助工具,以及一个把游标倒回以复用空间的 ``move_base_to``:
+``T.SMEMPool`` 自动完成这套 arena 簿记——它会用游标分配各偏移,这样你就不必手动 ``decl`` 视图。除了 ``alloc`` / ``commit`` 之外,它还提供逐 buffer 的 ``align=``、一个能为你构造与 MMA 兼容的 swizzle 布局的 ``alloc_mma`` 辅助工具,以及一个把游标倒回以复用空间的 ``move_base_to``:
 
 .. code-block:: python
 
-    pool = T.SMEMPool()                          # shared.dyn 上的 bump 分配器
+    pool = T.SMEMPool()                          # shared.dyn 上的游标分配器
     As = pool.alloc((BM, BK), "float16", align=128)   # 切出一个分块
     Bs = pool.alloc((BK, BN), "float16", align=128)
     Cs = pool.alloc_mma((BM, BN), "float16")     # 与 MMA 兼容,swizzle 自动推断
@@ -220,7 +220,7 @@ buffer 的 ``data`` 指针是一个不可变 ``Var`` (``alloc_buffer`` 定义它
 
 .. note::
 
-   这个 ``alignas(64)`` 是*默认*的 buffer 对齐——一个 buffer 的 ``data_alignment`` 默认为 ``runtime::kAllocAlignment`` (64 字节),CUDA codegen 会把它盖到每个分配上,包括那些对齐毫无意义的逐线程 ``local`` 数组。对这类驻留寄存器的数组,它**没有任何性能影响**:一个索引可在编译期解析的线程本地数组,会被 nvcc/ptxas 提升为寄存器(聚合体的标量替换,SROA),因此它从不落入可寻址的本地内存,这个对齐就是个空操作。(一个被动态索引、溢出到本地内存的数组,才会真正吃到这个过度对齐,但那是少见情形。)寄存器本地变量的这种过度对齐是一个已知的粗糙之处,我们计划修复(对 ``local`` 作用域改用 dtype 的自然对齐)。
+   这个 ``alignas(64)`` 是*默认*的 buffer 对齐——一个 buffer 的 ``data_alignment`` 默认为 ``runtime::kAllocAlignment`` (64 字节),CUDA codegen 会把它应用到每个分配上,包括那些对齐毫无意义的逐线程 ``local`` 数组。对这类驻留寄存器的数组,它**没有任何性能影响**:一个索引可在编译期解析的线程本地数组,会被 nvcc/ptxas 提升为寄存器(聚合体的标量替换,SROA),因此它从不落入可寻址的本地内存,这个对齐就是个空操作。(只有被动态索引、溢出到本地内存的数组,才会真正受这个过度对齐影响,但那是少见情形。)寄存器本地变量的这种过度对齐是一个已知的粗糙之处,我们计划修复(对 ``local`` 作用域改用 dtype 的自然对齐)。
 
 标量
 ~~~~
@@ -273,7 +273,7 @@ buffer 的 ``data`` 指针是一个不可变 ``Var`` (``alloc_buffer`` 定义它
 
 .. note::
 
-   **为什么要有不可变绑定?** 因为该值不会改变,算术分析器在简化一个 ``LetStmt`` 时会把它绑定到该 var(``analyzer.Bind(var, value)``),于是关于该值所证明的事实——常量边界、模集合(整除性 / 对齐)、范围——**会传播到每一处使用**。这会喂给索引简化、边界检查消除,以及对齐 / 向量化决策。而*可变*标量是一次内存加载(``buf[0]``):分析器不能假设它保持恒定,所以那些性质都无法传递。``let`` 也是一个纯值——不分配存储,可自由内联 / 替换 / CSE——而标量是一个带加载 / 存储语义的单元素 buffer。
+   **为什么要有不可变绑定?** 因为该值不会改变,算术分析器在简化一个 ``LetStmt`` 时会把它绑定到该 var(``analyzer.Bind(var, value)``),于是关于该值所证明的事实——常量边界、模集合(整除性 / 对齐)、范围——**会传播到每一处使用**。这会提供给索引简化、边界检查消除,以及对齐 / 向量化决策。而*可变*标量是一次内存加载(``buf[0]``):分析器不能假设它保持恒定,所以那些性质都无法传递。``let`` 也是一个纯值——不分配存储,可自由内联 / 替换 / CSE——而标量是一个带加载 / 存储语义的单元素 buffer。
 
 张量内存
 --------
@@ -364,12 +364,12 @@ Buffer API
 .. code-block:: python
 
     A2 = A.view(64, 4);     y = A2[tx, 0] + A2[tx, 3]   # A2[tx, j] -> A_ptr[tx*4 + j]
-    At = A.permute(1, 0);   z = At[i, j]                # At[i, j]  -> A_ptr[j*4 + i]
+    At = A.permute(1, 0);   z = At[i, j]                # At[i, j] -> A_ptr[j*4 + i]
 
 .. code-block:: c++
 
     A2_ptr[tx * 4]  /* +3 */                 // view:行主序 64x4 索引
-    At_ptr[(j * 4) + i]                       // permute:步长被交换
+    At_ptr[(j * 4) + i]                       // permute:步长交换
 
 **寄存器 —— ``local``。** 把一个线程轴的 ``local`` 布局分解为调用线程的平坦寄存器束(被分块原语广泛使用):
 

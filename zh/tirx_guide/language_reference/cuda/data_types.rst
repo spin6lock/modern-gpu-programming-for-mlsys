@@ -32,12 +32,12 @@
         A = T.match_buffer(A_ptr, (256,), "float32")
         O = T.match_buffer(O_ptr, (256,), "float32")
         T.device_entry(); bx = T.cta_id([1]); tx = T.thread_id([64])
-        f16  = T.alloc_local((1,), "float16")        # 寄存器标量 ......
+        f16  = T.alloc_local((1,), "float16")        # 寄存器标量
         bf16 = T.alloc_local((1,), "bfloat16")
         i32  = T.alloc_local((1,), "int32")
         u8   = T.alloc_local((1,), "uint8")
         b1   = T.alloc_local((1,), "bool")
-        sm   = T.alloc_shared((64,), "float16")      # ......以及一个 shared 分块
+        sm   = T.alloc_shared((64,), "float16")      # 以及一个 shared 分块
         v    = T.alloc_local((1,), "float32x4")      # 一个向量 dtype 寄存器(float4)
         v[0] = A.vload([tx * 4], dtype="float32x4")  # 向量化加载
         O.vstore([tx * 4], v[0])                     # 向量化存储
