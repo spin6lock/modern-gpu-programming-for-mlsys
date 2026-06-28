@@ -4,7 +4,7 @@ This book teaches modern GPU kernel programming as a progression: **understand t
 GPU hardware → learn to program it → write state-of-the-art kernels.** It treats
 the Blackwell-class GPU — its memory hierarchy and Tensor Memory, its tensor-core and
 asynchronous data-movement engines, warpgroups and clusters — as the real subject. The
-vehicle is **TIRx** (Tensor IR neXt), a Python DSL for writing GPU kernels at the IR level.
+vehicle is **TIRx** (Tensor IR next), a Python DSL for writing GPU kernels at the IR level.
 
 📖 **Read it online: <https://mlc.ai/modern-gpu-programming-for-mlsys/>**
 
