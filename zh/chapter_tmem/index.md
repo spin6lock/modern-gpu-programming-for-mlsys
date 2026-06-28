@@ -35,7 +35,7 @@ S[(128, N) : (1@TLane, 1@TCol)]
 
 这表示该分块沿硬件 Lane 维度有 128 行,沿硬件 Col 维度有 `N` 列。在布局记法中,这两个维度表现为 `TLane` 和 `TCol`。该布局是直接的:相邻行沿 `TLane` 推进,相邻列沿 `TCol` 推进。下图展示了这一网格,硬件 Lane 沿 128 行向下排列,硬件 Col 沿各列横向排列。
 
-![TMEM 作为一个二维网格:TLane 行 × TCol 列](../img/tmem_grid.png)
+![TMEM 作为一个二维网格:TLane 行 × TCol 列](../img/zh/tmem_grid.png)
 
 要点在于:TMEM 是分块布局叙事的一部分。它不仅仅是 Tensor Core 的一个隐藏后备存储。内核必须为这块内存命名、从中分配列,并使用一种与 `tcgen05` 指令读写该内存方式相匹配的布局。
 
