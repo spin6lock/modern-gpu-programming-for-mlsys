@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Data Layout and Its Notation &#8212; Modern GPU Programming For MLSys</title>
+    <title>数据布局及其记法 &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -53,8 +53,8 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tensor Core Operand Layouts Across GPU Generations" href="../chapter_layout_generations/index.html" />
-    <link rel="prev" title="What Makes a Kernel Fast" href="../chapter_performance/index.html" />
+    <link rel="next" title="跨 GPU 世代的 Tensor Core 操作数布局" href="../chapter_layout_generations/index.html" />
+    <link rel="prev" title="是什么让内核变快" href="../chapter_performance/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">编译器内部实现</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx 语言参考</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Data Layout and Its Notation</h1>
+    <h1>数据布局及其记法</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -338,14 +338,14 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-shapestride-model">The Shape–Stride Model</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tile-layout">Tile Layout</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#named-axes">Named Axes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-layout">Distributed Layout</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#intra-kernel-replication-pattern-scale-factors-in-tmem">Intra-Kernel Replication Pattern: Scale Factors in TMEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">形状-步长模型</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">分块布局</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">具名轴</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">分布式布局</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tmem">内核内的复制模式:TMEM 中的缩放因子</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle-layout">Swizzle Layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle">Swizzle 布局</a></li>
 </ul>
             </nav>
         </div>
@@ -357,226 +357,109 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="data-layout-and-its-notation">
-<span id="chap-data-layout"></span><h1>Data Layout and Its Notation<a class="headerlink" href="#data-layout-and-its-notation" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="chap-data-layout">
+<span id="id1"></span><h1>数据布局及其记法<a class="headerlink" href="#chap-data-layout" title="Link to this heading">#</a></h1>
 <div class="overview admonition">
 <p class="admonition-title">Overview</p>
 <ul class="simple">
-<li><p>A <em>data layout</em> maps a tensor’s logical indices to physical locations, and it decides coalescing, bank conflicts, and whether an engine can read a tile.</p></li>
-<li><p>The book writes layouts in one notation: <code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>, with named axes (<code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;TLane</span></code>, …) and a replication term <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> for broadcast or copied data.</p></li>
-<li><p>Swizzle is an XOR remapping of addresses that removes shared-memory bank conflicts.</p></li>
+<li><p><em>数据布局</em> 将一个张量的逻辑索引映射到物理位置,它决定了访存的合并性、bank 冲突,以及某个引擎能否读取一个分块。</p></li>
+<li><p>本书用一种记法来书写布局:<code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>,并带有具名轴(<code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code>、<code class="docutils literal notranslate"><span class="pre">&#64;TLane</span></code>,……)以及一个用于广播或复制数据的复制项 <code class="docutils literal notranslate"><span class="pre">R[...]</span></code>。</p></li>
+<li><p>Swizzle 是一种对地址的 XOR(异或)重映射,用于消除共享内存的 bank 冲突。</p></li>
 </ul>
 </div>
-<p>The same numbers, written into memory in a different physical arrangement, can run an order of
-magnitude apart on the same GPU.</p>
-<p>The reason is that a tensor’s logical indices say nothing about where its bytes actually sit. The
-hardware is highly sensitive to that placement: it determines whether 32 lanes’ loads coalesce into
-one transaction or scatter into 32, whether their addresses land in distinct memory banks or collide
-and serialize, and even whether a tile matches the byte arrangement a Tensor Core can read at all.</p>
-<p>Machine learning programs usually describe tensors by their logical shape. A <strong>data layout</strong> adds the
-missing physical part: it says where an element with logical indices <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j,</span> <span class="pre">…)</span></code> lives, whether in
-memory, in registers, or in some other hardware storage.</p>
-<p>This chapter introduces the main layouts that arise in modern GPU programming. To keep the discussion
-tractable, we develop one compact <strong>notation</strong> that describes them across the situations a machine
-learning system runs into. We close with <strong>swizzling</strong>, the mechanism that makes both row-wise and
-column-wise access to a tile efficient at the same time.</p>
-<section id="the-shapestride-model">
-<h2>The Shape–Stride Model<a class="headerlink" href="#the-shapestride-model" title="Link to this heading">#</a></h2>
-<p>Before we reach the GPU-specific layouts, it is worth starting from the simplest possible one, because
-everything else in the chapter is built on top of it. At its core, a layout is just two things: a
-<strong>shape</strong> and a matching set of <strong>strides</strong>. We write the pair as <code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>, and to
-find where a logical index lives we take the dot product of that index with the strides. A row-major
-4×4 matrix, for instance, looks like this:</p>
+<p>同样的一组数字,以不同的物理排布写入内存,在同一块 GPU 上的运行速度可能相差一个数量级。</p>
+<p>原因在于,一个张量的逻辑索引丝毫不能说明它的字节实际存放在哪里。硬件对这种存放位置极为敏感:它决定了 32 个 lane 的访存是合并成一次事务,还是分散成 32 次;这些地址是落到不同的内存 bank 上,还是会发生冲突并被串行化;它甚至决定了一个分块的字节排布是否与 Tensor Core(张量核)能读取的格式相符。</p>
+<p>机器学习程序通常用张量的逻辑形状来描述它们。一个<strong>数据布局</strong>补上了缺失的物理部分:它说明具有逻辑索引 <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j,</span> <span class="pre">…)</span></code> 的某个元素到底存放在哪里——是在内存中、在寄存器中,还是在某种其他硬件存储里。</p>
+<p>本章介绍现代 GPU 编程中出现的几种主要布局。为了让讨论易于展开,我们发展出一套紧凑的<strong>记法</strong>,用以统一描述机器学习系统在各种情形下遇到的布局。最后我们以 <strong>swizzling</strong> 收尾,这种机制能同时让对一个分块的行向访问和列向访问都变得高效。</p>
+<section id="id2">
+<h2>形状-步长模型<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>在进入 GPU 专有的布局之前,值得从最简单的布局讲起,因为本章其余所有内容都建立在它之上。布局的核心其实只有两样东西:一个<strong>形状</strong>和一组与之匹配的<strong>步长</strong>。我们把这对值写成 <code class="docutils literal notranslate"><span class="pre">S[(shape)</span> <span class="pre">:</span> <span class="pre">(strides)]</span></code>,要找到某个逻辑索引对应的位置,我们取该索引与步长的点积。例如,一个行主序的 4×4 矩阵看起来是这样的:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(4, 4) : (4, 1)]        addr(i, j) = i·4 + j·1
 </pre></div>
 </div>
-<p>This is nothing more than the classic shape/stride model, written compactly (a row-major
-simplification of CuTe’s notation), and everything that follows is built from it.</p>
-<p>In fact, you have almost certainly used this model already. Anyone who has written PyTorch or NumPy
-has, because a tensor in those libraries <em>is</em> precisely a shape together with a stride over a flat
-storage buffer:</p>
+<p>这无非就是经典的形状/步长模型,只是写得紧凑了一些(是 CuTe 记法的行主序简化版),后续所有内容都由它构建而成。</p>
+<p>事实上,你几乎肯定已经用过这个模型了。凡是写过 PyTorch 或 NumPy 的人都用过,因为在这些库里,一个张量<em>本身就是</em>一个形状加上在一个平坦存储缓冲区上的一组步长:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">t</span><span class="o">.</span><span class="n">shape</span>        <span class="c1"># torch.Size([3, 4])</span>
 <span class="n">t</span><span class="o">.</span><span class="n">stride</span><span class="p">()</span>     <span class="c1"># (4, 1)        ← exactly S[(3, 4) : (4, 1)]</span>
 </pre></div>
 </div>
-<p>Once you see a tensor this way, it becomes clear why so many “reshaping” operations never touch the
-data at all. They simply rewrite the strides and hand back a <strong>view</strong> over the same storage, and the
-clearest example is transpose, or permute:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tt</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>               <span class="c1"># or t.T</span>
+<p>一旦你以这种方式看待张量,就会明白为什么有那么多”重塑”操作根本不碰数据。它们只是改写步长,然后返回一个指向同一份存储的<strong>视图</strong>,最清晰的例子就是转置,或者说 permute:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tt</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>               <span class="c1"># 或 t.T</span>
 <span class="n">tt</span><span class="o">.</span><span class="n">shape</span>                           <span class="c1"># torch.Size([4, 3])</span>
 <span class="n">tt</span><span class="o">.</span><span class="n">stride</span><span class="p">()</span>                        <span class="c1"># (1, 4)        ← strides swapped, no data moved</span>
-<span class="n">tt</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">()</span>      <span class="c1"># True, same bytes</span>
+<span class="n">tt</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">()</span>      <span class="c1"># True,同一批字节</span>
 </pre></div>
 </div>
-<p>Here <code class="docutils literal notranslate"><span class="pre">t.permute(1,</span> <span class="pre">0)</span></code> is <code class="docutils literal notranslate"><span class="pre">S[(4,</span> <span class="pre">3)</span> <span class="pre">:</span> <span class="pre">(1,</span> <span class="pre">4)]</span></code> over the <em>same</em> memory: the transpose is purely a
-change of strides, with not a single byte moved. The story is the same for <code class="docutils literal notranslate"><span class="pre">reshape</span></code> or <code class="docutils literal notranslate"><span class="pre">view</span></code> on a
-contiguous tensor: a new shape and new strides over the old storage. (NumPy behaves identically; the
-only difference is that its <code class="docutils literal notranslate"><span class="pre">.strides</span></code> are counted in bytes rather than elements.)</p>
-<p>This is exactly how layouts work on a GPU, and the rest of the chapter is really a series of
-variations on one idea: a tile’s mapping (whether into memory, or, through the named axes we
-introduce shortly, into lanes and registers) is a stride rule over a fixed buffer, so rearranging a
-tile is usually a change of <em>layout</em> rather than a copy. We should be careful about the boundaries of
-this reasoning, though. The zero-copy story holds cleanly for a logical view over a single linear
-address space; on a GPU it applies only when the new view is compatible with the existing byte and
-ownership arrangement. The moment you change which thread or register owns an element, or change the
-SMEM swizzle, you generally need real data movement: loads, stores, shuffles, <code class="docutils literal notranslate"><span class="pre">ldmatrix</span></code>,
-transposes.</p>
+<p>这里 <code class="docutils literal notranslate"><span class="pre">t.permute(1,</span> <span class="pre">0)</span></code> 是在<em>同一块</em>内存上的 <code class="docutils literal notranslate"><span class="pre">S[(4,</span> <span class="pre">3)</span> <span class="pre">:</span> <span class="pre">(1,</span> <span class="pre">4)]</span></code>:转置纯粹是一次步长的改变,没有搬动一个字节。对连续张量做 <code class="docutils literal notranslate"><span class="pre">reshape</span></code> 或 <code class="docutils literal notranslate"><span class="pre">view</span></code> 的情形也一样:在旧存储上换一组新的形状和新的步长。(NumPy 的行为完全一致;唯一的区别是它的 <code class="docutils literal notranslate"><span class="pre">.strides</span></code> 以字节而非元素来计数。)</p>
+<p>GPU 上的布局也正是这样工作的,本章余下部分其实都是围绕同一个想法展开的一系列变体:一个分块的映射(无论映射到内存,还是通过我们马上引入的具名轴映射到 lane 和寄存器)都是一条作用在固定缓冲区上的步长规则,所以重排一个分块通常只是改变<em>布局</em>,而不是一次拷贝。不过,我们要小心这种推理的边界。零拷贝的故事只对一个线性地址空间之上的逻辑视图才干净成立;在 GPU 上,它只有在新的视图与既有的字节排布和归属关系相容时才适用。一旦你改变了哪个线程或哪个寄存器拥有某个元素,或者改动了 SMEM(共享内存)的 swizzle,通常就需要真正的数据搬动:load、store、shuffle、<code class="docutils literal notranslate"><span class="pre">ldmatrix</span></code>、转置。</p>
 </section>
-<section id="tile-layout">
-<h2>Tile Layout<a class="headerlink" href="#tile-layout" title="Link to this heading">#</a></h2>
-<p>So far we have described layouts for whole tensors. GPU kernels, however, rarely operate on an
-entire matrix at once; they work on smaller tiles, which are loaded, transformed, and computed on by
-different parts of the hardware. The good news is that tiling asks for nothing new. It is still
-just a layout, only now written with a few more dimensions. Cut an 8×8 matrix into 2×4 tiles and we
-get a 4-D layout, with coordinates <code class="docutils literal notranslate"><span class="pre">(tile_row,</span> <span class="pre">row_in_tile,</span> <span class="pre">tile_col,</span> <span class="pre">col_in_tile)</span></code> and strides
-chosen so that each tile stays contiguous:</p>
+<section id="id3">
+<h2>分块布局<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>到目前为止,我们描述的都是整张张量的布局。然而 GPU 的内核很少一次性处理整张矩阵;它们处理的是更小的分块,这些分块被硬件的不同部分加载、变换、计算。好消息是,分块化并不需要任何新东西。它仍然只是一个布局,只不过现在写出来多了几个维度。把一个 8×8 矩阵切成 2×4 的分块,我们就得到一个 4 维布局,其坐标为 <code class="docutils literal notranslate"><span class="pre">(tile_row,</span> <span class="pre">row_in_tile,</span> <span class="pre">tile_col,</span> <span class="pre">col_in_tile)</span></code>,步长则被选成让每个分块保持连续:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(4, 2, 2, 4) : (16, 4, 8, 1)]
 </pre></div>
 </div>
-<p>A logical <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> first becomes <code class="docutils literal notranslate"><span class="pre">(i//2,</span> <span class="pre">i%2,</span> <span class="pre">j//4,</span> <span class="pre">j%4)</span></code> and then runs through the strides. What is
-worth noticing is that the notation expresses tiling without any special “tile” concept at all: it is
-the same shape–stride model as before, with the index merely split into outer and inner coordinates.</p>
-<p>The interactive visualization below shows how a logical matrix index is decomposed into tile
-coordinates and then mapped to a physical address.</p>
+<p>一个逻辑坐标 <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> 先变成 <code class="docutils literal notranslate"><span class="pre">(i//2,</span> <span class="pre">i%2,</span> <span class="pre">j//4,</span> <span class="pre">j%4)</span></code>,再经过这些步长计算。值得注意的是,这套记法在表达分块化时根本用不到任何特殊的”分块”概念:它就是和之前一样的形状-步长模型,只是索引被拆成了外层和内层坐标。</p>
+<p>下方的交互式可视化展示了逻辑矩阵索引是如何被分解成分块坐标,再映射到物理地址的。</p>
 <iframe src="../demo/tiled_layout.html" title="Tile layout: interactive address computation" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: click a cell to see its tiled index and address.</em></p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:点击某个单元格,查看它的分块化索引和地址。</em></p>
 </section>
-<section id="named-axes">
-<h2>Named Axes<a class="headerlink" href="#named-axes" title="Link to this heading">#</a></h2>
-<p>Up to this point every stride in <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> has named an offset into linear memory, and we have treated
-an address as a location there. On a GPU, though, data can live in more than one place: besides
-memory, a tile may be spread across warp lanes, across thread registers, or across TMEM lanes and
-columns. To describe all of these uniformly, we extend the notation with <strong>named axes</strong>. The idea is to let each stride coefficient carry an axis tag that
-says which space it moves through: <code class="docutils literal notranslate"><span class="pre">&#64;m</span></code> for ordinary memory, <code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> for warp lanes, <code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code> for
-registers, <code class="docutils literal notranslate"><span class="pre">&#64;warpid</span></code> for warps, and <code class="docutils literal notranslate"><span class="pre">&#64;TLane</span></code> / <code class="docutils literal notranslate"><span class="pre">&#64;TCol</span></code> for TMEM coordinates. With the tags in hand, a
-single layout can describe not only where data sits in memory but also how it is distributed across
-the hardware resources that operate on it.</p>
-<p>Once the memory tags are made explicit, a row-major 8×16 tile in memory is simply</p>
+<section id="id4">
+<h2>具名轴<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>到目前为止,<code class="docutils literal notranslate"><span class="pre">S[...]</span></code> 中的每一条步长都指向线性内存里的某个偏移,我们也把地址当作内存里的某个位置来看待。但在 GPU 上,数据可以存放在不止一个地方:除了内存,一个分块还可以分布在 warp(线程束)的 lane 之间、线程的寄存器之间,或者 TMEM(张量内存)的 lane 和列之间。为了统一描述所有这些情形,我们用<strong>具名轴</strong>来扩展这套记法。其想法是让每个步长系数带上一枚轴标签,说明它是在哪个空间里移动的:<code class="docutils literal notranslate"><span class="pre">&#64;m</span></code> 表示普通内存,<code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> 表示 warp 的 lane,<code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code> 表示寄存器,<code class="docutils literal notranslate"><span class="pre">&#64;warpid</span></code> 表示 warp,<code class="docutils literal notranslate"><span class="pre">&#64;TLane</span></code> / <code class="docutils literal notranslate"><span class="pre">&#64;TCol</span></code> 表示 TMEM 坐标。有了这些标签,一个布局就不仅能描述数据在内存中的位置,还能描述数据是如何分布在操作它的那些硬件资源之上的。</p>
+<p>一旦内存标签被明确写出来,内存中一个行主序的 8×16 分块就简单地写成</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(8, 16) : (16@m, 1@m)]
 </pre></div>
 </div>
-<p>The tags start to earn their keep when a layout describes data <em>spread across threads</em> rather than
-laid out in memory. Take <code class="docutils literal notranslate"><span class="pre">S[(8,</span> <span class="pre">4,</span> <span class="pre">2)</span> <span class="pre">:</span> <span class="pre">(4&#64;laneid,</span> <span class="pre">1&#64;laneid,</span> <span class="pre">1&#64;reg)]</span></code>: instead of pointing into
-linear memory, it maps rows and columns onto lane IDs and a per-lane register. Here <code class="docutils literal notranslate"><span class="pre">laneid</span></code> means
-the warp lane index within a warp, <code class="docutils literal notranslate"><span class="pre">thread_index</span> <span class="pre">%</span> <span class="pre">warp_size</span></code>. This is exactly the
-tensor-core register fragment you will meet in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Tensor Core Operand Layouts Across GPU Generations</span></a>.</p>
-<p>The interactive visualization below shows how a layout can distribute tensor elements across warp
-lanes and per-lane registers, rather than placing them in linear memory.</p>
+<p>当一个布局描述的是<em>分散在线程之间</em>而非铺在内存里的数据时,这些标签才真正派上用场。以 <code class="docutils literal notranslate"><span class="pre">S[(8,</span> <span class="pre">4,</span> <span class="pre">2)</span> <span class="pre">:</span> <span class="pre">(4&#64;laneid,</span> <span class="pre">1&#64;laneid,</span> <span class="pre">1&#64;reg)]</span></code> 为例:它不再指向线性内存,而是把行和列映射到 lane ID 和每个 lane 的一个寄存器上。这里的 <code class="docutils literal notranslate"><span class="pre">laneid</span></code> 指 warp 内的 lane 索引,即 <code class="docutils literal notranslate"><span class="pre">thread_index</span> <span class="pre">%</span> <span class="pre">warp_size</span></code>。这正是你将在 <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">跨 GPU 世代的 Tensor Core 操作数布局</span></a> 中遇到的 Tensor Core 寄存器片段。</p>
+<p>下方的交互式可视化展示了布局如何把张量元素分散到 warp 的 lane 和每个 lane 的寄存器上,而不是放到线性内存中。</p>
 <iframe src="../demo/thread_register.html" title="Thread + register layout via named axes" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: a layout over <code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code>; click a cell to see which lane/register holds it.</em></p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:建立在 <code class="docutils literal notranslate"><span class="pre">&#64;laneid</span></code> 和 <code class="docutils literal notranslate"><span class="pre">&#64;reg</span></code> 之上的布局;点击某个单元格,查看哪个 lane / 寄存器持有它。</em></p>
 </section>
-<section id="distributed-layout">
-<h2>Distributed Layout<a class="headerlink" href="#distributed-layout" title="Link to this heading">#</a></h2>
-<p>What makes named axes so useful is that they let us describe placement uniformly across many levels
-of the system, including placement <em>across whole devices</em>. We have just used them for lanes and
-registers inside a single GPU, but the very same idea reaches outward: axes such as <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> and
-<code class="docutils literal notranslate"><span class="pre">&#64;gpuid_y</span></code> can say where data lives in a GPU mesh, and with them the notation captures the sharding
-patterns that show up in distributed training and inference. One thing the axes do not yet capture
-is <em>replication</em>, data that is copied to more than one place, so we add the notation <code class="docutils literal notranslate"><span class="pre">R[n</span> <span class="pre">:</span> <span class="pre">stride]</span></code>,
-where <code class="docutils literal notranslate"><span class="pre">R</span></code> marks the replicated dimension. For example, <code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;gpuid_x]</span></code> describes replication along
-the <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> axis. Putting the two together, a single expression can both shard a tensor across a
-2×2 GPU mesh and replicate it along one axis:</p>
+<section id="id5">
+<h2>分布式布局<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>具名轴之所以如此有用,在于它让我们能统一地描述系统多个层级上的数据放置,包括<em>跨整台设备</em>的放置。我们刚刚把它用在单个 GPU 内部的 lane 和寄存器上,但同样的想法也能向外延伸:<code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code>、<code class="docutils literal notranslate"><span class="pre">&#64;gpuid_y</span></code> 这样的轴可以说明数据位于 GPU 阵列中的何处,有了它们,这套记法就能刻画分布式训练和推理中出现的分片模式。轴尚未刻画的一件事是<em>复制</em>,即被拷贝到不止一个地方的数据,为此我们加入记法 <code class="docutils literal notranslate"><span class="pre">R[n</span> <span class="pre">:</span> <span class="pre">stride]</span></code>,其中 <code class="docutils literal notranslate"><span class="pre">R</span></code> 标记被复制的维度。例如,<code class="docutils literal notranslate"><span class="pre">R[2</span> <span class="pre">:</span> <span class="pre">1&#64;gpuid_x]</span></code> 描述沿 <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> 轴的复制。把两者合在一起,一个表达式就能既把张量分片到一个 2×2 的 GPU 阵列上,又沿其中一根轴复制它:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(2, 4, 8) : (1@gpuid_y, 8@m, 1@m)] + R[2 : 1@gpuid_x]
 </pre></div>
 </div>
-<p>The demo below shows that combined partition-and-replication pattern on a small GPU mesh. Click any
-cell to see which device holds it, and watch how the <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> replication places an identical copy
-on the paired device; the buttons switch between the fully-sharded, shard + replica, and shard +
-offset layouts.</p>
+<p>下方的演示在一个小的 GPU 阵列上展示了这种”分片加复制”的组合模式。点击任意单元格,查看它由哪个设备持有,并观察 <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> 复制是如何在配对设备上放置一份完全相同的副本的;按钮可以在”全分片”、”分片 + 副本”和”分片 + 偏移”三种布局之间切换。</p>
 <iframe src="../demo/tile_distributed.html" title="Distributed layout across a GPU mesh" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: a layout distributed over a 2×2 GPU mesh; click a cell to see which device(s) hold it.</em></p>
-<section id="intra-kernel-replication-pattern-scale-factors-in-tmem">
-<h3>Intra-Kernel Replication Pattern: Scale Factors in TMEM<a class="headerlink" href="#intra-kernel-replication-pattern-scale-factors-in-tmem" title="Link to this heading">#</a></h3>
-<p>The replication dimension <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> we just introduced for the GPU mesh is not only about multiple
-devices. The same construct turns out to describe something that happens entirely inside a single
-kernel as well: data that the hardware <em>broadcasts across lanes</em>. Blackwell’s block-scaled MMA
-(<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Tensor Core Operand Layouts Across GPU Generations</span></a>) is a good example. Its scale factors live in TMEM, where a 128-row
-scale vector is stored in only <strong>32 TMEM lanes</strong>, where logical row <code class="docutils literal notranslate"><span class="pre">r</span></code> goes to TMEM lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code>, with
-<code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> running along the columns. Those 32 stored TMEM lanes are then <strong>replicated along the TMEM
-<code class="docutils literal notranslate"><span class="pre">TLane</span></code> axis</strong>, from 32 up to 128 TMEM lanes, so that each of the four warps in the reading warpgroup
-finds a copy in its own 32-lane TMEM window. This is a <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> broadcast, and we write it with a
-replication dimension. The reads themselves are carried out by those warps’ threads:</p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:分布在 2×2 GPU 阵列上的布局;点击某个单元格,查看哪些设备持有它。</em></p>
+<section id="tmem">
+<h3>内核内的复制模式:TMEM 中的缩放因子<a class="headerlink" href="#tmem" title="Link to this heading">#</a></h3>
+<p>我们刚刚为 GPU 阵列引入的复制维度 <code class="docutils literal notranslate"><span class="pre">R[...]</span></code> 并不只是关于多台设备。同样的构造恰好也能描述完全发生在单个内核内部的一件事:<em>跨 lane 广播</em>的数据。Blackwell(架构代号)的块缩放 MMA(矩阵乘加)(<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">跨 GPU 世代的 Tensor Core 操作数布局</span></a>)就是一个好例子。它的缩放因子存放在 TMEM 里,一个 128 行的缩放向量只存在 <strong>32 个 TMEM lane</strong> 中:逻辑行 <code class="docutils literal notranslate"><span class="pre">r</span></code> 落到 TMEM lane <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">%</span> <span class="pre">32</span></code> 上,而 <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">//</span> <span class="pre">32</span></code> 则沿列方向延伸。这 32 个被存储的 TMEM lane 随后<strong>沿 TMEM 的 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 轴被复制</strong>,从 32 扩展到 128 个 TMEM lane,这样发起读取的 warpgroup(线程束组)中的四个 warp 就都能在各自那 32-lane 的 TMEM 窗口里找到一份副本。这是一次 <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> 广播,我们用复制维度来书写它。这些读取本身则由这些 warp 的线程来完成:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(32, …) : (1@TLane, …)] + R[4 : 32@TLane]
 </pre></div>
 </div>
-<p>That gives four replicas at a stride of 32 TMEM lanes: TMEM lanes <code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">l+32</span></code>, <code class="docutils literal notranslate"><span class="pre">l+64</span></code>, and <code class="docutils literal notranslate"><span class="pre">l+96</span></code> all
-hold the same scale. As before, the replication dimension carries no new data; it simply says “the
-same value, sitting in four TMEM-lane positions,” in just the way <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> broadcast a row across
-the GPU mesh a moment ago.</p>
-<p>The interactive demo below shows both steps together: compact packing into 32 TMEM lanes, then the
-<code class="docutils literal notranslate"><span class="pre">warpx4</span></code> broadcast out to the 128 reading lanes.</p>
+<p>于是得到四份副本,间隔为 32 个 TMEM lane:TMEM lane <code class="docutils literal notranslate"><span class="pre">l</span></code>、<code class="docutils literal notranslate"><span class="pre">l+32</span></code>、<code class="docutils literal notranslate"><span class="pre">l+64</span></code>、<code class="docutils literal notranslate"><span class="pre">l+96</span></code> 都持有同一个缩放值。如前所述,复制维度并不携带新数据;它只是说明”同一个值,出现在四个 TMEM-lane 位置上”,其方式与刚才 <code class="docutils literal notranslate"><span class="pre">&#64;gpuid_x</span></code> 在 GPU 阵列上广播一行完全相同。</p>
+<p>下方的交互式演示把两步合在一起展示:先紧凑地打包进 32 个 TMEM lane,再 <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> 广播到 128 个读取 lane。</p>
 <iframe src="../demo/sf_tmem.html" title="Scale factors in TMEM: packing and warpx4 replication" loading="lazy"
-        style="width:100%; min-width:1040px; height:560px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: click a scale factor <code class="docutils literal notranslate"><span class="pre">SFA[m,</span> <span class="pre">sf]</span></code>; it packs into TMEM at lane <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">mod</span> <span class="pre">32</span></code>, column <code class="docutils literal notranslate"><span class="pre">(m</span> <span class="pre">//</span> <span class="pre">32)·4</span> <span class="pre">+</span> <span class="pre">sf</span></code>, and is then broadcast <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> across the <code class="docutils literal notranslate"><span class="pre">TLane</span></code> axis to the four lane copies (<code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">l+32</span></code>, <code class="docutils literal notranslate"><span class="pre">l+64</span></code>, <code class="docutils literal notranslate"><span class="pre">l+96</span></code>), one per warp’s 32-lane window.</em></p>
-<p>The byte packing inside each column (the <code class="docutils literal notranslate"><span class="pre">scale_vec</span></code> 1X/2X/4X modes) and the <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> split are
-covered in <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Tensor Core Operand Layouts Across GPU Generations</span></a>.</p>
-<p>Readers who already know CuTe can think of the notation in this chapter as a row-major variant of it,
-extended with explicit hardware-named axes and a dedicated replication structure.</p>
+        style="width:100%; min-width:1040px; height:560px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:点击某个缩放因子 <code class="docutils literal notranslate"><span class="pre">SFA[m,</span> <span class="pre">sf]</span></code>;它会打包进 TMEM 中 lane 为 <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">mod</span> <span class="pre">32</span></code>、列号为 <code class="docutils literal notranslate"><span class="pre">(m</span> <span class="pre">//</span> <span class="pre">32)·4</span> <span class="pre">+</span> <span class="pre">sf</span></code> 的位置,然后沿 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 轴 <code class="docutils literal notranslate"><span class="pre">warpx4</span></code> 广播到四个 lane 副本(<code class="docutils literal notranslate"><span class="pre">l</span></code>、<code class="docutils literal notranslate"><span class="pre">l+32</span></code>、<code class="docutils literal notranslate"><span class="pre">l+64</span></code>、<code class="docutils literal notranslate"><span class="pre">l+96</span></code>),每个 warp 的 32-lane 窗口各得一份。</em></p>
+<p>每一列内部的字节打包(<code class="docutils literal notranslate"><span class="pre">scale_vec</span></code> 的 1X/2X/4X 模式)以及 <code class="docutils literal notranslate"><span class="pre">cta_group::2</span></code> 的拆分,在 <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">跨 GPU 世代的 Tensor Core 操作数布局</span></a> 中介绍。</p>
+<p>已经熟悉 CuTe 的读者,可以把本章这套记法看作 CuTe 的一个行主序变体,只是额外加上了显式的硬件具名轴和一套专门的复制结构。</p>
 </section>
 </section>
-<section id="swizzle-layout">
-<h2>Swizzle Layout<a class="headerlink" href="#swizzle-layout" title="Link to this heading">#</a></h2>
-<p>The final layout in this chapter exists to solve one specific hardware problem. Shared memory on a
-GPU is organized into memory banks, and accesses run fastest when different lanes land on different
-banks. When several lanes instead reach different addresses within the <em>same</em> bank, the hardware has
-no choice but to serialize them, and we pay the cost of a <strong>bank conflict</strong>.</p>
-<p>In tensor programs this is hard to avoid, because memory is not accessed in a purely linear order.
-Working with matrices, we routinely need to read both row slices and column slices of the same tile,
-and that creates a genuine tension: a layout that is efficient for row-wise access tends to produce
-bank conflicts for column-wise access, while one that favors columns hurts rows. <strong>Swizzling</strong> is the
-technique designed to break this tension.</p>
-<p>The idea behind swizzle is to permute the address mapping, typically by XOR-ing the column index
-with the row, so that <em>both</em> row and column accesses end up spread across banks. The conflict-free
-guarantee it provides is specific: it holds for the matching element width, swizzle mode, and access
-pattern (the one an engine’s descriptor expects), and not for arbitrary element widths or alignments.</p>
-<p>The first interactive demo below makes this concrete. Click a column index and watch which bank each
-element lands in: in the plain row-major tile on the left, a column funnels all eight elements into a
-single bank, so the read serializes into eight cycles; in the XOR-swizzled layout on the right, that
-same column is spread across eight distinct banks and reads in a single cycle.</p>
+<section id="swizzle">
+<h2>Swizzle 布局<a class="headerlink" href="#swizzle" title="Link to this heading">#</a></h2>
+<p>本章的最后一种布局是为了解决一个具体的硬件问题而存在的。GPU 的共享内存被组织成多个内存 bank,当不同的 lane 落到不同的 bank 上时,访存速度最快。当若干 lane 反而落到<em>同一个</em> bank 内的不同地址时,硬件别无选择,只能把它们串行化,于是我们就要为一次 <strong>bank 冲突</strong>付出代价。</p>
+<p>在张量程序中这一点很难避免,因为内存并非按纯线性的顺序访问。在处理矩阵时,我们常常需要同时读取同一分块的行切片和列切片,这造成了一种实实在在的张力:一种对行向访问高效的布局往往会在列向访问时引发 bank 冲突,而偏向列的布局又会损害行向访问。<strong>Swizzling</strong> 正是用来打破这种张力的技术。</p>
+<p>swizzle 背后的想法是对地址映射做置换,通常是把列索引与行索引做 XOR(异或),使得行访问和列访问<em>同时</em>都被分散到各个 bank 上。它所提供的无冲突保证是具体的:它只对匹配的元素位宽、swizzle 模式和访问模式(也就是某个引擎的描述符所期望的那种)成立,而对任意的元素位宽或对齐方式并不成立。</p>
+<p>下方的第一个交互式演示把它讲得很具体。点击某个列索引,观察每个元素落到哪个 bank:左侧纯行主序的分块里,一列会让全部八个元素落入同一个 bank,于是这次读取被串行化成八个周期;而右侧经过 XOR swizzle 的布局里,同一列被分散到八个不同的 bank,一个周期就能读完。</p>
 <iframe src="../demo/swizzle_8x8.html" title="8x8 XOR swizzle" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: an 8×8 tile, bank-conflicted by column in plain row-major, conflict-free after the XOR swizzle.</em></p>
-<p>The little 8×8 example captures the core idea, but real GPU memories have many more banks than that
-toy picture suggests. To make swizzling work at full scale, we do not treat the whole tile as one
-monolithic object. Instead, we cut memory into small segments and apply the swizzle pattern within
-each segment. The most common case in practice is <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, organized around 128-byte segments
-so the same row/column-remapping trick fits naturally into a 32-bank memory system.</p>
-<p>The interactive demo below shows that one concrete hardware swizzle, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>, so the repeating
-segment-by-segment pattern is visible before we generalize across formats.</p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:一个 8×8 分块,纯行主序下列方向存在 bank 冲突,经 XOR swizzle 后变为无冲突。</em></p>
+<p>这个小小的 8×8 例子抓住了核心想法,但真实 GPU 的内存 bank 数远比这个示意要多。要让 swizzle 在全规模下生效,我们并不把整个分块当作一个整体来对待,而是把内存切成一个个小段,并在每一段内部套用 swizzle 模式。实践中最常见的情况是 <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>,它围绕 128 字节的段来组织,这样同一套行/列重映射技巧就能很自然地嵌入到 32-bank 的内存系统中。</p>
+<p>下方的交互式演示展示了那个具体的硬件 swizzle——<code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code>,在我们推广到各种格式之前,先把这种逐段重复的模式看清楚。</p>
 <iframe src="../demo/swizzle_128B.html" title="SWIZZLE_128B layout" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: the <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> pattern within 128-byte segments; step through the read cycles to see <code class="docutils literal notranslate"><span class="pre">physical_sector</span> <span class="pre">=</span> <span class="pre">logical_sector</span> <span class="pre">XOR</span> <span class="pre">row</span></code> spread each column across distinct banks.</em></p>
-<p>The same idea extends beyond this 128-byte case. To simplify the visualization, we will now use a
-single color block to refer to one segment, instead of drawing individual banks. In general,
-hardware defines a small repeating <strong>atom</strong> on which the permutation is applied, and different
-swizzle modes choose different atom sizes. <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> uses an 8 × 128 B atom, <code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> an
-8 × 64 B atom, and <code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code> an 8 × 32 B atom; the whole tile is then tiled by whichever atom
-is in use.</p>
-<p>The final interactive demo lets you switch between these formats (including a 16 B interleaved
-mode), pick a data type, and hover any cell to inspect the element arrangement inside one atom
-directly, which is the right level of detail for reasoning about which swizzle a load/store
-instruction expects.</p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:128 字节段内的 <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> 模式;逐步走过各个读取周期,可以看到 <code class="docutils literal notranslate"><span class="pre">physical_sector</span> <span class="pre">=</span> <span class="pre">logical_sector</span> <span class="pre">XOR</span> <span class="pre">row</span></code> 把每一列都分散到不同的 bank 上。</em></p>
+<p>同样的想法可以推广到这种 128 字节情形之外。为了简化可视化,接下来我们用一个色块来表示一个段,而不再逐个画出 bank。一般而言,硬件会定义一个小的、可重复的<strong>原子单元</strong>,置换就在其上施加,不同的 swizzle 模式选择不同的原子大小。<code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> 使用 8 × 128 B 的原子,<code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> 使用 8 × 64 B 的原子,<code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code> 使用 8 × 32 B 的原子;然后整个分块就由当时所用原子来分块化铺满。</p>
+<p>最后一个交互式演示让你在这些格式(包括一种 16 B 交错模式)之间切换、选择数据类型,并把鼠标悬停在任意单元格上来直接查看一个原子内部的元素排布——这正是讨论某条 load/store 指令期望哪种 swizzle 时所需要的细节粒度。</p>
 <iframe src="../demo/swizzle_atom_general.html" title="Swizzle atom layout per format (128B/64B/32B)" loading="lazy"
-        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>Interactive: pick a swizzle format (and data type) to see its atom shape (8 × N B); hover a cell to see how its elements are permuted.</em></p>
-<p>Which mode should you pick? The rule of thumb is to prefer the <em>largest</em> atom the tile can fill. An
-N-byte atom needs the tile’s contiguous dimension to be at least N bytes, and a multiple of it, so
-<code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> applies only when a row spans at least 128 bytes, or 64 <code class="docutils literal notranslate"><span class="pre">float16</span></code> elements. When it
-fits, it is the default choice, because its 8 × 128 B atom covers a full 128-byte bank line and so
-scatters a column across all 32 banks at once, giving conflict-free access to 8 rows and 8 columns at
-a time in fp16. When the problem’s shape forces the contiguous dimension to be small, though, the
-tile can no longer fill a 128 B atom, and you step down to <code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> or <code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code>, the
-largest atom the row can still cover.</p>
-<p>You never work out these permuted addresses by hand, and it is worth being precise about how swizzle
-relates to the <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> notation: it is <em>not</em> part of that affine map. It is a separate, non-affine
-layer composed on top of it. The <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> layout places an element at a linear memory (<code class="docutils literal notranslate"><span class="pre">&#64;m</span></code>) address,
-and the swizzle then permutes that address, written, in the TIRx layout API, as
-<code class="docutils literal notranslate"><span class="pre">ComposeLayout(swizzle,</span> <span class="pre">tile)</span></code> (<a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx Layout API</span></a>). Your job is only to pick one consistent
-mode across every op that touches the tile and let the composed layout do the rest.</p>
-<p>That same composed layout is also what the hardware fills, and this is where swizzling and tiling
-come together. A TMA descriptor is multi-dimensional, so a single three-dimensional box can describe
-both the atom tiling of the tile and the swizzle within each atom; one TMA load then lays the tile
-out atom by atom and swizzles it as it writes shared memory (<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">Async Data Movement: TMA</span></a>), with no separate
-swizzling pass. <em>Which</em> swizzle each engine demands is generation-specific, and that is the subject
-of the next chapter.</p>
+        style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe><p><em>交互:选择一种 swizzle 格式(和数据类型),查看它的原子形状(8 × N B);悬停某个单元格,查看其内部元素是如何被置换的。</em></p>
+<p>该选哪种模式呢?经验法则是优先选用分块所能填满的<em>最大</em>原子。一个 N 字节的原子要求分块的连续维度至少有 N 字节、并且是它的整数倍,所以 <code class="docutils literal notranslate"><span class="pre">SWIZZLE_128B</span></code> 仅在一行至少跨 128 字节、即 64 个 <code class="docutils literal notranslate"><span class="pre">float16</span></code> 元素时才适用。一旦能用,它就是默认选择,因为它的 8 × 128 B 原子正好覆盖完整的一条 128 字节 bank 线,从而能一次把一列分散到全部 32 个 bank 上,在 fp16 下同时对 8 行和 8 列提供无冲突访问。而当问题的形状迫使连续维度变小时,分块就填不满 128 B 原子,这时你就退到 <code class="docutils literal notranslate"><span class="pre">SWIZZLE_64B</span></code> 或 <code class="docutils literal notranslate"><span class="pre">SWIZZLE_32B</span></code>,即这一行仍能覆盖的最大原子。</p>
+<p>你绝不需要手工算出这些置换后的地址,这里值得把 swizzle 与 <code class="docutils literal notranslate"><span class="pre">S[...]</span></code> 记法的关系说精确:它<em>不是</em>那条仿射映射的一部分。它是叠加在其上的一层独立的、非仿射的层。<code class="docutils literal notranslate"><span class="pre">S[...]</span></code> 布局把一个元素放到一个线性内存(<code class="docutils literal notranslate"><span class="pre">&#64;m</span></code>)地址,swizzle 则置换这个地址,在 TIRx(Python DSL)的布局 API 中写作 <code class="docutils literal notranslate"><span class="pre">ComposeLayout(swizzle,</span> <span class="pre">tile)</span></code>(<a class="reference internal" href="../chapter_tirx_layout_api/index.html#chap-tirx-layout-api"><span class="std std-ref">TIRx 布局 API</span></a>)。你要做的只是为涉及该分块的每一个 op 都选定一个一致的模式,剩下的交给这个复合布局即可。</p>
+<p>这个复合布局也正是硬件要填充的东西,swizzling 和分块化也正是在这里走到一起。一个 TMA(张量内存加速器)描述符是多维的,所以一个单一的三维方框就能同时描述分块的原子分块化,以及每个原子内部的 swizzle;一次 TMA 加载就会逐个原子地把分块铺开,并在写共享内存的同时完成 swizzle(<a class="reference internal" href="../chapter_tma/index.html#chap-tma"><span class="std std-ref">异步数据搬运:TMA</span></a>),不需要单独的 swizzle 步骤。至于每种引擎<em>需要哪种</em> swizzle,则因架构代际而异,这正是下一章的主题。</p>
 </section>
 </section>
 
@@ -597,7 +480,7 @@ of the next chapter.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">What Makes a Kernel Fast</p>
+        <p class="prev-next-title">是什么让内核变快</p>
       </div>
     </a>
     <a class="right-next"
@@ -605,7 +488,7 @@ of the next chapter.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Tensor Core Operand Layouts Across GPU Generations</p>
+        <p class="prev-next-title">跨 GPU 世代的 Tensor Core 操作数布局</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -627,14 +510,14 @@ of the next chapter.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-shapestride-model">The Shape–Stride Model</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tile-layout">Tile Layout</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#named-axes">Named Axes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-layout">Distributed Layout</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#intra-kernel-replication-pattern-scale-factors-in-tmem">Intra-Kernel Replication Pattern: Scale Factors in TMEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">形状-步长模型</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">分块布局</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">具名轴</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">分布式布局</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tmem">内核内的复制模式:TMEM 中的缩放因子</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle-layout">Swizzle Layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swizzle">Swizzle 布局</a></li>
 </ul>
   </nav></div>
 

@@ -1,76 +1,76 @@
 (chap_tmem)=
-# Special Memory: TMEM
+# 特殊内存:TMEM
 
 :::{admonition} Overview
 :class: overview
 
-- TMEM is a Blackwell-only memory space used by `tcgen05`. It is a two-dimensional scratchpad on each SM, with 128 Lane rows and up to 512 Col columns.
-- `tcgen05.mma` writes its accumulator into TMEM. Block-scaled MMA also uses TMEM for scale factors.
-- TMEM is addressed by Lane and Col. In the TIRx layout notation, these two hardware axes are written as `TLane` and `TCol`.
-- TMEM is not assigned like registers. A kernel must allocate it and free it explicitly, in units of 32 columns.
-- Ordinary shared-memory loads and stores cannot access TMEM. Data moves between TMEM, registers, and shared memory through dedicated asynchronous `tcgen05` instructions.
+- TMEM(张量内存)是一种仅 Blackwell 才有的内存空间,由 `tcgen05` 使用。它是每个 SM(流式多处理器)上的二维便笺存储,有 128 个 Lane 行、最多 512 个 Col 列。
+- `tcgen05.mma` 将其累加器写入 TMEM。块缩放 MMA 还使用 TMEM 存放缩放因子。
+- TMEM 通过 Lane 和 Col 来寻址。在 TIRx 的布局记法中,这两条硬件坐标轴写作 `TLane` 和 `TCol`。
+- TMEM 不像寄存器那样被分配。内核必须自行分配并显式释放,分配单位为 32 列。
+- 普通的共享内存加载与存储无法访问 TMEM。数据在 TMEM、寄存器与共享内存之间通过专用的异步 `tcgen05` 指令流动。
 :::
 
-On Hopper and earlier GPUs, the Tensor Core ({ref}`chap_tensor_cores`) accumulator lives in registers. That model is easy to reason about. The MMA instruction produces a register fragment, the kernel keeps that fragment live through the compute phase, and the epilogue later reads it, converts it, and stores the result.
+在 Hopper 及更早的 GPU 上,Tensor Core(张量核,见 {ref}`chap_tensor_cores`)的累加器位于寄存器中。这种模型很容易推理:MMA(矩阵乘加)指令产生一个寄存器片段,内核在计算阶段保持该片段有效,收尾阶段随后读取它、做类型转换并存储结果。
 
-The problem is register pressure. Registers are a fixed per-thread resource. As MMA tiles get larger, the accumulator fragment gets larger too. At some point the accumulator starts to crowd out the other values the thread needs to hold. Larger tiles are good for Tensor Core throughput, but keeping the whole accumulator in registers makes those larger tiles harder to use.
+问题在于寄存器压力。寄存器是按线程固定的资源。随着 MMA 分块变大,累加器片段也随之变大。到一定程度后,累加器会挤占该线程需要持有的其它值。更大的分块有利于 Tensor Core 的吞吐量,但把整个累加器都留在寄存器中,会让这些更大的分块更难使用。
 
-Blackwell changes this part of the data path. The accumulator for `tcgen05` does not have to stay in registers for the whole compute phase. Instead, `tcgen05.mma` writes the accumulator into Tensor Memory, or TMEM. TMEM is a memory space that earlier NVIDIA GPUs do not have. It is a two-dimensional scratchpad on the SM, shaped as 128 Lane rows by up to 512 Col columns, and it is scoped to the CTA using it.
+Blackwell 改变了数据通路上的这一环节。`tcgen05` 的累加器不必在整个计算阶段都留在寄存器中。相反,`tcgen05.mma` 将累加器写入张量内存,即 TMEM。TMEM 是一种早期 NVIDIA GPU 不具备的内存空间。它是 SM 上的一个二维便笺存储,形状为 128 个 Lane 行乘最多 512 个 Col 列,作用域限定在使用它的 CTA(协作线程阵列)内。
 
-That extra memory space lets Blackwell support larger Tensor Core tiles without forcing the entire accumulator into per-thread registers. But TMEM is not automatic in the way registers are. The compiler does not simply hand it out as ordinary register storage. The kernel has to allocate TMEM, address it with the right layout, move data in and out with the right instructions, and free it when the CTA is done.
+这一额外的内存空间让 Blackwell 能够支持更大的 Tensor Core 分块,而不必把整个累加器放进每线程的寄存器中。但 TMEM 并不像寄存器那样是自动的。编译器不会简单地把它当作普通寄存器存储来发放。内核必须分配 TMEM、用正确的布局对其寻址、用正确的指令搬入搬出数据,并在 CTA 完成时释放它。
 
-## A 2D Address Space
+## 二维地址空间
 
-TMEM is not a flat byte array. It is a two-dimensional address space. The hardware names its two coordinates Lane and Col. There are 128 Lane rows and up to 512 Col columns. Each Col is a 32-bit column.
+TMEM 不是一维的字节数组。它是一个二维地址空间。硬件将这两个坐标命名为 Lane 和 Col。共有 128 个 Lane 行、最多 512 个 Col 列。每个 Col 是一个 32 位的列。
 
-That shape matters because `tcgen05.mma` writes its accumulator into TMEM using this two-dimensional structure. A TMEM location is described by a Lane coordinate and a Col coordinate, not by a single shared-memory-style byte offset.
+这个形状很重要,因为 `tcgen05.mma` 正是按照这种二维结构把累加器写入 TMEM 的。一个 TMEM 位置由一个 Lane 坐标和一个 Col 坐标共同描述,而不是像共享内存那样用一个字节偏移量描述。
 
-When a kernel declares a TMEM buffer in TIRx, it gives the buffer a layout over these two hardware coordinates. In the layout notation ({ref}`chap_data_layout`), we write the TMEM Lane axis as `TLane` and the TMEM Col axis as `TCol`. The names are not meant to replace the official hardware terminology. They are layout axis names that make the TMEM dimensions explicit inside the DSL.
+当内核在 TIRx 中声明一个 TMEM 缓冲区时,它会为该缓冲区在这两条硬件坐标上指定一个布局。在布局记法(见 {ref}`chap_data_layout`)中,我们把 TMEM 的 Lane 轴写作 `TLane`,把 TMEM 的 Col 轴写作 `TCol`。这些命名并不旨在取代官方硬件术语。它们只是布局轴的名称,用以在 DSL(领域特定语言)内部把 TMEM 的各维度显式化。
 
-For example, an accumulator tile can be written as:
+例如,一个累加器分块可以写作:
 
 ```text
 S[(128, N) : (1@TLane, 1@TCol)]
 ```
 
-This says that the tile has 128 rows along the hardware Lane dimension and `N` columns along the hardware Col dimension. In the layout notation, those two dimensions appear as `TLane` and `TCol`. The layout is direct: adjacent rows move along `TLane`, and adjacent columns move along `TCol`. The figure below shows that grid, with hardware Lane running down the 128 rows and hardware Col across the columns.
+这表示该分块沿硬件 Lane 维度有 128 行,沿硬件 Col 维度有 `N` 列。在布局记法中,这两个维度表现为 `TLane` 和 `TCol`。该布局是直接的:相邻行沿 `TLane` 推进,相邻列沿 `TCol` 推进。下图展示了这一网格,硬件 Lane 沿 128 行向下排列,硬件 Col 沿各列横向排列。
 
-![TMEM as a 2D grid: TLane rows × TCol columns](../img/tmem_grid.png)
+![TMEM 作为一个二维网格:TLane 行 × TCol 列](../img/zh/tmem_grid.png)
 
-The main point is that TMEM is part of the tile layout story. It is not just a hidden backing store for the Tensor Core. The kernel has to name the memory, allocate columns from it, and use a layout that matches how `tcgen05` instructions read and write that memory.
+要点在于:TMEM 是分块布局叙事的一部分。它不仅仅是 Tensor Core 的一个隐藏后备存储。内核必须为这块内存命名、从中分配列,并使用一种与 `tcgen05` 指令读写该内存方式相匹配的布局。
 
-## Allocation
+## 分配
 
-Before a kernel can use TMEM, it has to reserve space in it. This is different from registers. Registers are assigned by the compiler. TMEM is allocated explicitly by the kernel.
+内核在使用 TMEM 之前,必须先在其中预留空间。这与寄存器不同。寄存器由编译器分配,而 TMEM 由内核显式分配。
 
-Allocation is done per CTA. One warp in the CTA requests a range of TMEM columns. The request is made in units of 32 columns, and the requested column count is rounded up according to the hardware allocation rules. After allocation, the CTA receives a base TMEM address. Later `tcgen05` instructions use that base address to access the reserved region.
+分配以 CTA 为单位进行。CTA 中的某一个 warp 申请一段 TMEM 列。申请以 32 列为单位,且请求的列数会按硬件分配规则向上取整。分配之后,该 CTA 会获得一个 TMEM 基地址。随后的 `tcgen05` 指令用该基地址访问已预留的区域。
 
-It is useful to think of TMEM as a budgeted CTA resource, much like shared memory. The CTA owns the TMEM columns it has allocated. The kernel decides how many columns it needs for accumulators, scale factors, or temporary staging. When the CTA is done, it must free the allocation.
+把 TMEM 看作一种按预算分配的 CTA 资源是很有益的,这与共享内存很相似。CTA 拥有它所分配到的 TMEM 列。内核自行决定它需要多少列用于累加器、缩放因子或临时中转。当该 CTA 完成时,必须释放所分配的区域。
 
-This makes TMEM part of kernel resource planning. A larger accumulator tile may improve Tensor Core throughput, but it consumes more TMEM columns. Block-scaled MMA may need additional TMEM space for scale factors. The kernel has to fit those uses within the available TMEM budget, just as it has to fit shared-memory buffers within the SMEM budget.
+这使得 TMEM 成为内核资源规划的一部分。更大的累加器分块或许能提升 Tensor Core 吞吐量,但会消耗更多 TMEM 列。块缩放 MMA 可能还需要额外的 TMEM 空间存放缩放因子。内核必须把这些用途安置在可用的 TMEM 预算之内,正如它必须把共享内存缓冲区安置在 SMEM 预算之内一样。
 
-## Reading and Writing TMEM
+## 读写 TMEM
 
-Ordinary `ld.shared` and `st.shared` instructions cannot access TMEM. TMEM is a separate address space, so data moves through dedicated `tcgen05` instructions.
+普通的 `ld.shared` 和 `st.shared` 指令无法访问 TMEM。TMEM 是一个独立的地址空间,因此数据通过专用的 `tcgen05` 指令流动。
 
-There are three main paths.
+共有三条主要通路。
 
-The first path is `tcgen05.ld`, which loads data from TMEM into registers. This is the path the epilogue uses after the MMA phase. The accumulator has been produced in TMEM, but the epilogue usually wants a register fragment so it can cast, apply elementwise operations, and store the final result.
+第一条通路是 `tcgen05.ld`,它把数据从 TMEM 加载到寄存器。这是收尾阶段在 MMA 阶段之后使用的通路。累加器已经在 TMEM 中产出,但收尾阶段通常需要一个寄存器片段,以便做类型转换、施加逐元素运算并存储最终结果。
 
-At the DSL level, a TMEM load is distributed across a warpgroup. It lowers to four warp-level `tcgen05.ld` operations, one per warp. Each warp handles 32 of the 128 TMEM Lane rows, so the four warps together cover the full Lane dimension. In the layout notation, that full dimension is the `TLane` axis.
+在 DSL 层面,一次 TMEM 加载会分布到一个 warpgroup 上,并降级为四个 warp 级别的 `tcgen05.ld` 操作,每个 warp 一个。每个 warp 处理 128 个 TMEM Lane 行中的 32 行,因此四个 warp 合起来覆盖完整的 Lane 维度。在布局记法中,这一完整维度就是 `TLane` 轴。
 
-The instruction itself comes from a family of load shapes, such as `.16x64b`, `.16x128b`, `.16x256b`, `.32x32b`, and `.16x32bx2`, with repeat factors from `.x1` up to `.x128`. The chosen shape determines how many TMEM columns are read and how many registers each thread receives.
+该指令本身来自一组加载形状族,例如 `.16x64b`、`.16x128b`、`.16x256b`、`.32x32b` 和 `.16x32bx2`,重复因子从 `.x1` 到 `.x128`。所选形状决定了读取多少 TMEM 列,以及每个线程收到多少寄存器。
 
-The important result is the register fragment layout. For the common epilogue path, lane `l` receives values from TMEM row `l / 4` and two columns. This produces the same kind of per-lane accumulator fragment that earlier generations exposed directly from MMA ({ref}`chap_layout_generations`). That continuity matters. It means the Blackwell epilogue can reuse the same register-level cast and store structure that was already used for Ampere `mma` or Hopper `wgmma`, even though the accumulator lived in TMEM during the compute phase.
+重要的结果是寄存器片段布局。对于常见的收尾通路,lane `l` 接收来自 TMEM 第 `l / 4` 行以及两列的值。这会产生与早期几代从 MMA 直接暴露出来的那种每 lane 累加器片段相同的结构(见 {ref}`chap_layout_generations`)。这种延续性很重要。它意味着 Blackwell 的收尾阶段可以复用此前已用于 Ampere `mma` 或 Hopper `wgmma` 的同一种寄存器级类型转换与存储结构,即便累加器在计算阶段是存放在 TMEM 中的。
 
-![tcgen05.ld / st move the TMEM accumulator to and from registers in the m8n8 fragment (lane l → row l/4, two columns)](../img/tcgen05_ldst.svg)
+![tcgen05.ld / st 在 m8n8 片段中将 TMEM 累加器在寄存器之间搬入搬出(lane l → 第 l/4 行,两列)](../img/zh/tcgen05_ldst.svg)
 
-The second path is `tcgen05.st`, which stores data from registers back into TMEM. This is the reverse direction of `tcgen05.ld`. It is used when a thread already holds a register fragment and needs to place it into TMEM. For example, some operands or intermediate values may be staged through registers before being written into TMEM for a later `tcgen05` operation.
+第二条通路是 `tcgen05.st`,它把数据从寄存器存回 TMEM。这是 `tcgen05.ld` 的反方向。它用于某个线程已经持有一个寄存器片段、并需要将其放入 TMEM 的情形。例如,某些操作数或中间值可能先经过寄存器中转,再写入 TMEM 以供后续的 `tcgen05` 操作使用。
 
-The third path is `tcgen05.cp`, which copies data from shared memory into TMEM. This is a bulk copy path, commonly used for scale factors in block-scaled MMA. In that case, TMA or ordinary thread code first prepares the scale data in shared memory, and `tcgen05.cp` moves it into the TMEM layout expected by the Tensor Core.
+第三条通路是 `tcgen05.cp`,它把数据从共享内存拷贝进 TMEM。这是一条批量拷贝通路,常用于块缩放 MMA 中的缩放因子。在此情形下,TMA(张量内存加速器)或普通线程代码先把缩放数据准备到共享内存中,然后 `tcgen05.cp` 将其搬入 Tensor Core 所期望的 TMEM 布局。
 
-All three paths are asynchronous. A `tcgen05.ld`, `tcgen05.st`, or `tcgen05.cp` instruction can return before the data movement has completed. A kernel must therefore use the right completion mechanism before consuming the result or reusing the storage ({ref}`chap_async_barriers`).
+这三条通路都是异步的。一条 `tcgen05.ld`、`tcgen05.st` 或 `tcgen05.cp` 指令可以在数据搬运尚未完成时就返回。因此,内核在消费结果或复用存储之前,必须使用正确的完成机制(见 {ref}`chap_async_barriers`)。
 
-The wait path depends on the instruction. A `tcgen05.ld` completes through `tcgen05.wait::ld`. A `tcgen05.st` completes through `tcgen05.wait::st`. A `tcgen05.cp`, like `tcgen05.mma`, completes through a commit group and an `mbarrier`. If the data is handed from one set of threads to another, the kernel may also need fences so the receiving threads see the completed writes in the intended order.
+等待通路依指令而定。`tcgen05.ld` 通过 `tcgen05.wait::ld` 完成。`tcgen05.st` 通过 `tcgen05.wait::st` 完成。`tcgen05.cp` 与 `tcgen05.mma` 一样,通过一个 commit group 和一个 mbarrier(内存屏障)完成。如果数据从一组线程传递给另一组线程,内核可能还需要加入栅栏(fence),以便接收方线程按预期顺序看到已完成的写入。
 
-TMEM sits in the middle of the Blackwell Tensor Core data path. TMA stages operands into shared memory. `tcgen05.mma` reads its operands and accumulates into TMEM. For block-scaled MMA, scale factors can also be staged into TMEM. After the compute phase, `tcgen05.ld` brings the accumulator back into registers, and the epilogue converts and stores the final output.
+TMEM 位于 Blackwell Tensor Core 数据通路的中间。TMA 把操作数搬入共享内存。`tcgen05.mma` 读取其操作数并累加进 TMEM。对于块缩放 MMA,缩放因子也可以被搬入 TMEM。计算阶段结束后,`tcgen05.ld` 把累加器带回寄存器,收尾阶段再做类型转换并存储最终输出。

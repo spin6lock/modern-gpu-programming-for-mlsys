@@ -17,10 +17,10 @@
 
 .. _chap_arch:
 
-Compiler Internals
+编译器内部实现
 ==================
 
-Internals of the TIRx compiler, for contributors.
+面向贡献者的 TIRx 编译器内部实现介绍。
 
 .. toctree::
    :maxdepth: 1

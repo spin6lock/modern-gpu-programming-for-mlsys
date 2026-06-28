@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Pipelining GEMM with TMA &#8212; Modern GPU Programming For MLSys</title>
+    <title>用 TMA 为 GEMM 建立流水线 &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -53,8 +53,8 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Scaling GEMM with Warp Specialization and Clusters" href="../chapter_gemm_advanced/index.html" />
-    <link rel="prev" title="Building a Tiled GEMM" href="../chapter_gemm_basics/index.html" />
+    <link rel="next" title="用线程束特化与集群扩展 GEMM" href="../chapter_gemm_advanced/index.html" />
+    <link rel="prev" title="构建分块 GEMM" href="../chapter_gemm_basics/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tmem/index.html">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">编译器内部实现</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx 语言参考</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Pipelining GEMM with TMA</h1>
+    <h1>用 TMA 为 GEMM 建立流水线</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -338,25 +338,25 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-tma-async-load">Step 4: TMA Async Load</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-issue-pattern">TMA Issue Pattern</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-load-and-store-synchronization">TMA Load and Store Synchronization</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-kernel">Complete Kernel</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-configuration-in-the-kernel">TMA Configuration in the Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-tma">Step 4:TMA 异步加载</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma">TMA 的派发模式</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">TMA 加载与存储的同步</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">完整内核</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">内核里的 TMA 配置</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-software-pipeline-pipe-depth-2">Step 5: Software Pipeline (PIPE_DEPTH=2)</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-walkthrough">Pipeline Walkthrough</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-mechanics">Pipeline Mechanics</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Complete Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-pipe-depth-2">Step 5:软件流水线(PIPE_DEPTH=2)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">流水线走查</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">流水线机制</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">完整内核</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-persistent-kernel-tile-scheduler">Step 6: Persistent Kernel + Tile Scheduler</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#persistent-scheduling">Persistent Scheduling</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Complete Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6">Step 6:持久化内核 + 分块调度器</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">持久化调度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">完整内核</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">练习</a></li>
 </ul>
             </nav>
         </div>
@@ -368,71 +368,68 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="pipelining-gemm-with-tma">
-<span id="chap-gemm-async"></span><h1>Pipelining GEMM with TMA<a class="headerlink" href="#pipelining-gemm-with-tma" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="tma-gemm">
+<span id="chap-gemm-async"></span><h1>用 TMA 为 GEMM 建立流水线<a class="headerlink" href="#tma-gemm" title="Link to this heading">#</a></h1>
 <div class="overview admonition">
 <p class="admonition-title">Overview</p>
 <ul class="simple">
-<li><p>The basic GEMM wastes time taking turns (copy a tile, compute, copy the next) when the two could run at once.</p></li>
-<li><p>Step 4 switches to TMA async loads, Step 5 double-buffers SMEM and prefetches (PIPE_DEPTH=2); full load/compute overlap arrives with warp specialization in Step 7, Step 6 makes the kernel persistent with a tile scheduler.</p></li>
-<li><p>The goal is to load the next tile while the Tensor Cores chew through the current one.</p></li>
+<li><p>基础 GEMM 浪费了时间在轮替上(拷贝一个分块、计算、再拷贝下一个),而这两件事本可以同时进行。</p></li>
+<li><p>Step 4 切换到 TMA 异步加载,Step 5 对 SMEM 做双缓冲并预取(PIPE_DEPTH=2);完整的加载/计算重叠要到 Step 7 借助 warp specialization 才能到来,Step 6 则通过分块调度器把内核改造成持久化内核。</p></li>
+<li><p>目标是在 Tensor Core 计算当前分块的同时,加载下一个分块。</p></li>
 </ul>
 </div>
-<p>The Tensor Cores are the most expensive unit on the chip, and the correct tiled GEMM from the previous chapter leaves them idle for most of the clock. The kernel takes turns: threads copy a tile into shared memory, the Tensor Cores chew through it, threads copy the next tile, and the Tensor Cores wait. Each stage stalls on the one before it, even though loading the next tile and computing on the current one use entirely separate hardware and could run at the same time. Closing that gap does not require a new data path; the tiles, the layouts, and the math are already right. What has to change is <em>when</em> the work happens and <em>by whom</em> it is scheduled. This chapter keeps the tile data path exactly as it was and attacks the idleness directly.</p>
-<p>We get there in three incremental steps, and it helps to know the destination before we start. In Step 4 we hand the bulk GMEM &lt;-&gt; SMEM transfers to TMA, so that dedicated copy hardware moves the tiles instead of the threads. In Step 5 we add a two-stage software pipeline, giving the next K tile somewhere to land while the current one is still being multiplied. And in Step 6 we reshape the launch into a persistent kernel driven by a tile scheduler, which amortizes the per-tile setup and lets us pick a tile order that keeps operands hot. Throughout, the SMEM, TMEM, and register layouts stay exactly as we left them in the previous chapter. The only genuinely new idea is the asynchronous handoff between hardware units: letting one engine run ahead of another instead of marching them in lockstep.</p>
-<section id="step-4-tma-async-load">
-<span id="chap-tma-async"></span><h2>Step 4: TMA Async Load<a class="headerlink" href="#step-4-tma-async-load" title="Link to this heading">#</a></h2>
-<p>Our first move is to get the copy itself off the critical path. Think about what the CTA was doing in Steps 1-3: every one of its threads computes addresses and issues load instructions for no reason other than to shuttle tiles into SMEM. That is instruction bandwidth spent on plumbing rather than on math. Step 4 replaces the synchronous <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> with TMA, where a single thread issues one command and the TMA engine carries out the whole tile transfer on its own. From here on the examples run at the full M=N=K=4096 size rather than the small sizes of Steps 1-3, and their end-to-end timings appear in the <em>End-to-End Result</em> table at the end of <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a>.</p>
+<p>Tensor Core 是芯片上最昂贵的单元,而上一章那版正确的分块化 GEMM 让它们在大部分时钟周期里都处于空闲。内核在几个阶段之间轮转:线程把一个分块拷贝进共享显存,Tensor Core 消费它,线程再拷贝下一个分块,Tensor Core 继续等待。每一个阶段都要卡在前一个阶段上,哪怕加载下一个分块和在当前分块上做计算用的是完全独立的硬件、本可以同时运行。要弥合这个空隙并不需要新的数据通路;分块、布局和数学都已经是对的。真正需要改变的是工作发生的<em>时机</em>和由<em>谁</em>来调度。本章保持分块数据通路原封不动,直接处理空闲问题。</p>
+<p>我们分三个递进步骤走到那里,而动手之前先看清终点会有帮助。在 Step 4,我们把 GMEM 与 SMEM 之间的大块传输交给 TMA,由专门的拷贝硬件搬运分块,而不是让线程来搬。在 Step 5,我们加入一个两级的软件流水线,让下一个 K 分块在当前分块还在被乘的时候有地方可落。在 Step 6,我们把启动方式改造成由分块调度器驱动的持久化内核,从而摊薄每个分块的启动开销,并让我们能挑选一个让操作数保持热的分块顺序。贯穿全程,SMEM、TMEM 和寄存器的布局都保持上一章留下的原样。唯一真正的新想法,是硬件单元之间的异步交接:让一个引擎领先另一个引擎推进,而不是让它们齐步前进。</p>
+<section id="step-4-tma">
+<span id="chap-tma-async"></span><h2>Step 4:TMA 异步加载<a class="headerlink" href="#step-4-tma" title="Link to this heading">#</a></h2>
+<p>我们的第一步,是把拷贝本身挪出关键路径。回想一下 Step 1-3 里 CTA 在做什么:它的每一个线程都计算地址、派发加载指令,目的只是为了把分块搬进 SMEM。这些指令带宽都花在了地址与搬运管理上,而不是数学上。Step 4 用 TMA 替换掉同步的 <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code>,只需一个线程派发一条命令,TMA 引擎就会自己完成整个分块的传输。从这一步起,示例都运行在完整的 M=N=K=4096 规模上,而不再是 Step 1-3 的小规模,它们的端到端计时出现在 <a class="reference internal" href="../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">用线程束特化与集群扩展 GEMM</span></a> 末尾的 <em>End-to-End Result</em> 表里。</p>
 <blockquote>
-<div><p><strong>What this step changes: Dispatch</strong></p>
+<div><p><strong>本步改变的是:Dispatch</strong></p>
 <ul class="simple">
-<li><p>Scope: unchanged, one warpgroup.</p></li>
-<li><p>Layout: unchanged, same SMEM/TMEM/register tiles.</p></li>
-<li><p>Dispatch: GMEM → SMEM loads move from sync <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> to the TMA engine.</p></li>
+<li><p>Scope:不变,仍是一个 warpgroup。</p></li>
+<li><p>Layout:不变,沿用相同的 SMEM/TMEM/寄存器分块。</p></li>
+<li><p>Dispatch:GMEM → SMEM 的加载从同步 <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> 改走 TMA 引擎。</p></li>
 </ul>
 </div></blockquote>
-<section id="tma-issue-pattern">
-<h3>TMA Issue Pattern<a class="headerlink" href="#tma-issue-pattern" title="Link to this heading">#</a></h3>
-<p>Step 4’s one change is to replace the synchronous tile copy with a TMA load, so it pays to look closely at how that load is issued. The edit to the source is only a few lines, but the execution model behind those lines is different in kind. A synchronous <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> is work that the CTA threads do themselves, with their own instructions; a TMA copy is a command that one thread issues, after which the TMA hardware does all the moving. It is worth seeing the two side by side.</p>
-<p><strong>Before (Step 3)</strong>: all 128 threads participate in the copy, then <code class="docutils literal notranslate"><span class="pre">cta_sync</span></code> makes the shared-memory writes visible:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">A</span><span class="p">[</span><span class="n">m_st</span><span class="p">:</span><span class="n">m_st</span><span class="o">+</span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">i</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">])</span>   <span class="c1"># all 128 threads</span>
+<section id="tma">
+<h3>TMA 的派发模式<a class="headerlink" href="#tma" title="Link to this heading">#</a></h3>
+<p>Step 4 的唯一改动,就是把同步的分块拷贝换成 TMA 加载,所以值得仔细看看这一加载是如何派发的。对源码的修改只有寥寥几行,但这些行背后的执行模型却是本质上的不同。同步的 <code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> 是 CTA 线程用自己的指令自己干的活;TMA 拷贝则是由一个线程派发的一条命令,之后所有搬运都由 TMA 硬件完成。两者并排放在一起看一看是有价值的。</p>
+<p><strong>之前(Step 3)</strong>:全部 128 个线程参与拷贝,随后 <code class="docutils literal notranslate"><span class="pre">cta_sync</span></code> 让共享显存的写入对后续可见:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Asmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">A</span><span class="p">[</span><span class="n">m_st</span><span class="p">:</span><span class="n">m_st</span><span class="o">+</span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">i</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">])</span>   <span class="c1"># 全部 128 个线程</span>
 <span class="n">Tx</span><span class="o">.</span><span class="n">cta</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">B</span><span class="p">[</span><span class="n">n_st</span><span class="p">:</span><span class="n">n_st</span><span class="o">+</span><span class="n">BLK_N</span><span class="p">,</span> <span class="n">i</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">BLK_K</span><span class="p">])</span>
 <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>After (Step 4)</strong>: one thread issues the TMA load, and the mbarrier tracks when the hardware transfer is complete:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tid</span> <span class="o">=</span> <span class="n">warp_id</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">+</span> <span class="n">lane_id</span>                 <span class="c1"># 0..127 within the warpgroup</span>
-<span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># exactly one thread starts TMA</span>
+<p><strong>之后(Step 4)</strong>:一个线程派发 TMA 加载,mbarrier 跟踪硬件传输何时完成:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tid</span> <span class="o">=</span> <span class="n">warp_id</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">+</span> <span class="n">lane_id</span>                 <span class="c1"># warpgroup 内的 0..127</span>
+<span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># 恰好由一个线程启动 TMA</span>
     <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Asmem</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">)</span>
     <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Bsmem</span><span class="p">,</span> <span class="n">B</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">)</span>
-    <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">arrive</span><span class="o">.</span><span class="n">expect_tx</span><span class="p">(</span><span class="n">tma_bar</span><span class="p">,</span> <span class="n">byte_count</span><span class="p">)</span>  <span class="c1"># bytes expected from TMA</span>
-<span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>                  <span class="c1"># wait before MMA reads SMEM</span>
+    <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">arrive</span><span class="o">.</span><span class="n">expect_tx</span><span class="p">(</span><span class="n">tma_bar</span><span class="p">,</span> <span class="n">byte_count</span><span class="p">)</span>  <span class="c1"># TMA 期望收到的字节数</span>
+<span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>                  <span class="c1"># 在 MMA 读取 SMEM 之前等待</span>
 </pre></div>
 </div>
-<p>Notice that the load is gated on <code class="docutils literal notranslate"><span class="pre">tid</span> <span class="pre">==</span> <span class="pre">0</span></code>, not on <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code>, and the distinction matters more than it looks. <code class="docutils literal notranslate"><span class="pre">elect.sync</span></code> elects one active lane <em>per warp</em>, and a warpgroup has four warps, so <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> would actually let four threads enter the load protocol. The trouble is that the protocol announces the expected byte count to the mbarrier, and it must announce it exactly once; four announcements would corrupt the count and the wait would never release correctly. Picking precisely one thread by its warpgroup-wide id is the clean way to avoid that.</p>
-<p>It is important to be honest about where the speedup comes from. Step 4 still waits after every TMA load, so we are not yet overlapping the load with the compute; that is the work of Step 5. The win here comes purely from the change of data-movement path:</p>
+<p>注意,加载是以 <code class="docutils literal notranslate"><span class="pre">tid</span> <span class="pre">==</span> <span class="pre">0</span></code> 为门控,而不是以 <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> 为门控,这个区别比看上去更重要。<code class="docutils literal notranslate"><span class="pre">elect.sync</span></code> 是<em>每个 warp</em> 选出一个活跃 lane,而一个 warpgroup 有四个 warp,所以 <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> 实际上会让四个线程进入加载协议。问题在于,该协议要向 mbarrier 宣告期望的字节数,而且必须恰好宣告一次;宣告四次会破坏这个计数,等待也就永远无法正确释放。因此,必须按照 warpgroup 范围内的 id 精确挑出一个线程。</p>
+<p>关于加速来自何处,必须诚实。Step 4 在每次 TMA 加载之后仍然要等待,所以此时我们还没有把加载和计算重叠起来;那是 Step 5 的工作。此处的收益纯粹来自数据搬移通路的改变:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> uses CTA threads to compute addresses and issue load/store instructions.</p></li>
-<li><p>TMA uses one issued command to start a hardware tile transfer. Address generation, coalescing, and swizzling are described by the TMA descriptor and carried out by the TMA engine.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tx.copy</span></code> 用 CTA 线程去计算地址、派发加载/存储指令。</p></li>
+<li><p>TMA 用一条派发出去的命令启动一次硬件分块传输。地址生成、合并和 swizzling 都由 TMA 描述符描述,并由 TMA 引擎执行。</p></li>
 </ul>
-<p>So even though Step 4 still blocks on each load, it ends up faster anyway. TMA absorbs the bulk transfer, which frees the CTA threads from spending instruction bandwidth shuffling tiles around, and that saving alone is enough to move the needle.</p>
+<p>所以,即便 Step 4 仍在每次加载上阻塞,它最终依然更快。TMA 吸收掉了大块传输,把 CTA 线程从为搬运分块耗费指令带宽中解放出来,光是这一项节省就足以带来可观的提升。</p>
 </section>
-<section id="tma-load-and-store-synchronization">
-<h3>TMA Load and Store Synchronization<a class="headerlink" href="#tma-load-and-store-synchronization" title="Link to this heading">#</a></h3>
-<p>We have seen how a TMA copy is issued; the other half of the story is knowing when it has finished. Switching to TMA changes two things at once: who starts a copy, and how the code knows when it finished. The first is obvious from the code; the second is easy to overlook, and getting it wrong gives you a silent correctness bug rather than a crash. With <code class="docutils literal notranslate"><span class="pre">Tx.cta.copy</span></code>, the CTA threads do the copy together and a following <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> is enough to know it is done. With TMA, one selected thread issues <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(...,</span> <span class="pre">dispatch=&quot;tma&quot;)</span></code>, the engine performs the transfer on its own schedule, and it signals completion through an mbarrier.</p>
-<p>This is exactly why <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> is no longer sufficient. <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> waits only for the CTA’s own threads and orders only their shared-memory writes; it knows nothing about an in-flight TMA transfer, so it happily returns while the tile is still arriving. The fix is to make completion explicit: for a TMA load, the selected thread first tells the mbarrier how many bytes to expect, and the CTA then waits on <em>that</em> mbarrier before any MMA touches the SMEM tile. The figure below traces that handshake end to end.</p>
-<p><img alt="TMA Async Load: Synchronization Flow" src="../_images/tma_sync_flow.png" /></p>
-<p>The figure above isolates the load-side handshake: one selected thread launches TMA, the mbarrier
-counts the expected bytes, and MMA waits on the release before reading SMEM. Where it says
-“Elected Thread” it means the selected thread that starts TMA, which in our code is the <code class="docutils literal notranslate"><span class="pre">tid</span> <span class="pre">==</span> <span class="pre">0</span></code>
-thread, not an <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> lane.</p>
-<p>Putting the load path together, then: the selected thread issues both <code class="docutils literal notranslate"><span class="pre">copy_async</span></code> calls and follows them with <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx(total_bytes)</span></code>, where the byte count is precisely how much data the mbarrier should hold out for. Once the engine has moved that many bytes, the matching <code class="docutils literal notranslate"><span class="pre">mbarrier.try_wait(phase)</span></code> releases, and only then is the SMEM tile safe to feed to MMA.</p>
-<p>The store side travels over the same hardware but waits in a different way, so it pays to keep the two protocols clearly apart in your head: loads track completion with mbarriers and byte counts, while stores track it with commit groups and wait groups. After the threads write their fp16 results into <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> and synchronize, one selected thread starts <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(D[...],</span> <span class="pre">Dsmem,</span> <span class="pre">dispatch=&quot;tma&quot;)</span></code>, and then <code class="docutils literal notranslate"><span class="pre">cp_async.bulk.commit_group()</span></code> followed by <code class="docutils literal notranslate"><span class="pre">cp_async.bulk.wait_group(0)</span></code> block until the store has drained. That wait is not optional: <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> cannot be reused for the next tile until the previous store is gone.</p>
-<p><strong>Try with your agent</strong>: Trace the Step 4 load and store synchronization for one K tile. Identify which thread starts each TMA command, which mbarrier or commit group tracks completion, which wait protects MMA reads of <code class="docutils literal notranslate"><span class="pre">Asmem</span></code> and <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code>, and which wait protects reuse of <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code>. Why would <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> be the wrong thread selection for the TMA load protocol here?</p>
+<section id="id1">
+<h3>TMA 加载与存储的同步<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>我们已经看到 TMA 拷贝是如何派发的;故事的另一半,是知道它何时完成。切换到 TMA 会同时改变两件事:谁启动一次拷贝,以及代码如何知道它完成了。第一点从代码里一目了然;第二点却很容易被忽视,而且弄错了不会崩溃,只会给你一个悄无声息的正确性 bug。用 <code class="docutils literal notranslate"><span class="pre">Tx.cta.copy</span></code> 时,CTA 线程一起做拷贝,后面跟一个 <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> 就足以知道它完成了。用 TMA 时,一个被选中的线程派发 <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(...,</span> <span class="pre">dispatch=&quot;tma&quot;)</span></code>,引擎按自己的节奏完成传输,并通过一个 mbarrier 信号告知完成。</p>
+<p>这正是 <code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> 不再够用的原因。<code class="docutils literal notranslate"><span class="pre">cta_sync()</span></code> 只等待 CTA 自己的线程,也只对这些线程的共享显存写入排序;它对一次在途的 TMA 传输一无所知,所以会在分块还在抵达时就欣然返回。修正办法是把完成判定显式化:对于一次 TMA 加载,被选中的线程先告诉 mbarrier 期望多少字节,然后 CTA 在任何 MMA 触碰这个 SMEM 分块之前,在<em>那个</em> mbarrier 上等待。下图端到端地描绘了这一握手。</p>
+<p><img alt="TMA 异步加载:同步流程" src="../_images/tma_sync_flow.png" /></p>
+<p>上图把加载侧的握手单独剥离出来:一个被选中的线程启动 TMA,mbarrier 计数期望的字节,MMA 在读取 SMEM 之前等待其释放。文中凡说”Elected Thread”之处,都指那个启动 TMA 的被选中的线程,在我们的代码里就是 <code class="docutils literal notranslate"><span class="pre">tid</span> <span class="pre">==</span> <span class="pre">0</span></code> 那个线程,而不是 <code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> 选出的某个 lane。</p>
+<p>于是加载通路合起来就是:被选中的线程派发出两个 <code class="docutils literal notranslate"><span class="pre">copy_async</span></code>,再跟上 <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx(total_bytes)</span></code>,其中字节数恰好就是 mbarrier 应当等候多少数据。一旦引擎搬完了那么多字节,与之匹配的 <code class="docutils literal notranslate"><span class="pre">mbarrier.try_wait(phase)</span></code> 就释放,只有到那时这个 SMEM 分块才可以安全地交给 MMA。</p>
+<p>存储侧走的是同一套硬件,但等待方式不同,所以值得在脑子里把这两个协议清楚地区分开:加载用 mbarrier 和字节数来追踪完成,而存储用提交组(commit group)和等待组(wait group)来追踪完成。在线程把它们的 fp16 结果写进 <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> 并同步之后,一个被选中的线程启动 <code class="docutils literal notranslate"><span class="pre">Tx.copy_async(D[...],</span> <span class="pre">Dsmem,</span> <span class="pre">dispatch=&quot;tma&quot;)</span></code>,随后 <code class="docutils literal notranslate"><span class="pre">cp_async.bulk.commit_group()</span></code> 加上 <code class="docutils literal notranslate"><span class="pre">cp_async.bulk.wait_group(0)</span></code> 会阻塞到存储排干为止。这个等待不是可选的:<code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> 在前一次存储排干之前,不能被下一个分块复用。</p>
+<p><strong>和你的 agent 一起试</strong>:针对一个 K 分块,追踪 Step 4 的加载和存储同步。指出哪个线程启动每条 TMA 命令、哪个 mbarrier 或提交组追踪其完成、哪个等待保护 MMA 对 <code class="docutils literal notranslate"><span class="pre">Asmem</span></code> 和 <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> 的读取、哪个等待保护 <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code> 的复用。为什么在这里,<code class="docutils literal notranslate"><span class="pre">elect_sync()</span></code> 对 TMA 加载协议而言会是错误的线程选择?</p>
 </section>
-<section id="complete-kernel">
-<h3>Complete Kernel<a class="headerlink" href="#complete-kernel" title="Link to this heading">#</a></h3>
-<p>The complete kernel folds the TMA load and store into the Step 3 structure, leaving the rest of that structure untouched. The imports are the same as before:</p>
+<section id="id2">
+<h3>完整内核<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>完整内核把 TMA 加载和存储折叠进 Step 3 的结构里,其余部分一概不动。导入语句和之前一样:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tvm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.script</span><span class="w"> </span><span class="kn">import</span> <span class="n">tirx</span> <span class="k">as</span> <span class="n">T</span>
@@ -441,7 +438,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.cuda.operator.tile_primitive.tma_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">tma_shared_layout</span><span class="p">,</span> <span class="n">SwizzleMode</span>
 </pre></div>
 </div>
-<p>It is wrapped in <code class="docutils literal notranslate"><span class="pre">hgemm_v4(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code>, a pattern we follow throughout: the wrapper keeps the shape-dependent constants and layouts right next to the kernel that uses them.</p>
+<p>它被包在 <code class="docutils literal notranslate"><span class="pre">hgemm_v4(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code> 里,这是我们贯穿全书遵循的模式:这层包装把依赖形状的常量和布局放在使用它们的内核紧旁边。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">hgemm_v4</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
     <span class="n">a_type</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">DataType</span><span class="p">(</span><span class="s2">&quot;float16&quot;</span><span class="p">)</span>
     <span class="n">b_type</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">DataType</span><span class="p">(</span><span class="s2">&quot;float16&quot;</span><span class="p">)</span>
@@ -468,7 +465,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">warp_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">warp_id_in_wg</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
         <span class="n">lane_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">lane_id</span><span class="p">([</span><span class="mi">32</span><span class="p">])</span>
     
-        <span class="c1"># --- SMEM allocation (now includes Dsmem for TMA store) ---</span>
+        <span class="c1"># --- SMEM 分配(现在为 TMA 存储纳入了 Dsmem)---</span>
         <span class="n">pool</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
         <span class="n">tmem_addr</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
         <span class="n">tma_bar</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint64&quot;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
@@ -479,7 +476,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">Dsmem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">),</span> <span class="n">d_type</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">D_layout</span><span class="p">)</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
     
-        <span class="c1"># --- Barrier + TMEM init ---</span>
+        <span class="c1"># --- 屏障与 TMEM 初始化 ---</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">lane_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
@@ -500,7 +497,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">phase_tma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">phase_mma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
     
-        <span class="c1"># --- Inline helpers ---</span>
+        <span class="c1"># --- 内联辅助函数 ---</span>
         <span class="nd">@T</span><span class="o">.</span><span class="n">inline</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">tma_load</span><span class="p">(</span><span class="n">k_st</span><span class="p">):</span>
             <span class="n">tma_config</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">({</span>
@@ -526,46 +523,46 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
             <span class="p">)</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
-        <span class="c1"># --- K-loop with TMA async ---</span>
+        <span class="c1"># --- 带 TMA 异步的 K 循环 ---</span>
         <span class="n">tid</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">warp_id</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">+</span> <span class="n">lane_id</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_TILES</span><span class="p">):</span>
             <span class="n">k_st</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
     
-            <span class="c1"># Single thread issues TMA load</span>
+            <span class="c1"># 单个线程派发 TMA 加载</span>
             <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">tma_load</span><span class="p">(</span><span class="n">k_st</span><span class="p">)</span>
     
-            <span class="c1"># Wait for TMA to finish; the mbarrier release carries SMEM</span>
-            <span class="c1"># visibility to the subsequent MMA, so no extra fence is needed.</span>
+            <span class="c1"># 等待 TMA 完成;mbarrier 的释放会把 SMEM 可见性带给</span>
+            <span class="c1"># 后续的 MMA,所以不需要额外的 fence。</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">phase_tma</span><span class="p">)</span>
     
-            <span class="c1"># Single thread issues MMA</span>
+            <span class="c1"># 单个线程派发 MMA</span>
             <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">mma</span><span class="p">(</span><span class="n">accum</span><span class="o">=</span><span class="n">k</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
     
-            <span class="c1"># Wait for MMA to finish</span>
+            <span class="c1"># 等待 MMA 完成</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">phase_mma</span><span class="p">)</span>
             <span class="n">phase_tma</span> <span class="o">^=</span> <span class="mi">1</span>
             <span class="n">phase_mma</span> <span class="o">^=</span> <span class="mi">1</span>
     
-        <span class="c1"># --- TMA Store Writeback ---</span>
+        <span class="c1"># --- TMA 存储回写 ---</span>
         <span class="n">Dreg</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">acc_type</span><span class="p">)</span>
         <span class="n">Dreg_f16</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">d_type</span><span class="p">)</span>
         <span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span>
                             <span class="n">layout</span><span class="o">=</span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@tid_in_wg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]))</span>
     
-        <span class="c1"># Read TMEM -&gt; registers (async; wait.ld then cta_sync to ensure read completes)</span>
+        <span class="c1"># 读取 TMEM -&gt; 寄存器(异步;先 wait.ld 再 cta_sync 以确保读取完成)</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">wg</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">Dreg_wg</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">tmem</span><span class="p">[:,</span> <span class="p">:</span><span class="n">BLK_N</span><span class="p">])</span>
         <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">wait</span><span class="o">.</span><span class="n">ld</span><span class="p">()</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
-        <span class="c1"># Cast fp32 -&gt; fp16</span>
+        <span class="c1"># 把 fp32 转为 fp16</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Dreg_f16</span><span class="p">[:],</span> <span class="n">Dreg</span><span class="p">[:])</span>
-        <span class="c1"># Write registers -&gt; Dsmem, flush, then sync</span>
+        <span class="c1"># 写寄存器 -&gt; Dsmem,刷出,然后同步</span>
         <span class="n">Tx</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Dsmem</span><span class="p">[</span><span class="n">warp_id</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">+</span> <span class="n">lane_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">BLK_N</span><span class="p">],</span> <span class="n">Dreg_f16</span><span class="p">[:])</span>
         <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">fence</span><span class="o">.</span><span class="n">proxy_async</span><span class="p">(</span><span class="s2">&quot;shared::cta&quot;</span><span class="p">)</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">warpgroup_sync</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-        <span class="c1"># TMA store: Dsmem -&gt; GMEM. One selected thread starts the store and drains the</span>
-        <span class="c1"># store group before Dsmem is reused.</span>
+        <span class="c1"># TMA 存储:Dsmem -&gt; GMEM。一个被选中的线程启动存储,</span>
+        <span class="c1"># 并在 Dsmem 被复用之前把存储组排干。</span>
         <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">Tx</span><span class="o">.</span><span class="n">copy_async</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">m_st</span> <span class="p">:</span> <span class="n">m_st</span> <span class="o">+</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">n_st</span> <span class="p">:</span> <span class="n">n_st</span> <span class="o">+</span> <span class="n">BLK_N</span><span class="p">],</span>
                           <span class="n">Dsmem</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tma&quot;</span><span class="p">)</span>
@@ -573,7 +570,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">cp_async</span><span class="o">.</span><span class="n">bulk</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">warpgroup_sync</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
     
-        <span class="c1"># --- Deallocate TMEM ---</span>
+        <span class="c1"># --- 释放 TMEM ---</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">relinquish_alloc_permit</span><span class="p">(</span><span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -583,52 +580,52 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </pre></div>
 </div>
 </section>
-<section id="tma-configuration-in-the-kernel">
-<h3>TMA Configuration in the Kernel<a class="headerlink" href="#tma-configuration-in-the-kernel" title="Link to this heading">#</a></h3>
-<p>Almost everything in that kernel is carried over from Step 3. Only five configuration points actually carry the TMA semantics, and it is worth knowing each by name:</p>
+<section id="id3">
+<h3>内核里的 TMA 配置<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>那个内核里几乎一切都沿袭自 Step 3。真正承载 TMA 语义的只有五个配置点,每一个都值得按名字认识清楚:</p>
 <ul class="simple">
-<li><p><strong>TMA config</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;dispatch&quot;:</span> <span class="pre">&quot;tma&quot;,</span> <span class="pre">&quot;cta_group&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;mbar&quot;:</span> <span class="pre">tma_bar.ptr_to([0])}</span></code> tells <code class="docutils literal notranslate"><span class="pre">Tx.copy_async</span></code> to use TMA and to report load completion through <code class="docutils literal notranslate"><span class="pre">tma_bar</span></code>.</p></li>
-<li><p><strong>Byte count</strong>: <code class="docutils literal notranslate"><span class="pre">(BLK_M</span> <span class="pre">*</span> <span class="pre">BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N</span> <span class="pre">*</span> <span class="pre">BLK_K)</span> <span class="pre">*</span> <span class="pre">2</span></code> is the number of bytes loaded by the two fp16 operand tiles. <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx(...)</span></code> gives this count to the mbarrier.</p></li>
-<li><p><strong>mbarrier initialization</strong>: <code class="docutils literal notranslate"><span class="pre">init(tma_bar.ptr_to([0]),</span> <span class="pre">1)</span></code> creates the completion barrier used by the TMA load.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">tma_load(...)</span></code> and <code class="docutils literal notranslate"><span class="pre">mma(...)</span></code> are helper functions. They are expanded into the kernel body at compile time and can use variables from the surrounding kernel.</p></li>
-<li><p><strong>TMA store synchronization</strong>: The epilogue first writes fp16 rows into <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code>. <code class="docutils literal notranslate"><span class="pre">fence.proxy_async</span></code> and <code class="docutils literal notranslate"><span class="pre">warpgroup_sync</span></code> make those thread-written SMEM values ready for the TMA store path. The store then uses <code class="docutils literal notranslate"><span class="pre">commit_group()</span></code> and <code class="docutils literal notranslate"><span class="pre">wait_group(0)</span></code> to wait for the SMEM-to-GMEM transfer to finish.</p></li>
+<li><p><strong>TMA 配置</strong>:<code class="docutils literal notranslate"><span class="pre">{&quot;dispatch&quot;:</span> <span class="pre">&quot;tma&quot;,</span> <span class="pre">&quot;cta_group&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;mbar&quot;:</span> <span class="pre">tma_bar.ptr_to([0])}</span></code> 告诉 <code class="docutils literal notranslate"><span class="pre">Tx.copy_async</span></code> 使用 TMA,并通过 <code class="docutils literal notranslate"><span class="pre">tma_bar</span></code> 报告加载完成。</p></li>
+<li><p><strong>字节数</strong>:<code class="docutils literal notranslate"><span class="pre">(BLK_M</span> <span class="pre">*</span> <span class="pre">BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N</span> <span class="pre">*</span> <span class="pre">BLK_K)</span> <span class="pre">*</span> <span class="pre">2</span></code> 是两个 fp16 操作数分块加载的字节数。<code class="docutils literal notranslate"><span class="pre">arrive.expect_tx(...)</span></code> 把这个计数交给 mbarrier。</p></li>
+<li><p><strong>mbarrier 初始化</strong>:<code class="docutils literal notranslate"><span class="pre">init(tma_bar.ptr_to([0]),</span> <span class="pre">1)</span></code> 创建出 TMA 加载所用的完成屏障。</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code></strong>:<code class="docutils literal notranslate"><span class="pre">tma_load(...)</span></code> 和 <code class="docutils literal notranslate"><span class="pre">mma(...)</span></code> 是辅助函数。它们在编译期被展开进内核体里,可以使用外层内核的变量。</p></li>
+<li><p><strong>TMA 存储同步</strong>:收尾先把 fp16 行写进 <code class="docutils literal notranslate"><span class="pre">Dsmem</span></code>。<code class="docutils literal notranslate"><span class="pre">fence.proxy_async</span></code> 和 <code class="docutils literal notranslate"><span class="pre">warpgroup_sync</span></code> 让这些由线程写入的 SMEM 值为 TMA 存储通路做好准备。随后存储用 <code class="docutils literal notranslate"><span class="pre">commit_group()</span></code> 和 <code class="docutils literal notranslate"><span class="pre">wait_group(0)</span></code> 等待 SMEM 到 GMEM 的传输完成。</p></li>
 </ul>
-<p>At this point we have the right pieces but the wrong rhythm. Step 4 still finishes each load before starting the matching MMA, so the load and the multiply never actually run at the same time; the two engines we worked so hard to separate still take turns. The next step leaves the TMA load and store path exactly as it is and instead rearranges the schedule, so that loading one K tile can proceed while compute runs on another.</p>
+<p>到这里,我们已经有了正确的部件,却还没有正确的节奏。Step 4 仍然要在开始对应的 MMA 之前先完成每一次加载,所以加载和乘法从未真正同时运行;我们费力分开的两个引擎仍然在轮流工作。下一步保持 TMA 加载和存储通路原封不动,转而重排调度,使得加载某个 K 分块能在对另一个分块做计算的同时进行。</p>
 </section>
 </section>
-<section id="step-5-software-pipeline-pipe-depth-2">
-<span id="chap-software-pipeline"></span><h2>Step 5: Software Pipeline (PIPE_DEPTH=2)<a class="headerlink" href="#step-5-software-pipeline-pipe-depth-2" title="Link to this heading">#</a></h2>
-<p>Why couldn’t Step 4 overlap the load with the compute, when the two engines are clearly independent? The obstacle turns out to be storage. With only one SMEM tile pair, the next load has nowhere to go: it cannot begin until the current MMA has finished reading that pair, since starting early would overwrite data still in use. Step 5 removes that storage conflict by double-buffering shared memory. The single-warpgroup loop still waits for each MMA before launching the next TMA load, but it now has distinct stages to prefetch into and reuse. We are still at the full M=N=K=4096 size.</p>
+<section id="step-5-pipe-depth-2">
+<span id="chap-software-pipeline"></span><h2>Step 5:软件流水线(PIPE_DEPTH=2)<a class="headerlink" href="#step-5-pipe-depth-2" title="Link to this heading">#</a></h2>
+<p>既然两个引擎明显相互独立,为什么 Step 4 不能把加载和计算重叠起来?障碍其实是存储。只有一个 SMEM 分块对时,下一次加载无处可去:它要等到当前 MMA 读完了那一对才能开始,因为提前开始会覆盖仍在使用中的数据。Step 5 通过对共享显存做双缓冲来消除这个存储冲突。单 warpgroup 的循环仍然在每次 MMA 之后才启动下一次 TMA 加载,但现在它有了不同的流水级可以用于预取和复用。我们仍然运行在完整的 M=N=K=4096 规模上。</p>
 <blockquote>
-<div><p><strong>What this step changes: Layout</strong></p>
+<div><p><strong>本步改变的是:Layout</strong></p>
 <ul class="simple">
-<li><p>Scope: unchanged, one warpgroup.</p></li>
-<li><p>Layout: the single SMEM tile pair becomes a <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code>-stage ring buffer.</p></li>
-<li><p>Dispatch: unchanged, TMA load and <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA; this step adds prefetch and stage reuse, while full load/compute overlap arrives in Step 7.</p></li>
+<li><p>Scope:不变,仍是一个 warpgroup。</p></li>
+<li><p>Layout:单一 SMEM 分块对变成一个 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> 级的环形缓冲。</p></li>
+<li><p>Dispatch:不变,TMA 加载和 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> MMA;本步加入预取和流水级复用,而完整的加载/计算重叠要到 Step 7 才到来。</p></li>
 </ul>
 </div></blockquote>
-<section id="pipeline-walkthrough">
-<h3>Pipeline Walkthrough<a class="headerlink" href="#pipeline-walkthrough" title="Link to this heading">#</a></h3>
-<p>With <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>, the kernel allocates two SMEM stages, giving the load path and the MMA path separate slots to work on.</p>
-<p>Read the figure below as the pipeline structure that the two-stage buffer is meant to enable, not as an exact execution trace of this single-warpgroup kernel. Step 5 builds the ring buffer and prefetches later stages, but the main loop still waits for the current MMA before it issues the next TMA load. Full load/compute overlap arrives in Step 7, when warp specialization gives TMA and MMA separate roles.</p>
-<p><img alt="Pipeline PIPE_DEPTH=2, the target schedule; this single-warpgroup step only prefetches, full overlap arrives with warp specialization in Step 7" src="../_images/pipe_depth2.png" /></p>
-<p>Once it is primed, the loop alternates through the two stages. Two TMA loads fill both stages up front; after that, the loop waits for the current stage, runs MMA on it, waits for that MMA to finish reading the stage, and then launches the load for <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">PIPE_DEPTH</span></code> into the stage that just became reusable. This is not yet a concurrent TMA/MMA schedule, but it establishes the ring-buffer structure that Step 7 will split across producer and consumer roles.</p>
-<p>Concretely, the code differs from Step 4 in four places:</p>
+<section id="id4">
+<h3>流水线走查<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>设 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code>,内核分配两个 SMEM 流水级,给加载通路和 MMA 通路各自独立的工作槽位。</p>
+<p>请把下图当作两级缓冲意在支撑的流水线结构来读,而不是这个单 warpgroup 内核的精确执行轨迹。Step 5 建好了环形缓冲并预取更后面的流水级,但主循环在派发下一次 TMA 加载之前仍然要等待当前 MMA。完整的加载/计算重叠要到 Step 7 才到来,届时 warp specialization 给 TMA 和 MMA 赋予了各自独立的角色。</p>
+<p><img alt="Pipeline PIPE_DEPTH=2,目标调度;本单 warpgroup 步骤只做预取,完整重叠要到 Step 7 借助 warp specialization 才到来" src="../_images/pipe_depth2.png" /></p>
+<p>一旦它被灌满,循环就在两个流水级之间交替。两个 TMA 加载一开始把两个流水级都填满;此后,循环等待当前流水级、在其上跑 MMA、等待该 MMA 读完这个流水级,然后再为 <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">PIPE_DEPTH</span></code> 把加载派发进刚刚变得可复用的那个流水级。这还不是并发的 TMA/MMA 调度,但它建立了环形缓冲结构,Step 7 会把这一结构在 producer 和 consumer 角色之间拆开。</p>
+<p>具体而言,代码与 Step 4 在四处不同:</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span></code> and <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> gain a leading <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> dimension, so each stage has its own SMEM storage.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tma_bar</span></code> becomes an array with one mbarrier per stage.</p></li>
-<li><p>Before the main K loop, the kernel prefetches the first two stages.</p></li>
-<li><p>The K loop uses <code class="docutils literal notranslate"><span class="pre">stage</span> <span class="pre">=</span> <span class="pre">k</span> <span class="pre">%</span> <span class="pre">PIPE_DEPTH</span></code>: wait for the current stage, run MMA on it, then reuse that stage for <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">PIPE_DEPTH</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Asmem</span></code> 和 <code class="docutils literal notranslate"><span class="pre">Bsmem</span></code> 多出一个前导的 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> 维,所以每个流水级都有自己独立的 SMEM 存储。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tma_bar</span></code> 变成一个数组,每个流水级一个 mbarrier。</p></li>
+<li><p>在主 K 循环之前,内核预取头两个流水级。</p></li>
+<li><p>K 循环使用 <code class="docutils literal notranslate"><span class="pre">stage</span> <span class="pre">=</span> <span class="pre">k</span> <span class="pre">%</span> <span class="pre">PIPE_DEPTH</span></code>:等待当前流水级、在其上跑 MMA,然后把这个流水级复用给 <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">PIPE_DEPTH</span></code>。</p></li>
 </ol>
 </section>
-<section id="pipeline-mechanics">
-<h3>Pipeline Mechanics<a class="headerlink" href="#pipeline-mechanics" title="Link to this heading">#</a></h3>
-<p><strong>1. Prefetch</strong>: before the main loop ever runs, we load the first <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> stages, so that the loop always finds data waiting for it on the very first iteration:</p>
+<section id="id5">
+<h3>流水线机制<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p><strong>1. 预取</strong>:在主循环真正运行之前,我们加载头 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> 个流水级,这样循环在第一次迭代时就能找到等在那里的数据:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">K_TILES</span><span class="p">)):</span>
     <span class="n">tma_load</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>2. Main loop</strong>: for each K tile we wait for its stage to be ready, run MMA on it, and then immediately put that now-free stage back to work by launching the load for the tile <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> ahead:</p>
+<p><strong>2. 主循环</strong>:对每一个 K 分块,我们等它的流水级就绪、在其上跑 MMA,然后立刻把这个现已空闲的流水级重新派上用场——为 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> 之后的那个分块派发加载:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stage</span> <span class="o">=</span> <span class="n">k</span> <span class="o">%</span> <span class="n">PIPE_DEPTH</span>
 <span class="n">wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span> <span class="n">phase_tma</span><span class="p">)</span>
 <span class="n">mma</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">accum</span><span class="p">)</span>
@@ -637,16 +634,16 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 <span class="n">tma_load</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">next_k</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>3. Phase management</strong>: this is the part that trips people up, but the rule is simpler than it first appears. The phase-flip rule for each barrier follows directly from how many slots that barrier has, which is why the two barriers flip on different cadences. The MMA accumulator lives in one TMEM slot, so <code class="docutils literal notranslate"><span class="pre">mma_bar</span></code> is a single barrier (<code class="docutils literal notranslate"><span class="pre">mma_bar.ptr_to([0])</span></code>) that every iteration revisits, and a barrier you revisit every iteration must have its phase flipped every iteration. The TMA barriers tell a different story: they form a <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code>-element array with one barrier per stage, and any given stage’s barrier only comes back around once per trip through the ring. So <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> flips only when the stage index wraps back to 0:</p>
+<p><strong>3. 相位管理</strong>:这部分最容易绊倒人,但规则比乍看上去要简单。每个屏障的相位翻转规则,直接来源于该屏障有多少个槽位,这也是为什么两个屏障以不同的节奏翻转。MMA 累加器住在一个 TMEM 槽位里,所以 <code class="docutils literal notranslate"><span class="pre">mma_bar</span></code> 是一个每次迭代都要重访的单屏障(<code class="docutils literal notranslate"><span class="pre">mma_bar.ptr_to([0])</span></code>),而一个你每次迭代都要重访的屏障,必须每次迭代都翻转相位。TMA 屏障讲的则是另一个故事:它们构成一个 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH</span></code> 元素的数组,每个流水级一个屏障,而任一给定流水级的屏障在一圈环形里只回来一次。所以 <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> 只在流水级索引绕回 0 时才翻转:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">PIPE_DEPTH</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
     <span class="n">phase_tma</span> <span class="o">^=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p><strong>Try with your agent</strong>: With <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> and <code class="docutils literal notranslate"><span class="pre">K_TILES=5</span></code>, ask it to trace the main loop. For each <code class="docutils literal notranslate"><span class="pre">k</span></code>, list <code class="docutils literal notranslate"><span class="pre">stage</span></code>, the <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> and <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> values passed to the waits, and whether a new prefetch is issued. Where exactly does <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> flip, and why is there no prefetch for the last two iterations?</p>
+<p><strong>和你的 agent 一起试</strong>:设 <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> 且 <code class="docutils literal notranslate"><span class="pre">K_TILES=5</span></code>,让它追踪主循环。对每个 <code class="docutils literal notranslate"><span class="pre">k</span></code>,列出 <code class="docutils literal notranslate"><span class="pre">stage</span></code>、传给各次等待的 <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> 和 <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> 值,以及是否派发了新的预取。<code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> 到底在哪里翻转,为什么最后两次迭代没有预取?</p>
 </section>
-<section id="id1">
-<h3>Complete Kernel<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
-<p>The complete kernel keeps the Step 4 TMA load and store path verbatim, then wraps it in the staged buffers and phase logic we just described. The imports are unchanged:</p>
+<section id="id6">
+<h3>完整内核<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>完整内核逐字保留 Step 4 的 TMA 加载和存储通路,再把它们包进我们刚才描述的分级缓冲和相位逻辑里。导入语句不变:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tvm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.script</span><span class="w"> </span><span class="kn">import</span> <span class="n">tirx</span> <span class="k">as</span> <span class="n">T</span>
@@ -655,7 +652,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.cuda.operator.tile_primitive.tma_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">tma_shared_layout</span><span class="p">,</span> <span class="n">SwizzleMode</span>
 </pre></div>
 </div>
-<p>It is wrapped in <code class="docutils literal notranslate"><span class="pre">hgemm_v5(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code>. The <code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> constant sets the number of pipeline stages (two of them here, which is exactly double buffering):</p>
+<p>它被包在 <code class="docutils literal notranslate"><span class="pre">hgemm_v5(M,</span> <span class="pre">N,</span> <span class="pre">K)</span></code> 里。<code class="docutils literal notranslate"><span class="pre">PIPE_DEPTH=2</span></code> 常量设定流水级的数量(这里是两个,恰好就是双缓冲):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PIPE_DEPTH</span> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">hgemm_v5</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
@@ -667,7 +664,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
     <span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span> <span class="n">BLK_K</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span>
     <span class="n">K_TILES</span> <span class="o">=</span> <span class="n">K</span> <span class="o">//</span> <span class="n">BLK_K</span>
 
-    <span class="c1"># Double-buffered layouts: first dimension is pipeline stage</span>
+    <span class="c1"># 双缓冲布局:第一维是流水级</span>
     <span class="n">A_layout</span> <span class="o">=</span> <span class="n">tma_shared_layout</span><span class="p">(</span><span class="n">a_type</span><span class="p">,</span> <span class="n">SwizzleMode</span><span class="o">.</span><span class="n">SWIZZLE_128B_ATOM</span><span class="p">,</span>
                                   <span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_K</span><span class="p">))</span>
     <span class="n">B_layout</span> <span class="o">=</span> <span class="n">tma_shared_layout</span><span class="p">(</span><span class="n">b_type</span><span class="p">,</span> <span class="n">SwizzleMode</span><span class="o">.</span><span class="n">SWIZZLE_128B_ATOM</span><span class="p">,</span>
@@ -687,10 +684,10 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">warp_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">warp_id_in_wg</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
         <span class="n">lane_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">lane_id</span><span class="p">([</span><span class="mi">32</span><span class="p">])</span>
 
-        <span class="c1"># --- SMEM allocation ---</span>
+        <span class="c1"># --- SMEM 分配 ---</span>
         <span class="n">pool</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
         <span class="n">tmem_addr</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
-        <span class="c1"># Double-buffered TMA barriers (one per stage), single MMA barrier</span>
+        <span class="c1"># 双缓冲的 TMA 屏障(每流水级一个),单个 MMA 屏障</span>
         <span class="n">tma_bar</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="n">PIPE_DEPTH</span><span class="p">,),</span> <span class="s2">&quot;uint64&quot;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
         <span class="n">mma_bar</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint64&quot;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">move_base_to</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
@@ -699,7 +696,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">Dsmem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">),</span> <span class="n">d_type</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">D_layout</span><span class="p">)</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
-        <span class="c1"># Initialize barriers: PIPE_DEPTH for TMA, 1 for MMA</span>
+        <span class="c1"># 初始化屏障:TMA 用 PIPE_DEPTH 个,MMA 用 1 个</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">lane_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
@@ -746,36 +743,36 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 
         <span class="n">tid</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">warp_id</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">+</span> <span class="n">lane_id</span><span class="p">)</span>
 
-        <span class="c1"># === Prefetch: load first PIPE_DEPTH stages ===</span>
+        <span class="c1"># === 预取:加载头 PIPE_DEPTH 个流水级 ===</span>
         <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">K_TILES</span><span class="p">)):</span>
                 <span class="n">tma_load</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
 
-        <span class="c1"># === Main loop ===</span>
+        <span class="c1"># === 主循环 ===</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_TILES</span><span class="p">):</span>
             <span class="n">stage</span> <span class="o">=</span> <span class="n">k</span> <span class="o">%</span> <span class="n">PIPE_DEPTH</span>
 
-            <span class="c1"># Wait for TMA to finish loading this stage</span>
+            <span class="c1"># 等待 TMA 加载完本流水级</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="n">stage</span><span class="p">]),</span> <span class="n">phase_tma</span><span class="p">)</span>
 
-            <span class="c1"># MMA on this stage&#39;s data</span>
+            <span class="c1"># 在本流水级的数据上做 MMA</span>
             <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">mma</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="p">(</span><span class="n">k</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">))</span>
 
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">phase_mma</span><span class="p">)</span>
             <span class="n">phase_mma</span> <span class="o">^=</span> <span class="mi">1</span>
 
-            <span class="c1"># Issue next prefetch load (k + PIPE_DEPTH)</span>
+            <span class="c1"># 派发下一次预取加载(k + PIPE_DEPTH)</span>
             <span class="n">next_k</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">PIPE_DEPTH</span>
             <span class="k">if</span> <span class="n">next_k</span> <span class="o">&lt;</span> <span class="n">K_TILES</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">tma_load</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">next_k</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">)</span>
 
-            <span class="c1"># TMA phase flips when stage wraps around</span>
+            <span class="c1"># 流水级绕回时 TMA 相位翻转</span>
             <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">PIPE_DEPTH</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">phase_tma</span> <span class="o">^=</span> <span class="mi">1</span>
 
-        <span class="c1"># === TMA Store Writeback: TMEM -&gt; RF -&gt; Dsmem -&gt; TMA -&gt; GMEM ===</span>
+        <span class="c1"># === TMA 存储回写:TMEM -&gt; RF -&gt; Dsmem -&gt; TMA -&gt; GMEM ===</span>
         <span class="n">Dreg</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">acc_type</span><span class="p">)</span>
         <span class="n">Dreg_f16</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">d_type</span><span class="p">)</span>
         <span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span>
@@ -794,7 +791,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">cp_async</span><span class="o">.</span><span class="n">bulk</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">warpgroup_sync</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 
-        <span class="c1"># Deallocate TMEM</span>
+        <span class="c1"># 释放 TMEM</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">relinquish_alloc_permit</span><span class="p">(</span><span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -805,38 +802,38 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </div>
 </section>
 </section>
-<section id="step-6-persistent-kernel-tile-scheduler">
-<span id="chap-persistent-kernel"></span><h2>Step 6: Persistent Kernel + Tile Scheduler<a class="headerlink" href="#step-6-persistent-kernel-tile-scheduler" title="Link to this heading">#</a></h2>
-<p>Everything up to now has optimized the work inside a single tile. Step 6 changes the scale of the question and optimizes across tiles.</p>
-<p>Step 5 launches one CTA per 128 x 128 output tile. For a 4096 x 4096 output, that means 1024 separate CTAs, each paying its own setup cost and then vanishing the moment its tile is done.</p>
-<p>Step 6 launches a fixed pool of CTAs instead, then asks each CTA to process many tiles in turn. This buys us two things: setup work is amortized across several tiles, and tile assignment moves inside the kernel, where the scheduler can choose an order that reuses operands. We remain at the full M=N=K=4096 size.</p>
+<section id="step-6">
+<span id="chap-persistent-kernel"></span><h2>Step 6:持久化内核 + 分块调度器<a class="headerlink" href="#step-6" title="Link to this heading">#</a></h2>
+<p>到目前为止的一切,都只是在优化单个分块内部的工作。Step 6 改变问题的尺度,改为跨分块进行优化。</p>
+<p>Step 5 为每个 128 x 128 的输出分块启动一个 CTA。对一个 4096 x 4096 的输出,这意味着 1024 个独立的 CTA,每个都要付出各自的启动开销,然后在自己的分块一做完就消失。</p>
+<p>Step 6 则启动一个固定数量的 CTA 池,再让每个 CTA 依次处理多个分块。这给我们换来两样东西:启动工作被摊薄到多个分块上,而分块指派搬进了内核内部——在这里调度器可以挑选一个能复用操作数的顺序。我们仍然跑在完整的 M=N=K=4096 规模上。</p>
 <blockquote>
-<div><p><strong>What this step changes: Scope</strong></p>
+<div><p><strong>本步改变的是:Scope</strong></p>
 <ul class="simple">
-<li><p>Scope: a fixed pool of persistent CTAs, each looping over many output tiles via the scheduler.</p></li>
-<li><p>Layout: unchanged, the same per-tile SMEM/TMEM/register path.</p></li>
-<li><p>Dispatch: unchanged.</p></li>
+<li><p>Scope:一个固定数量的持久化 CTA 池,每个 CTA 通过调度器循环处理多个输出分块。</p></li>
+<li><p>Layout:不变,沿用相同的按分块的 SMEM/TMEM/寄存器通路。</p></li>
+<li><p>Dispatch:不变。</p></li>
 </ul>
 </div></blockquote>
-<section id="persistent-scheduling">
-<h3>Persistent Scheduling<a class="headerlink" href="#persistent-scheduling" title="Link to this heading">#</a></h3>
-<p>The defining idea of a persistent kernel is that it sizes its grid to the hardware rather than to the problem. It launches <code class="docutils literal notranslate"><span class="pre">SM_COUNT</span></code> CTAs, roughly one per SM, no matter how many output tiles there happen to be, with the aim of keeping each SM continuously occupied. We say “roughly” deliberately: exact 1:1 residency is not guaranteed, since it depends on occupancy and on how the hardware chooses to schedule CTAs.</p>
-<p>On the B200 we are targeting here, <code class="docutils literal notranslate"><span class="pre">SM_COUNT=148</span></code>. Each of those 148 CTAs loops over the tiles handed to it by <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code>.</p>
-<p>The first payoff is amortization. TMEM allocation, barrier initialization, and scheduler state now happen once per CTA and are reused across the roughly 7 tiles that CTA handles, rather than being repeated 1024 times across throwaway CTAs.</p>
-<p>The second payoff comes from the order the scheduler picks. Setting <code class="docutils literal notranslate"><span class="pre">l2_group_size=8</span></code> groups nearby tiles together, so tiles sharing a row band reuse the same A row-tiles, and tiles sharing a column band reuse the same B tiles. Running those tiles back-to-back keeps the operands hot in L2 instead of re-fetching them from HBM. This is exactly the reuse that Step 3 left on the table.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bx</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">SM_COUNT</span><span class="p">])</span>  <span class="c1"># 1D grid, one CTA per SM</span>
+<section id="id7">
+<h3>持久化调度<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>持久化内核的定义性想法,是把自己的网格尺寸对齐硬件,而不是对齐问题本身。它启动 <code class="docutils literal notranslate"><span class="pre">SM_COUNT</span></code> 个 CTA,大致每个 SM 一个,而不管恰好有多少个输出分块,目的是让每个 SM 持续被占满。我们特意说”大致”:精确的 1:1 占用并不保证,因为它取决于占用率以及硬件如何选择调度 CTA。</p>
+<p>在我们此处作为目标的 B200 上,<code class="docutils literal notranslate"><span class="pre">SM_COUNT=148</span></code>。这 148 个 CTA 中的每一个,都在循环处理由 <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code> 交给它的分块。</p>
+<p>第一份回报来自摊薄。TMEM 分配、屏障初始化以及调度器状态,现在每个 CTA 只发生一次,并在该 CTA 处理的那大约 7 个分块上复用,而不是在 1024 个用完即弃的 CTA 上被重复 1024 次。</p>
+<p>第二份回报来自调度器挑选的顺序。设 <code class="docutils literal notranslate"><span class="pre">l2_group_size=8</span></code> 把相邻分块成组,使得共享同一行带的分块复用相同的 A 行分块,共享同一列带的分块复用相同的 B 分块。把这些分块背靠背地跑,就让操作数在 L2 里保持热,而不是从 HBM 里重新取。这恰好就是 Step 3 留在桌上的那份复用。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bx</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">SM_COUNT</span><span class="p">])</span>  <span class="c1"># 一维网格,每个 SM 一个 CTA</span>
 
 <span class="n">tile_scheduler</span> <span class="o">=</span> <span class="n">ClusterPersistentScheduler2D</span><span class="p">(</span>
     <span class="s2">&quot;ts&quot;</span><span class="p">,</span>
     <span class="n">num_m_tiles</span><span class="o">=</span><span class="n">M</span> <span class="o">//</span> <span class="n">BLK_M</span><span class="p">,</span>
     <span class="n">num_n_tiles</span><span class="o">=</span><span class="n">N</span> <span class="o">//</span> <span class="n">BLK_N</span><span class="p">,</span>
-    <span class="n">l2_group_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>       <span class="c1"># Group 8 nearby tiles together</span>
+    <span class="n">l2_group_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>       <span class="c1"># 把相邻 8 个分块成组</span>
     <span class="n">num_clusters</span><span class="o">=</span><span class="n">SM_COUNT</span>
 <span class="p">)</span>
 <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">bx</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Looping over tiles brings one correctness consequence that is easy to miss. Each tile runs its own fresh K-loop, which means its barrier phases have to start from a known state. In Step 5 a CTA handled exactly one tile, so initializing <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> and <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> a single time was perfectly fine. In Step 6 those initializers must move <em>inside</em> the <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">tile_scheduler.valid()</span></code> loop, so that each tile begins with phase state matched to its own TMA and MMA work, rather than inheriting whatever the previous tile happened to leave behind:</p>
+<p>跨分块循环会带来一个容易忽视的正确性后果。每个分块都运行自己全新的 K 循环,这意味着它的屏障相位必须从一个已知状态开始。在 Step 5 里,一个 CTA 恰好只处理一个分块,所以把 <code class="docutils literal notranslate"><span class="pre">phase_tma</span></code> 和 <code class="docutils literal notranslate"><span class="pre">phase_mma</span></code> 初始化一次完全没问题。在 Step 6 里,这些初始化必须移到 <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">tile_scheduler.valid()</span></code> 循环<em>内部</em>,好让每个分块都以匹配自身 TMA 和 MMA 工作的相位状态开始,而不是继承上一个分块恰好留下来的状态:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">valid</span><span class="p">():</span>
     <span class="n">phase_tma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">phase_mma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
@@ -844,9 +841,9 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </pre></div>
 </div>
 </section>
-<section id="id2">
-<h3>Complete Kernel<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
-<p>Structurally, the kernel is nothing more than Step 5’s pipeline wrapped in a tile-level outer loop. The only new dependency is the scheduler itself, which we import alongside the rest:</p>
+<section id="id8">
+<h3>完整内核<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>在结构上,这个内核无非就是把 Step 5 的流水线包进一个分块级别的外层循环里。唯一的新依赖是调度器本身,我们把它和其余导入一起引入:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tvm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.script</span><span class="w"> </span><span class="kn">import</span> <span class="n">tirx</span> <span class="k">as</span> <span class="n">T</span>
@@ -856,8 +853,8 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 <span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx.lang.tile_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClusterPersistentScheduler2D</span>
 </pre></div>
 </div>
-<p>The grid dimension is now simply <code class="docutils literal notranslate"><span class="pre">SM_COUNT</span></code> rather than <code class="docutils literal notranslate"><span class="pre">(M//BLK_M,</span> <span class="pre">N//BLK_N)</span></code>, and a <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code> takes over the job of handing each CTA its tiles:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SM_COUNT</span> <span class="o">=</span> <span class="mi">148</span>  <span class="c1"># Number of SMs on NVIDIA B200 GPU</span>
+<p>网格维度现在直接就是 <code class="docutils literal notranslate"><span class="pre">SM_COUNT</span></code>,而不再是 <code class="docutils literal notranslate"><span class="pre">(M//BLK_M,</span> <span class="pre">N//BLK_N)</span></code>,并且一个 <code class="docutils literal notranslate"><span class="pre">ClusterPersistentScheduler2D</span></code> 接手了把分块派发给各 CTA 的工作:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SM_COUNT</span> <span class="o">=</span> <span class="mi">148</span>  <span class="c1"># NVIDIA B200 GPU 上的 SM 数量</span>
 <span class="n">PIPE_DEPTH</span> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">hgemm_v6</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
@@ -883,13 +880,13 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">D</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">Buffer</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">d_type</span><span class="p">),</span>
     <span class="p">):</span>
         <span class="n">T</span><span class="o">.</span><span class="n">device_entry</span><span class="p">()</span>
-        <span class="c1"># 1D grid: one CTA per SM (not a 2D grid anymore!)</span>
+        <span class="c1"># 一维网格:每个 SM 一个 CTA(不再是二维网格!)</span>
         <span class="n">bx</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">cta_id</span><span class="p">([</span><span class="n">SM_COUNT</span><span class="p">])</span>
         <span class="n">wg_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">warpgroup_id</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">warp_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">warp_id_in_wg</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
         <span class="n">lane_id</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">lane_id</span><span class="p">([</span><span class="mi">32</span><span class="p">])</span>
 
-        <span class="c1"># --- SMEM allocation (same as Step 5) ---</span>
+        <span class="c1"># --- SMEM 分配(同 Step 5)---</span>
         <span class="n">pool</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">SMEMPool</span><span class="p">()</span>
         <span class="n">tmem_addr</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
         <span class="n">tma_bar</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="n">PIPE_DEPTH</span><span class="p">,),</span> <span class="s2">&quot;uint64&quot;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
@@ -900,7 +897,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
         <span class="n">Dsmem</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">alloc</span><span class="p">((</span><span class="n">BLK_M</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">),</span> <span class="n">d_type</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">D_layout</span><span class="p">)</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
-        <span class="c1"># --- Barrier + TMEM init (same as Step 5) ---</span>
+        <span class="c1"># --- 屏障与 TMEM 初始化(同 Step 5)---</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">lane_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">):</span>
@@ -916,7 +913,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
             <span class="n">layout</span><span class="o">=</span><span class="n">TileLayout</span><span class="p">(</span><span class="n">S</span><span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="nd">@TLane</span><span class="p">,</span> <span class="mi">1</span><span class="nd">@TCol</span><span class="p">)])</span>
         <span class="p">)</span>
 
-        <span class="c1"># Tile scheduler: assigns tiles to CTAs in L2-friendly order</span>
+        <span class="c1"># 分块调度器:以对 L2 友好的顺序把分块派给各 CTA</span>
         <span class="n">tile_scheduler</span> <span class="o">=</span> <span class="n">ClusterPersistentScheduler2D</span><span class="p">(</span>
             <span class="s2">&quot;ts&quot;</span><span class="p">,</span>
             <span class="n">num_m_tiles</span><span class="o">=</span><span class="n">M</span> <span class="o">//</span> <span class="n">BLK_M</span><span class="p">,</span>
@@ -950,22 +947,22 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
                           <span class="n">accum</span><span class="o">=</span><span class="n">accum</span><span class="p">,</span> <span class="n">dispatch</span><span class="o">=</span><span class="s2">&quot;tcgen05&quot;</span><span class="p">,</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">mma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># === Outer loop: iterate over tiles ===</span>
+        <span class="c1"># === 外层循环:遍历分块 ===</span>
         <span class="k">while</span> <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">valid</span><span class="p">():</span>
-            <span class="c1"># Get current tile position from scheduler</span>
+            <span class="c1"># 从调度器取当前分块位置</span>
             <span class="n">m_st</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">tile_scheduler</span><span class="o">.</span><span class="n">m_idx</span> <span class="o">*</span> <span class="n">BLK_M</span><span class="p">)</span>
             <span class="n">n_st</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="n">tile_scheduler</span><span class="o">.</span><span class="n">n_idx</span> <span class="o">*</span> <span class="n">BLK_N</span><span class="p">)</span>
 
-            <span class="c1"># === Inner loop: same pipeline as Step 5 ===</span>
+            <span class="c1"># === 内层循环:同 Step 5 的流水线 ===</span>
             <span class="n">phase_tma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">phase_mma</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="c1"># Prefetch first PIPE_DEPTH stages</span>
+            <span class="c1"># 预取头 PIPE_DEPTH 个流水级</span>
             <span class="k">if</span> <span class="n">tid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">PIPE_DEPTH</span><span class="p">,</span> <span class="n">K_TILES</span><span class="p">)):</span>
                     <span class="n">tma_load</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">*</span> <span class="n">BLK_K</span><span class="p">,</span> <span class="n">m_st</span><span class="p">,</span> <span class="n">n_st</span><span class="p">)</span>
 
-            <span class="c1"># Main K-loop</span>
+            <span class="c1"># 主 K 循环</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_TILES</span><span class="p">):</span>
                 <span class="n">stage</span> <span class="o">=</span> <span class="n">k</span> <span class="o">%</span> <span class="n">PIPE_DEPTH</span>
                 <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">mbarrier</span><span class="o">.</span><span class="n">try_wait</span><span class="p">(</span><span class="n">tma_bar</span><span class="o">.</span><span class="n">ptr_to</span><span class="p">([</span><span class="n">stage</span><span class="p">]),</span> <span class="n">phase_tma</span><span class="p">)</span>
@@ -980,7 +977,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
                 <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">PIPE_DEPTH</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">phase_tma</span> <span class="o">^=</span> <span class="mi">1</span>
 
-            <span class="c1"># === TMA Store Writeback: TMEM -&gt; RF -&gt; Dsmem -&gt; TMA -&gt; GMEM ===</span>
+            <span class="c1"># === TMA 存储回写:TMEM -&gt; RF -&gt; Dsmem -&gt; TMA -&gt; GMEM ===</span>
             <span class="n">Dreg</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">acc_type</span><span class="p">)</span>
             <span class="n">Dreg_f16</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">alloc_local</span><span class="p">((</span><span class="n">BLK_N</span><span class="p">,),</span> <span class="n">d_type</span><span class="p">)</span>
             <span class="n">Dreg_wg</span> <span class="o">=</span> <span class="n">Dreg</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">BLK_N</span><span class="p">,</span>
@@ -1000,9 +997,9 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
             <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">warpgroup_sync</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 
             <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
-            <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">next_tile</span><span class="p">()</span>  <span class="c1"># Move to next tile</span>
+            <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">next_tile</span><span class="p">()</span>  <span class="c1"># 移到下一个分块</span>
 
-        <span class="c1"># Deallocate TMEM</span>
+        <span class="c1"># 释放 TMEM</span>
         <span class="n">T</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">cta_sync</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">warp_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">relinquish_alloc_permit</span><span class="p">(</span><span class="n">cta_group</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1013,12 +1010,12 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
 </div>
 </section>
 </section>
-<section id="exercises">
-<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>练习<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>In Step 4, <code class="docutils literal notranslate"><span class="pre">arrive.expect_tx</span></code> uses <code class="docutils literal notranslate"><span class="pre">(BLK_M</span> <span class="pre">*</span> <span class="pre">BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N</span> <span class="pre">*</span> <span class="pre">BLK_K)</span> <span class="pre">*</span> <span class="pre">2</span></code> bytes. What does the mbarrier wait for if this byte count is too small or too large?</p></li>
-<li><p>In Step 5, why does each SMEM stage need its own TMA barrier instead of sharing one <code class="docutils literal notranslate"><span class="pre">tma_bar</span></code> for both stages?</p></li>
-<li><p>In Step 6, a 4096 x 4096 output with <code class="docutils literal notranslate"><span class="pre">BLK_M=BLK_N=128</span></code> has how many output tiles? With <code class="docutils literal notranslate"><span class="pre">SM_COUNT=148</span></code>, how many tiles does each persistent CTA process on average?</p></li>
+<li><p>在 Step 4 里,<code class="docutils literal notranslate"><span class="pre">arrive.expect_tx</span></code> 用了 <code class="docutils literal notranslate"><span class="pre">(BLK_M</span> <span class="pre">*</span> <span class="pre">BLK_K</span> <span class="pre">+</span> <span class="pre">BLK_N</span> <span class="pre">*</span> <span class="pre">BLK_K)</span> <span class="pre">*</span> <span class="pre">2</span></code> 字节。如果这个字节数太小或太大,mbarrier 会等待什么?</p></li>
+<li><p>在 Step 5 里,为什么每个 SMEM 流水级需要自己独立的 TMA 屏障,而不是两个流水级共用一个 <code class="docutils literal notranslate"><span class="pre">tma_bar</span></code>?</p></li>
+<li><p>在 Step 6 里,一个 4096 x 4096 的输出,在 <code class="docutils literal notranslate"><span class="pre">BLK_M=BLK_N=128</span></code> 下有多少个输出分块?在 <code class="docutils literal notranslate"><span class="pre">SM_COUNT=148</span></code> 时,每个持久化 CTA 平均处理多少个分块?</p></li>
 </ol>
 </section>
 </section>
@@ -1040,7 +1037,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Building a Tiled GEMM</p>
+        <p class="prev-next-title">构建分块 GEMM</p>
       </div>
     </a>
     <a class="right-next"
@@ -1048,7 +1045,7 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Scaling GEMM with Warp Specialization and Clusters</p>
+        <p class="prev-next-title">用线程束特化与集群扩展 GEMM</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1070,25 +1067,25 @@ thread, not an <code class="docutils literal notranslate"><span class="pre">elec
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-tma-async-load">Step 4: TMA Async Load</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-issue-pattern">TMA Issue Pattern</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-load-and-store-synchronization">TMA Load and Store Synchronization</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-kernel">Complete Kernel</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma-configuration-in-the-kernel">TMA Configuration in the Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-tma">Step 4:TMA 异步加载</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tma">TMA 的派发模式</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">TMA 加载与存储的同步</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">完整内核</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">内核里的 TMA 配置</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-software-pipeline-pipe-depth-2">Step 5: Software Pipeline (PIPE_DEPTH=2)</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-walkthrough">Pipeline Walkthrough</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-mechanics">Pipeline Mechanics</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Complete Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-pipe-depth-2">Step 5:软件流水线(PIPE_DEPTH=2)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">流水线走查</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">流水线机制</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">完整内核</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-persistent-kernel-tile-scheduler">Step 6: Persistent Kernel + Tile Scheduler</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#persistent-scheduling">Persistent Scheduling</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Complete Kernel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6">Step 6:持久化内核 + 分块调度器</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">持久化调度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">完整内核</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">练习</a></li>
 </ul>
   </nav></div>
 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Parser utilities &#8212; Modern GPU Programming For MLSys</title>
+    <title>解析器工具 &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -53,8 +53,8 @@
     <link rel="icon" href="../../../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Data types and expressions" href="data_types.html" />
-    <link rel="prev" title="TIRx Language Reference" href="../index.html" />
+    <link rel="next" title="数据类型与表达式" href="data_types.html" />
+    <link rel="prev" title="TIRx 语言参考" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_data_layout/index.html">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tmem/index.html">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_data_layout/index.html">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tmem/index.html">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_async/index.html">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_async/index.html">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../arch/index.html">编译器内部实现</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../arch/lowering_pipeline.html">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">TIRx Language Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="control_flow.html">Control flow</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">TIRx 语言参考</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2"><a class="reference internal" href="control_flow.html">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Parser utilities</h1>
+    <h1>解析器工具</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -338,9 +338,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-inline-a-python-value"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline-inline-functions"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> — inline functions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class-parser-side-state-objects"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> — parser-side state objects</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-python"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> —— 内联一个 Python 值</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> —— 内联函数</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> —— 解析器侧状态对象</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-constexpr"><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code></a></li>
 </ul>
             </nav>
@@ -353,41 +353,32 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="parser-utilities">
-<h1>Parser utilities<a class="headerlink" href="#parser-utilities" title="Link to this heading">#</a></h1>
-<p>A few helpers act at <strong>parse time</strong> (when TVMScript is turned into TIRx), letting
-you inline Python-computed values, factor out reusable fragments, and bundle
-parser-side state.</p>
-<section id="t-meta-var-inline-a-python-value">
-<h2><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value<a class="headerlink" href="#t-meta-var-inline-a-python-value" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">T.meta_var(x)</span></code> tells the parser to treat <code class="docutils literal notranslate"><span class="pre">x</span></code> — a value computed in <strong>Python</strong> —
-as a compile-time <em>meta</em> value and inline it directly into the IR, rather than
-parse it as a script variable. It avoids a throwaway local, and it drives
-metaprogramming: a plain Python <code class="docutils literal notranslate"><span class="pre">for</span></code> over a meta value unrolls in the parser.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>              <span class="c1"># n is a Python int, inlined</span>
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>            <span class="c1"># unrolled at parse time</span>
+  <section id="id1">
+<h1>解析器工具<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>少数几个辅助工具作用于**解析期**(即 TVMScript 被转换为 TIRx 的时刻),让你可以内联 Python 计算出的值、抽离可复用片段,并把解析器侧的状态打包起来。</p>
+<section id="t-meta-var-python">
+<h2><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> —— 内联一个 Python 值<a class="headerlink" href="#t-meta-var-python" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">T.meta_var(x)</span></code> 告诉解析器把 <code class="docutils literal notranslate"><span class="pre">x</span></code>——一个在 <strong>Python</strong> 中算出的值——当作一个编译期 <em>meta</em> 值,直接内联进 IR,而不是把它当作脚本变量来解析。它避免了那种用完即弃的临时局部变量,并驱动元编程:一个普通的 Python <code class="docutils literal notranslate"><span class="pre">for</span></code> 遍历某个 meta 值时会在解析器中展开。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">meta_var</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>              <span class="c1"># n 是一个 Python int,被内联</span>
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>            <span class="c1"># 解析期展开</span>
     <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
-<section id="t-inline-inline-functions">
-<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> — inline functions<a class="headerlink" href="#t-inline-inline-functions" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> defines a function whose body is <strong>inlined at each call site</strong> during
-parsing — no call appears in the generated code. It follows Python’s lexical (LEGB)
-scoping with late binding, so a parameter shadows an enclosing variable:</p>
+<section id="t-inline">
+<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> —— 内联函数<a class="headerlink" href="#t-inline" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;T.inline</span></code> 定义一个函数,其函数体在解析期间**在每个调用点被内联**——生成的代码中不会出现调用。它遵循 Python 的词法(LEGB)作用域与延迟绑定,因此参数会遮蔽外层变量:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@T</span><span class="o">.</span><span class="n">inline</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_into</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span>
 
-<span class="n">add_into</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>       <span class="c1"># inlined -&gt; acc[0] = acc[0] + A[tx, j]</span>
+<span class="n">add_into</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>       <span class="c1"># 内联 -&gt; acc[0] = acc[0] + A[tx, j]</span>
 </pre></div>
 </div>
 </section>
-<section id="t-meta-class-parser-side-state-objects">
-<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> — parser-side state objects<a class="headerlink" href="#t-meta-class-parser-side-state-objects" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> marks a plain Python class whose <strong>instances are parser meta
-values</strong>: their fields can hold buffers and scalars, so you can bundle related
-allocations and state into one object and use it in the kernel body.</p>
+<section id="t-meta-class">
+<h2><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> —— 解析器侧状态对象<a class="headerlink" href="#t-meta-class" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;T.meta_class</span></code> 标记一个普通 Python 类,其**实例就是解析器的 meta 值**:它们的字段可以持有 buffer 和标量,所以你可以把相关的分配与状态打包进一个对象,并在内核体中使用它。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@T</span><span class="o">.</span><span class="n">meta_class</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smem</span><span class="p">):</span>
@@ -395,17 +386,15 @@ allocations and state into one object and use it in the kernel body.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">decl_buffer</span><span class="p">([</span><span class="mi">64</span><span class="p">],</span> <span class="s2">&quot;float16&quot;</span><span class="p">,</span> <span class="n">smem</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;shared.dyn&quot;</span><span class="p">)</span>
 
 <span class="n">s</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">smem</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>     <span class="c1"># use its fields like ordinary buffers</span>
+<span class="n">s</span><span class="o">.</span><span class="n">acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>     <span class="c1"># 像普通 buffer 一样使用它的字段</span>
 <span class="c1"># ... s.buf[i] ...</span>
 </pre></div>
 </div>
-<p>This is handy for grouping a kernel’s pipeline state (barriers, accumulators,
-scratch views) instead of threading many separate locals through the body.</p>
+<p>这很适合用来把一个内核的流水线状态(barrier、累加器、临时视图)打包成一组,而不是把许多零散的局部变量穿过函数体。</p>
 </section>
 <section id="t-constexpr">
 <h2><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code><a class="headerlink" href="#t-constexpr" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code> marks a compile-time kernel parameter, baked in by <code class="docutils literal notranslate"><span class="pre">&#64;T.jit</span></code>’s
-<code class="docutils literal notranslate"><span class="pre">.specialize(...)</span></code>. See <a class="reference internal" href="../../../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">Introduction to TIRx</span></a> for the details.</p>
+<p><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code> 标记一个编译期内核参数,由 <code class="docutils literal notranslate"><span class="pre">&#64;T.jit</span></code> 的 <code class="docutils literal notranslate"><span class="pre">.specialize(...)</span></code> 烘焙进来。细节见 <a class="reference internal" href="../../../chapter_intro_tirx/index.html#chap-tirx-primer"><span class="std std-ref">TIRx 简介</span></a>。</p>
 </section>
 </section>
 
@@ -426,7 +415,7 @@ scratch views) instead of threading many separate locals through the body.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">TIRx Language Reference</p>
+        <p class="prev-next-title">TIRx 语言参考</p>
       </div>
     </a>
     <a class="right-next"
@@ -434,7 +423,7 @@ scratch views) instead of threading many separate locals through the body.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Data types and expressions</p>
+        <p class="prev-next-title">数据类型与表达式</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -456,9 +445,9 @@ scratch views) instead of threading many separate locals through the body.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-inline-a-python-value"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> — inline a Python value</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline-inline-functions"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> — inline functions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class-parser-side-state-objects"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> — parser-side state objects</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-var-python"><code class="docutils literal notranslate"><span class="pre">T.meta_var</span></code> —— 内联一个 Python 值</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-inline"><code class="docutils literal notranslate"><span class="pre">@T.inline</span></code> —— 内联函数</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-meta-class"><code class="docutils literal notranslate"><span class="pre">@T.meta_class</span></code> —— 解析器侧状态对象</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#t-constexpr"><code class="docutils literal notranslate"><span class="pre">T.constexpr</span></code></a></li>
 </ul>
   </nav></div>

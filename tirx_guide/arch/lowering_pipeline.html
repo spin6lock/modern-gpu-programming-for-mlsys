@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>TIRx lowering pipeline &#8212; Modern GPU Programming For MLSys</title>
+    <title>TIRx 降级流水线 &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -53,8 +53,8 @@
     <link rel="icon" href="../../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="TIRx Language Reference" href="../language_reference/index.html" />
-    <link rel="prev" title="Compiler Internals" href="index.html" />
+    <link rel="next" title="TIRx 语言参考" href="../language_reference/index.html" />
+    <link rel="prev" title="编译器内部实现" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_data_layout/index.html">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_tmem/index.html">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_data_layout/index.html">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_tmem/index.html">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_async/index.html">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_async/index.html">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Compiler Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">编译器内部实现</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../language_reference/index.html">TIRx 语言参考</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/parser_utils.html">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/control_flow.html">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>TIRx lowering pipeline</h1>
+    <h1>TIRx 降级流水线</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -338,11 +338,11 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-it-sits">Where it sits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-passes">The passes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inside-lowertirx">Inside LowerTIRx</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-worked-example">A worked example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproduce-it-yourself">Reproduce it yourself</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">它的位置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pass">各 pass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lowertirx">LowerTIRx 内部</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">一个完整示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">自己复现一遍</a></li>
 </ul>
             </nav>
         </div>
@@ -354,31 +354,26 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="tirx-lowering-pipeline">
-<h1>TIRx lowering pipeline<a class="headerlink" href="#tirx-lowering-pipeline" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">tvm.compile(mod,</span> <span class="pre">target,</span> <span class="pre">tir_pipeline=&quot;tirx&quot;)</span></code> runs an authored TIRx module
-through the <strong>tirx pipeline</strong> — an ordered sequence of TIR passes that turns the
-high-level constructs you write (tile primitives, <code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>-typed buffers,
-execution-scope ids) into split <strong>host</strong> + <strong>device</strong> functions, which the CUDA
-backend then renders to source. The pipeline is defined in
-<code class="docutils literal notranslate"><span class="pre">python/tvm/tirx/compilation_pipeline.py</span></code> (<code class="docutils literal notranslate"><span class="pre">tirx_pipeline</span></code>); this page walks the
-passes in order.</p>
-<section id="where-it-sits">
-<h2>Where it sits<a class="headerlink" href="#where-it-sits" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">tvm.compile</span></code> first binds the target, runs the <strong>tirx pipeline</strong> (the module-level
-passes below), then applies <strong>finalization</strong> passes separately to the host and
-device functions, and finally hands each device function to the CUDA code
-generator:</p>
+  <section id="tirx">
+<h1>TIRx 降级流水线<a class="headerlink" href="#tirx" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">tvm.compile(mod,</span> <span class="pre">target,</span> <span class="pre">tir_pipeline=&quot;tirx&quot;)</span></code> 会将一个手写的 TIRx 模块送入
+<strong>tirx pipeline</strong>——一条有序的 TIR pass 序列，它把你编写的高层构造（tile 原语、
+<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> 类型的 buffer、执行作用域 id）转换成拆分后的 <strong>host</strong> + <strong>device</strong> 函数，再由
+CUDA 后端渲染成源代码。该流水线定义于
+<code class="docutils literal notranslate"><span class="pre">python/tvm/tirx/compilation_pipeline.py</span></code> (<code class="docutils literal notranslate"><span class="pre">tirx_pipeline</span></code> ）；本页按顺序逐个介绍这些 pass。</p>
+<section id="id1">
+<h2>它的位置<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tvm.compile</span></code> 先绑定 target，运行 <strong>tirx pipeline</strong> (下面的模块级 pass），然后分别对 host 和
+device 函数应用 <strong>finalization</strong> (收尾）pass，最后把每个 device 函数交给 CUDA 代码生成器：</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>authored TIRx  ──BindTarget──▶  tirx_pipeline  ──▶  host func  ──host finalize──▶  C/LLVM
                                       │
                                       └──────────▶  device func ──device finalize──▶  CUDA
 </pre></div>
 </div>
 </section>
-<section id="the-passes">
-<h2>The passes<a class="headerlink" href="#the-passes" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">tirx_pipeline</span></code> module pass applies this exact sequence (a few are gated by
-<code class="docutils literal notranslate"><span class="pre">PassContext</span></code> config):</p>
+<section id="pass">
+<h2>各 pass<a class="headerlink" href="#pass" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tirx_pipeline</span></code> 模块 pass 按如下确切顺序执行（少数几个受 <code class="docutils literal notranslate"><span class="pre">PassContext</span></code> 配置控制）：</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 6.0%" />
@@ -388,119 +383,118 @@ generator:</p>
 <thead>
 <tr class="row-odd"><th class="head"><p>#</p></th>
 <th class="head"><p>Pass</p></th>
-<th class="head"><p>What it does</p></th>
+<th class="head"><p>作用</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LowerTIRx</span></code></p></td>
-<td><p>the core lowering — see <a class="reference internal" href="#inside-lowertirx">Inside LowerTIRx</a> below</p></td>
+<td><p>核心降级——见下文 Inside LowerTIRx</p></td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UnifyThreadBinding</span></code></p></td>
-<td><p>merges equivalent thread-axis bindings so each <code class="docutils literal notranslate"><span class="pre">threadIdx</span></code> / <code class="docutils literal notranslate"><span class="pre">blockIdx</span></code>
-axis is declared once</p></td>
+<td><p>合并等价的线程轴绑定，使得每个 <code class="docutils literal notranslate"><span class="pre">threadIdx</span></code> / <code class="docutils literal notranslate"><span class="pre">blockIdx</span></code>
+轴只声明一次</p></td>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">StmtSimplify</span></code></p></td>
-<td><p>statement-level arithmetic simplification (the arith analyzer)</p></td>
+<td><p>语句级算术化简（arith analyzer）</p></td>
 </tr>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LowerTIRxOpaque</span></code></p></td>
-<td><p>lowers remaining opaque TIRx constructs to plain TIR</p></td>
+<td><p>把剩余的不透明 TIRx 构造降级为普通 TIR</p></td>
 </tr>
 <tr class="row-even"><td><p>5</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FlattenBuffer</span></code></p></td>
-<td><p>flattens multi-dimensional <code class="docutils literal notranslate"><span class="pre">BufferLoad</span></code> / <code class="docutils literal notranslate"><span class="pre">BufferStore</span></code> to 1-D</p></td>
+<td><p>把多维 <code class="docutils literal notranslate"><span class="pre">BufferLoad</span></code> / <code class="docutils literal notranslate"><span class="pre">BufferStore</span></code> 拍平为一维</p></td>
 </tr>
 <tr class="row-odd"><td><p>6</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BF16ComputeLegalize</span></code></p></td>
-<td><p>rewrites <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> compute to a legal (f32-up-cast) form</p></td>
+<td><p>把 <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> 计算改写为合法形式（上转为 f32）</p></td>
 </tr>
 <tr class="row-even"><td><p>7</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">NarrowDataType(32)</span></code></p></td>
-<td><p>narrows index/loop <code class="docutils literal notranslate"><span class="pre">PrimExpr</span></code> dtypes to 32-bit where provably safe</p></td>
+<td><p>在可证明安全的前提下，把 index/loop <code class="docutils literal notranslate"><span class="pre">PrimExpr</span></code> 的 dtype 收窄为 32 位</p></td>
 </tr>
 <tr class="row-odd"><td><p>8</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">VectorizeLoop</span></code></p></td>
-<td><p>turns <code class="docutils literal notranslate"><span class="pre">T.vectorized</span></code> loops into vector ops (skipped if
-<code class="docutils literal notranslate"><span class="pre">tir.disable_vectorize</span></code>)</p></td>
+<td><p>把 <code class="docutils literal notranslate"><span class="pre">T.vectorized</span></code> 循环转成向量操作（若
+<code class="docutils literal notranslate"><span class="pre">tir.disable_vectorize</span></code> 则跳过）</p></td>
 </tr>
 <tr class="row-even"><td><p>9</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UnrollLoop</span></code></p></td>
-<td><p>unrolls loops marked <code class="docutils literal notranslate"><span class="pre">T.unroll</span></code> (and small constant loops)</p></td>
+<td><p>展开标记为 <code class="docutils literal notranslate"><span class="pre">T.unroll</span></code> 的循环（以及小的常量循环）</p></td>
 </tr>
 <tr class="row-odd"><td><p>10</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">StmtSimplify</span></code></p></td>
-<td><p>simplify again, now that vectorize/unroll exposed constants</p></td>
+<td><p>再次化简，因为 vectorize/unroll 暴露出了常量</p></td>
 </tr>
 <tr class="row-even"><td><p>11</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">CommonSubexprElim</span></code></p></td>
-<td><p>hoists repeated subexpressions into temporaries (skipped if
-<code class="docutils literal notranslate"><span class="pre">tir.disable_cse_tir</span></code>)</p></td>
+<td><p>把重复出现的子表达式提取为临时变量（若
+<code class="docutils literal notranslate"><span class="pre">tir.disable_cse_tir</span></code> 则跳过）</p></td>
 </tr>
 <tr class="row-odd"><td><p>12</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FP8ComputeLegalize</span></code></p></td>
-<td><p>rewrites <code class="docutils literal notranslate"><span class="pre">float8</span></code> compute to a legal form</p></td>
+<td><p>把 <code class="docutils literal notranslate"><span class="pre">float8</span></code> 计算改写为合法形式</p></td>
 </tr>
 <tr class="row-even"><td><p>13</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">VerifyMemory</span></code></p></td>
-<td><p>checks no host-side code directly dereferences device memory (a safety gate)</p></td>
+<td><p>检查 host 侧代码不会直接解引用 device 内存（一道安全闸门）</p></td>
 </tr>
 <tr class="row-odd"><td><p>14</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AnnotateEntryFunc</span></code></p></td>
-<td><p>marks the single PrimFunc as the module entry point</p></td>
+<td><p>把唯一的 PrimFunc 标记为模块入口</p></td>
 </tr>
 <tr class="row-even"><td><p>15</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SplitHostDevice</span></code></p></td>
-<td><p>splits each kernel into a <strong>host</strong> function and a <strong>device</strong> function at the
-<code class="docutils literal notranslate"><span class="pre">launch_thread</span></code> boundary</p></td>
+<td><p>在 <code class="docutils literal notranslate"><span class="pre">launch_thread</span></code> 边界处把每个内核拆成一个 <strong>host</strong> 函数和一个
+<strong>device</strong> 函数</p></td>
 </tr>
 <tr class="row-odd"><td><p>16</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MakePackedAPI</span></code></p></td>
-<td><p>rewrites the host function to the packed-func ABI (the launcher TVM calls)</p></td>
+<td><p>把 host 函数改写为 packed-func ABI（TVM 调用的启动器）</p></td>
 </tr>
 <tr class="row-even"><td><p>17</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FP8StorageLegalize</span></code></p></td>
-<td><p>legalizes <code class="docutils literal notranslate"><span class="pre">float8</span></code> storage (packing into supported container types)</p></td>
+<td><p>合法化 <code class="docutils literal notranslate"><span class="pre">float8</span></code> 存储（打包进受支持的容器类型）</p></td>
 </tr>
 <tr class="row-odd"><td><p>18</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BF16StorageLegalize</span></code></p></td>
-<td><p>legalizes <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> storage</p></td>
+<td><p>合法化 <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> 存储</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><strong>Finalization</strong> then runs per function kind:</p>
+<p>随后 <strong>Finalization</strong> (收尾）按函数类型分别运行：</p>
 <ul class="simple">
-<li><p><strong>host</strong>: <code class="docutils literal notranslate"><span class="pre">LowerTVMBuiltin</span></code> (lower <code class="docutils literal notranslate"><span class="pre">tvm_*</span></code> builtins), <code class="docutils literal notranslate"><span class="pre">LowerIntrin</span></code>
-(target-specific intrinsics)</p></li>
-<li><p><strong>device</strong>: <code class="docutils literal notranslate"><span class="pre">LowerWarpMemory</span></code> (warp-scoped buffers → shuffles), <code class="docutils literal notranslate"><span class="pre">StmtSimplify</span></code>,
+<li><p><strong>host</strong>：<code class="docutils literal notranslate"><span class="pre">LowerTVMBuiltin</span></code> (降级 <code class="docutils literal notranslate"><span class="pre">tvm_*</span></code> builtins）、<code class="docutils literal notranslate"><span class="pre">LowerIntrin</span></code>
+（target 相关的 intrinsics）</p></li>
+<li><p><strong>device</strong>：<code class="docutils literal notranslate"><span class="pre">LowerWarpMemory</span></code> (warp 作用域 buffer → shuffles）、<code class="docutils literal notranslate"><span class="pre">StmtSimplify</span></code>、
 <code class="docutils literal notranslate"><span class="pre">LowerIntrin</span></code></p></li>
 </ul>
 </section>
-<section id="inside-lowertirx">
-<h2>Inside LowerTIRx<a class="headerlink" href="#inside-lowertirx" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">LowerTIRx</span></code> is itself a small sequence (<code class="docutils literal notranslate"><span class="pre">src/tirx/transform/lower_tirx.cc</span></code>):</p>
+<section id="lowertirx">
+<h2>LowerTIRx 内部<a class="headerlink" href="#lowertirx" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LowerTIRx</span></code> 本身是一小段序列（<code class="docutils literal notranslate"><span class="pre">src/tirx/transform/lower_tirx.cc</span></code> ）：</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>LowerTIRx = Sequential([ TilePrimitiveDispatch, LowerTIRxCleanup ])
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><strong>``TilePrimitiveDispatch``</strong> replaces every <code class="docutils literal notranslate"><span class="pre">TilePrimitiveCall</span></code> (<code class="docutils literal notranslate"><span class="pre">copy</span></code>,
-<code class="docutils literal notranslate"><span class="pre">gemm</span></code>, <code class="docutils literal notranslate"><span class="pre">reduction</span></code>, …) with the body emitted by its selected backend
-dispatch — its variant-selection and codegen.</p></li>
-<li><p><strong>``LowerTIRxCleanup``</strong> runs the <code class="docutils literal notranslate"><span class="pre">LayoutApplier</span></code>: it resolves every
-<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code>-typed buffer access into concrete physical address arithmetic
-(<code class="docutils literal notranslate"><span class="pre">addr</span> <span class="pre">=</span> <span class="pre">data</span> <span class="pre">+</span> <span class="pre">elem_offset</span> <span class="pre">+</span> <span class="pre">layout.apply(coord)</span></code>), flattens the buffers, and
-lowers the execution-scope ids (<code class="docutils literal notranslate"><span class="pre">T.cta_id</span></code> / <code class="docutils literal notranslate"><span class="pre">T.thread_id</span></code> / … →
-<code class="docutils literal notranslate"><span class="pre">blockIdx</span></code> / <code class="docutils literal notranslate"><span class="pre">threadIdx</span></code> via <code class="docutils literal notranslate"><span class="pre">launch_thread</span></code>).</p></li>
+<li><p><strong>``TilePrimitiveDispatch``</strong> 把每个 <code class="docutils literal notranslate"><span class="pre">TilePrimitiveCall</span></code> (<code class="docutils literal notranslate"><span class="pre">copy</span></code>、
+<code class="docutils literal notranslate"><span class="pre">gemm</span></code>、<code class="docutils literal notranslate"><span class="pre">reduction</span></code>、……）替换成由其选中的后端派发所生成的函数体——即它的变体选择与代码生成。</p></li>
+<li><p><strong>``LowerTIRxCleanup``</strong> 运行 <code class="docutils literal notranslate"><span class="pre">LayoutApplier</span></code>：它把每个
+<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> 类型的 buffer 访问解析为具体的物理地址算术
+（<code class="docutils literal notranslate"><span class="pre">addr</span> <span class="pre">=</span> <span class="pre">data</span> <span class="pre">+</span> <span class="pre">elem_offset</span> <span class="pre">+</span> <span class="pre">layout.apply(coord)</span></code> ），拍平 buffer，并
+降级执行作用域 id（<code class="docutils literal notranslate"><span class="pre">T.cta_id</span></code> / <code class="docutils literal notranslate"><span class="pre">T.thread_id</span></code> / …… 经由
+<code class="docutils literal notranslate"><span class="pre">launch_thread</span></code> 变成 <code class="docutils literal notranslate"><span class="pre">blockIdx</span></code> / <code class="docutils literal notranslate"><span class="pre">threadIdx</span></code> ）。</p></li>
 </ul>
-<p>So after <code class="docutils literal notranslate"><span class="pre">LowerTIRx</span></code> the module is plain TIR: no tile primitives, no
-<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> indirection, scope ids resolved to thread axes.</p>
+<p>因此在 <code class="docutils literal notranslate"><span class="pre">LowerTIRx</span></code> 之后，模块就是普通 TIR：没有 tile 原语，没有
+<code class="docutils literal notranslate"><span class="pre">TileLayout</span></code> 间接寻址，作用域 id 已解析为线程轴。</p>
 </section>
-<section id="a-worked-example">
-<h2>A worked example<a class="headerlink" href="#a-worked-example" title="Link to this heading">#</a></h2>
-<p>Take a one-line scale kernel:</p>
+<section id="id2">
+<h2>一个完整示例<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>取一个一行的 scale 内核：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@T</span><span class="o">.</span><span class="n">prim_func</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">scale</span><span class="p">(</span><span class="n">A_ptr</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="n">B_ptr</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">handle</span><span class="p">):</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">match_buffer</span><span class="p">(</span><span class="n">A_ptr</span><span class="p">,</span> <span class="p">(</span><span class="mi">256</span><span class="p">,),</span> <span class="s2">&quot;float32&quot;</span><span class="p">)</span>
@@ -509,8 +503,8 @@ lowers the execution-scope ids (<code class="docutils literal notranslate"><span
     <span class="n">B</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">*</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>After ``LowerTIRx``</strong> the scope ids are real thread axes and the layout is applied
-(<code class="docutils literal notranslate"><span class="pre">A_1</span></code> / <code class="docutils literal notranslate"><span class="pre">B_1</span></code> are the flattened 1-D views):</p>
+<p><strong>``LowerTIRx`` 之后</strong>，作用域 id 已是真实的线程轴，layout 也已应用
+（<code class="docutils literal notranslate"><span class="pre">A_1</span></code> / <code class="docutils literal notranslate"><span class="pre">B_1</span></code> 是拍平后的一维视图）：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">T</span><span class="o">.</span><span class="n">launch_thread</span><span class="p">(</span><span class="s2">&quot;blockIdx.x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">blockIdx_x</span><span class="p">:</span>
     <span class="n">threadIdx_x</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">launch_thread</span><span class="p">(</span><span class="s2">&quot;threadIdx.x&quot;</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
     <span class="n">bx</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">let</span> <span class="o">=</span> <span class="n">blockIdx_x</span>
@@ -518,31 +512,31 @@ lowers the execution-scope ids (<code class="docutils literal notranslate"><span
     <span class="n">B_1</span><span class="p">[</span><span class="n">threadIdx_x</span><span class="p">]</span> <span class="o">=</span> <span class="n">A_1</span><span class="p">[</span><span class="n">threadIdx_x</span><span class="p">]</span> <span class="o">*</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>After ``SplitHostDevice`` + ``MakePackedAPI``</strong> the one function has become two —
-a host launcher and a device kernel:</p>
+<p><strong>``SplitHostDevice`` + ``MakePackedAPI`` 之后</strong> ，原来这一个函数变成了两个——
+一个 host 启动器和一个 device 内核：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@I</span><span class="o">.</span><span class="n">ir_module</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Module</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>          <span class="c1"># host: packed-API launcher (computes the grid/block, launches)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>          <span class="c1"># host:packed-API 启动器(计算 grid/block 并启动)</span>
         <span class="o">...</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">scale_kernel</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>  <span class="c1"># device: the __global__ body, run on the GPU</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scale_kernel</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>  <span class="c1"># device:__global__ 函数体,在 GPU 上运行</span>
 </pre></div>
 </div>
-<p>The CUDA backend then renders <code class="docutils literal notranslate"><span class="pre">scale_kernel</span></code> to the <code class="docutils literal notranslate"><span class="pre">__global__</span></code> function
-(<code class="docutils literal notranslate"><span class="pre">B_ptr[threadIdx.x]</span> <span class="pre">=</span> <span class="pre">A_ptr[threadIdx.x]</span> <span class="pre">*</span> <span class="pre">2.0f</span></code>).</p>
+<p>随后 CUDA 后端把 <code class="docutils literal notranslate"><span class="pre">scale_kernel</span></code> 渲染成 <code class="docutils literal notranslate"><span class="pre">__global__</span></code> 函数
+（<code class="docutils literal notranslate"><span class="pre">B_ptr[threadIdx.x]</span> <span class="pre">=</span> <span class="pre">A_ptr[threadIdx.x]</span> <span class="pre">*</span> <span class="pre">2.0f</span></code> ）。</p>
 </section>
-<section id="reproduce-it-yourself">
-<h2>Reproduce it yourself<a class="headerlink" href="#reproduce-it-yourself" title="Link to this heading">#</a></h2>
-<p>You can run any prefix of the pipeline by hand to inspect a stage — this is how the
-IR snippets across these docs were produced:</p>
+<section id="id3">
+<h2>自己复现一遍<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>你可以手工运行流水线的任意前缀来检视某个阶段——本文档各处的
+IR 片段就是这样得到的：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tvm.tirx</span><span class="w"> </span><span class="kn">import</span> <span class="n">transform</span> <span class="k">as</span> <span class="n">TT</span>
 
 <span class="n">target</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
 <span class="n">mod</span> <span class="o">=</span> <span class="n">TT</span><span class="o">.</span><span class="n">BindTarget</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">with_host</span><span class="p">(</span><span class="s2">&quot;llvm&quot;</span><span class="p">))(</span><span class="n">tvm</span><span class="o">.</span><span class="n">IRModule</span><span class="p">({</span><span class="s2">&quot;main&quot;</span><span class="p">:</span> <span class="n">scale</span><span class="p">}))</span>
-<span class="n">mod</span> <span class="o">=</span> <span class="n">TT</span><span class="o">.</span><span class="n">LowerTIRx</span><span class="p">()(</span><span class="n">mod</span><span class="p">)</span>         <span class="c1"># tile primitives dispatched, layouts applied</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">script</span><span class="p">())</span>               <span class="c1"># inspect the lowered TIRx IR</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">TT</span><span class="o">.</span><span class="n">LowerTIRx</span><span class="p">()(</span><span class="n">mod</span><span class="p">)</span>         <span class="c1"># tile 原语已派发，layout 已应用</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">script</span><span class="p">())</span>               <span class="c1"># 检视降级后的 TIRx IR</span>
 </pre></div>
 </div>
-<p>Or compile the whole module and read the generated CUDA:</p>
+<p>或者编译整个模块，再读出生成的 CUDA：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exe</span> <span class="o">=</span> <span class="n">tvm</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">tvm</span><span class="o">.</span><span class="n">IRModule</span><span class="p">({</span><span class="s2">&quot;main&quot;</span><span class="p">:</span> <span class="n">scale</span><span class="p">}),</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">tir_pipeline</span><span class="o">=</span><span class="s2">&quot;tirx&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">exe</span><span class="o">.</span><span class="n">mod</span><span class="o">.</span><span class="n">imports</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">inspect_source</span><span class="p">())</span>
 </pre></div>
@@ -567,7 +561,7 @@ IR snippets across these docs were produced:</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Compiler Internals</p>
+        <p class="prev-next-title">编译器内部实现</p>
       </div>
     </a>
     <a class="right-next"
@@ -575,7 +569,7 @@ IR snippets across these docs were produced:</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">TIRx Language Reference</p>
+        <p class="prev-next-title">TIRx 语言参考</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -597,11 +591,11 @@ IR snippets across these docs were produced:</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-it-sits">Where it sits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-passes">The passes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inside-lowertirx">Inside LowerTIRx</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-worked-example">A worked example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproduce-it-yourself">Reproduce it yourself</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">它的位置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pass">各 pass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lowertirx">LowerTIRx 内部</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">一个完整示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">自己复现一遍</a></li>
 </ul>
   </nav></div>
 

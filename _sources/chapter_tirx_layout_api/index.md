@@ -1,27 +1,27 @@
 (chap_tirx_layout_api)=
-# TIRx Layout API
+# TIRx 布局 API
 
 :::{admonition} Overview
 :class: overview
 
-- The TIRx layout API turns the layout notation from {ref}`chap_data_layout` into compiler objects. The main objects are `TileLayout`, `SwizzleLayout`, and `ComposeLayout`.
-- `TileLayout` describes affine placement over named hardware axes. It is built from shard specs `S[...]`, replica specs `R[...]`, and optional offsets.
-- A layout maps one logical coordinate to one or more physical coordinates. `layout.apply()` evaluates that mapping.
-- `SwizzleLayout` describes the XOR-based shared-memory swizzles used to avoid bank conflicts. `ComposeLayout` stacks a swizzle on top of a tile layout.
-- Ready-made constructors such as `tmem_datapath_layout`, `tcgen05_atom_layout`, and `wg_local_layout` cover the hardware layouts that appear repeatedly in kernels.
+- TIRx 布局 API 把 {ref}`chap_data_layout` 中的布局记法转换为编译器对象。主要对象有 `TileLayout`、`SwizzleLayout` 和 `ComposeLayout`。
+- `TileLayout` 描述在命名硬件轴上的仿射放置。它由分片规格 `S[...]`、副本规格 `R[...]` 以及可选偏移构成。
+- 一个布局将一个逻辑坐标映射到一个或多个物理坐标。`layout.apply()` 对该映射求值。
+- `SwizzleLayout` 描述基于 XOR 的共享内存 swizzle,用于避免 bank 冲突。`ComposeLayout` 在 tile 布局之上叠加一层 swizzle。
+- 诸如 `tmem_datapath_layout`、`tcgen05_atom_layout` 和 `wg_local_layout` 这类现成构造器,覆盖了内核中反复出现的硬件布局。
 :::
 
-{ref}`chap_data_layout` introduced the notation used throughout this book: a tile shape, a set of strides over named axes, and an optional replication term for values that are copied rather than partitioned. This chapter turns that notation into the API used by the compiler.
+{ref}`chap_data_layout` 引入了贯穿全书的记法:一个 tile 形状、一组在命名轴上的步幅(stride),以及一个用于被复制而非被划分的值的可选复制项。本章把这种记法转换为编译器使用的 API。
 
-The goal is that the notation on the page and the code in the kernel look almost the same. When you write a layout such as:
+目标是让页面上的记法与内核中的代码看起来几乎一致。当你写出一个诸如以下的布局时:
 
 ```python
 S[(128, 256) : (1@TLane, 1@TCol)]
 ```
 
-you are not just writing an explanation. You are constructing a `TileLayout` object that can be attached to a buffer. After that, every tile operation that touches the buffer can read its placement from the layout. The placement is written once, checked once, and reused by the compiler.
+你写的不仅仅是一段说明,而是在构造一个可附加到 buffer 的 `TileLayout` 对象。此后,每一个触及该 buffer 的 tile 操作都能从布局中读取自己的放置位置。放置只写一次,只检查一次,然后由编译器复用。
 
-A layout is attached either when allocating from a pool or when declaring a buffer:
+布局既可以在从池中分配时附加,也可以在声明 buffer 时附加:
 
 ```python
 pool.alloc(shape, dtype, layout=layout)
@@ -29,9 +29,9 @@ pool.alloc(shape, dtype, layout=layout)
 T.decl_buffer(shape, dtype, scope=scope, layout=layout)
 ```
 
-From that point on, the buffer carries its physical placement. The tile operations do not need to repeat where each element lives.
+从此刻起,该 buffer 就携带了自己的物理放置。各 tile 操作无需重复说明每个元素位于何处。
 
-The layout objects live in one module:
+这些布局对象都位于同一个模块中:
 
 ```python
 from tvm.tirx.layout import (
@@ -51,23 +51,23 @@ from tvm.tirx.layout import (
 )
 ```
 
-There is one central idea behind the API. A layout does not have to map a logical index to a single physical address. It maps a logical index to a set of physical coordinates over named axes. In the usual case that set has one element. When replication is present, the same logical element has several physical placements.
+该 API 背后有一个核心思想:布局不必把一个逻辑索引映射到单一物理地址,而是把一个逻辑索引映射到一组位于命名轴上的物理坐标。在通常情况下这组坐标只有一个元素;当存在复制时,同一个逻辑元素会有多个物理放置。
 
-This is why the layout model has three pieces: shard, replica, and offset. The shard places the element. The replica copies it to additional coordinates. The offset shifts the whole placement.
+这正是布局模型由三部分组成的原因:分片(shard)、副本(replica)和偏移(offset)。分片负责放置元素;副本把它复制到额外的坐标;偏移则平移整个放置。
 
-## Layouts by Example
+## 通过示例看布局
 
-The examples below show the basic shape of the API.
+下面的示例展示了 API 的基本形态。
 
-An accumulator in TMEM can be written as a direct placement over the TMEM axes:
+TMEM(张量内存)中的累加器可以直接写成一个在 TMEM 轴上的放置:
 
 ```python
 acc = TileLayout(S[(128, 256) : (1@TLane, 1@TCol)])
 ```
 
-Here the logical row maps to `TLane`, and the logical column maps to `TCol`. In {ref}`chap_tmem`, the hardware coordinates are called Lane and Col. In the TIRx layout notation, those hardware axes are written as `TLane` and `TCol`.
+这里逻辑行映射到 `TLane`,逻辑列映射到 `TCol`。在 {ref}`chap_tmem` 中,硬件坐标称作 Lane 和 Col。在 TIRx 布局记法里,这些硬件轴被写作 `TLane` 和 `TCol`。
 
-A block-scaled MMA scale-factor layout uses replication:
+一个块缩放(block-scaled)MMA 的缩放因子布局用到了复制:
 
 ```python
 scale_factor_layout = TileLayout(
@@ -75,9 +75,9 @@ scale_factor_layout = TileLayout(
 )
 ```
 
-The shard places a 32-row group in TMEM. The replica repeats that group four times at a stride of 32 lanes, so the 32-row group is visible across the full 128-lane TMEM space.
+分片把一个 32 行的组放置在 TMEM 中。副本以 32 条 lane 的步幅将该组重复四次,使这个 32 行的组在整个 128 lane 的 TMEM 空间中都可见。
 
-A tensor-core register fragment can be distributed across lanes and warps:
+一个 Tensor Core(张量核)寄存器片段可以分布在 lane 和 warp 之间:
 
 ```python
 frag = TileLayout(
@@ -85,9 +85,9 @@ frag = TileLayout(
 )
 ```
 
-The same physical axis can appear more than once. In this example, two different iters both contribute to `laneid`. A stride without an explicit axis uses the default memory axis `m`.
+同一个物理轴可以出现不止一次。在本例中,两个不同的 iter 都贡献到 `laneid`。没有显式轴的步幅使用默认内存轴 `m`。
 
-In real kernels, common hardware layouts usually come from constructors:
+在真实内核中,常见的硬件布局通常来自构造器:
 
 ```python
 acc = tmem_datapath_layout("D", 128, 256)
@@ -95,11 +95,11 @@ acc = tmem_datapath_layout("D", 128, 256)
 ld = tcgen05_atom_layout("32x32b", (128, 64), "float32")
 ```
 
-These constructors return ordinary `TileLayout` objects. They are conveniences, not a separate mechanism. You can inspect the returned layout, compose it with other layouts, or write the underlying `S[...]` and `R[...]` form by hand when a shape is unusual.
+这些构造器返回的是普通的 `TileLayout` 对象。它们只是便利封装,并非另一套机制。你可以检查返回的布局,把它与其他布局组合,或者在形状特殊时手写出底层的 `S[...]` 和 `R[...]` 形式。
 
-## Interactive Demo
+## 交互式演示
 
-Before the mechanics, it helps to have something concrete to poke at. The demo below lets you choose a preset layout, edit the logical shape and the `S` or `R` terms, choose a dtype and swizzle mode, and click an element to see which physical coordinate or coordinates own it.
+在讲解机制之前,先有一个具体可玩的东西会有帮助。下面的演示允许你选择一个预设布局、编辑逻辑形状和 `S` 或 `R` 项、选择 dtype 与 swizzle 模式,然后点击某个元素,查看它被哪个或哪些物理坐标所拥有。
 
 ```{raw} html
 <p>
@@ -128,97 +128,97 @@ Before the mechanics, it helps to have something concrete to poke at. The demo b
 </script>
 ```
 
-The demo is useful because most of the API is just a precise version of what the demo shows. A logical element enters the layout. The layout flattens it, splits it across its iters, accumulates coordinates on named axes, and then applies replication if needed.
+这个演示之所以有用,是因为 API 的大部分内容只不过是该演示所展示内容的精确版本。一个逻辑元素进入布局,布局把它展平、按 iter 切分、在命名轴上累加坐标,最后在需要时应用复制。
 
 ## TileLayout
 
-A `TileLayout` is the main affine layout object. It is usually written with the same notation used in the text:
+`TileLayout` 是主要的仿射布局对象。它通常用与正文相同的记法书写:
 
 ```python
 TileLayout(S[shape : strides])
 ```
 
-The `S` term is the shard spec. You can read it as: take a logical tile of this shape and place it using these strides over named axes.
+`S` 项是分片规格。可以这样读它:取一个具有该形状的逻辑 tile,并按这些步幅在命名轴上放置它。
 
-When a value needs to appear in multiple places, the shard spec is extended with a replica spec:
+当一个值需要出现在多个位置时,分片规格会扩展出一个副本规格:
 
 ```python
 TileLayout(S[shape : strides] + R[replica_shape : replica_stride])
 ```
 
-An optional offset can also be added:
+还可以加上一个可选的偏移:
 
 ```python
 TileLayout(S[shape : strides] + R[replica_shape : replica_stride] + offset)
 ```
 
-Under the surface, these pieces are represented by iters. An iter is a triple:
+在底层,这些组成部分由 iter 表示。一个 iter 是一个三元组:
 
 ```text
 (extent, stride, axis)
 ```
 
-It describes a strided walk over one named axis. The extent tells how many positions the iter has. The stride tells how far each step moves. The axis tells which hardware coordinate is being changed.
+它描述了沿某一个命名轴的一次步进式行走。extent 表示该 iter 拥有多少个位置;stride 表示每一步移动多远;axis 表示正在改变哪一个硬件坐标。
 
-A layout has three parts.
+一个布局有三部分。
 
-### Shard
+### 分片
 
-The shard, or `D`, is the part built by `S[...]`. It partitions the logical index across one or more iters and produces the base physical coordinate.
+分片,即 `D`,是由 `S[...]` 构造的部分。它把逻辑索引划分到一个或多个 iter 上,并产生基础物理坐标。
 
-For example:
+例如:
 
 ```python
 S[(8, 2, 4, 2) : (4@laneid, 1@warpid, 1@laneid, 1)]
 ```
 
-has four shard iters. Their extents are `8`, `2`, `4`, and `2`. Their strides place data on `laneid`, `warpid`, `laneid` again, and the default memory axis `m`.
+有四个分片 iter。它们的 extent 分别是 `8`、`2`、`4` 和 `2`。它们的步幅分别把数据放置到 `laneid`、`warpid`、再次到 `laneid`,以及默认内存轴 `m` 上。
 
-This generalizes the ordinary shape-and-stride rule. The difference is that the strides are attached to named hardware axes instead of to a single flat address.
+这是对普通「形状-步幅」规则的推广。区别在于,步幅是绑定到命名硬件轴上的,而不是绑定到单一扁平地址。
 
-### Replica
+### 副本
 
-The replica, or `R`, describes additional physical copies of the same logical element. The replica iters are independent of the logical index. They enumerate extra offsets in hardware space.
+副本,即 `R`,描述同一个逻辑元素的额外物理拷贝。副本 iter 与逻辑索引相互独立。它们枚举的是硬件空间中的额外偏移。
 
-For example:
+例如:
 
 ```python
 R[2 : 4@warpid]
 ```
 
-creates two copies separated by four warps on the `warpid` axis.
+在 `warpid` 轴上创建两个相隔四个 warp 的拷贝。
 
-Replication is not a trick for convenience. It describes real hardware behavior. Some data is broadcast across warps, lanes, or memory regions. A logical-to-physical mapping naturally supports that because one logical element can map to a set of physical coordinates.
+复制并不是为图方便而耍的小把戏,它描述的是真实的硬件行为。某些数据会被广播到多个 warp、lane 或内存区域。逻辑到物理的映射天然就能支持这一点,因为一个逻辑元素可以映射到一组物理坐标。
 
-### Offset
+### 偏移
 
-The offset, or `O`, is a fixed coordinate added to every result.
+偏移,即 `O`,是加到每个结果上的一个固定坐标。
 
-For example:
+例如:
 
 ```python
 5@warpid
 ```
 
-shifts the whole placement by five on the `warpid` axis.
+把整个放置在 `warpid` 轴上平移五。
 
-Offsets are used to place a tile at a chosen base coordinate, reserve a region for exclusive use, or describe a tile that starts after another tile in the same resource.
+偏移可用于把一个 tile 放置到选定的基础坐标、为独占使用预留一段区域,或描述一个在同一资源中紧接另一个 tile 之后开始的 tile。
 
-### Putting the Pieces Together
+### 把各部分组合起来
 
-A layout applies these three parts in order.
+一个布局按顺序应用这三部分。
 
-First, the shard computes the base coordinate. Then the replica fans that coordinate out into zero or more additional copies. Finally, the offset shifts every coordinate.
+首先,分片计算出基础坐标;然后,副本把该坐标扇出到零个或多个额外拷贝;最后,偏移平移每一个坐标。
 
-For a logical coordinate `x`, the result is:
+对于逻辑坐标 `x`,结果是:
 
 ```text
 L(x) = { D(x) + r + O | r in R }
 ```
 
-If there is no replica, `R` contains only the zero offset, so the result is a singleton set. If there is a replica, the result contains one coordinate for each replica position.
+如果没有副本,`R` 只包含零偏移,所以结果是单元素集合。如果有副本,结果中每个副本位置对应一个坐标。
 
-In TIRx syntax, a full layout can look like this:
+在 TIRx 语法里,一个完整布局看起来可以是这样的:
 
 ```python
 layout = TileLayout(
@@ -228,21 +228,21 @@ layout = TileLayout(
 )
 ```
 
-Read left to right, the shard places the logical tile, the replica creates a second copy four warp IDs away, and the offset shifts the whole placement to start at `warpid = 5`.
+从左向右读:分片放置该逻辑 tile,副本在相隔四个 warp ID 处创建第二份拷贝,偏移则把整个放置平移到从 `warpid = 5` 开始。
 
-If the iters have already been built as objects, the same layout can be constructed directly:
+如果各 iter 已经作为对象构造好,同一个布局也可以直接构造:
 
 ```python
 TileLayout.from_iters(shard, replica, offset)
 ```
 
-Most user code uses the `S[...]` and `R[...]` notation because it is closer to the mathematical form.
+大多数用户代码使用 `S[...]` 和 `R[...]` 记法,因为它更接近数学形式。
 
-## Named Axes
+## 命名轴
 
-The axes in a layout are not anonymous dimensions. Each axis names a real hardware coordinate or a compiler-level placement coordinate.
+布局中的轴并非匿名维度。每个轴都命名一个真实的硬件坐标或一个编译器层面的放置坐标。
 
-Examples include:
+例如:
 
 ```text
 bx, by, bz
@@ -259,39 +259,39 @@ Bank
 TLane, TCol
 ```
 
-Grid axes such as `bx`, `by`, and `bz` place work across CTAs. Cluster axes such as `cbx`, `cby`, and `cbz` place work within a CTA cluster. Thread axes such as `tx`, `warpid`, `laneid`, `tid_in_wg`, and `wid_in_wg` describe ownership inside a CTA or warpgroup. The axis `m` is the default linear memory axis. `P` and `F` are used for two-dimensional scratchpad-style placement. `Bank` names shared memory banks. `TLane` and `TCol` are the TIRx layout names for the TMEM Lane and Col coordinates.
+grid 轴(如 `bx`、`by`、`bz`)把工作分配到各 CTA 之间。cluster 轴(如 `cbx`、`cby`、`cbz`)在一个 CTA 集群(CTA cluster)内部分配工作。线程轴(如 `tx`、`warpid`、`laneid`、`tid_in_wg`、`wid_in_wg`)描述一个 CTA 或 warpgroup 内部的归属。轴 `m` 是默认的线性内存轴。`P` 和 `F` 用于二维 scratchpad 式放置。`Bank` 命名共享内存的 bank。`TLane` 和 `TCol` 是 TIRx 布局中对 TMEM 的 Lane 与 Col 坐标的命名。
 
-The axis name is part of the layout. This matters because two coordinates with the same integer value can mean different hardware things. `1@tx` is not the same as `1@tid_in_wg`. `1@laneid` is not the same as `1@TLane`. The layout keeps those meanings explicit.
+轴名是布局的一部分。这很重要,因为两个取相同整数值的坐标可能意味着不同的硬件含义。`1@tx` 与 `1@tid_in_wg` 不同;`1@laneid` 与 `1@TLane` 也不同。布局把这些含义保持显式。
 
-## Forward Mapping
+## 正向映射
 
-Evaluating a layout means taking a logical coordinate and computing where it lands physically. The API method is:
+对布局求值,意味着取一个逻辑坐标并计算它落在哪个物理位置。API 方法是:
 
 ```python
 layout.apply(*coord)
 ```
 
-For a layout without replication, the result is one coordinate dictionary. With replication, the result is a set of coordinate dictionaries. A coordinate dictionary maps axis names to integer positions, such as:
+对于没有复制的布局,结果是一个坐标字典。对于带复制的布局,结果是一组坐标字典。坐标字典把轴名映射到整数位置,例如:
 
 ```python
 {"laneid": 7, "warpid": 2, "m": 1}
 ```
 
-The evaluation rule has four steps.
+求值规则有四步。
 
-First, flatten the logical coordinate in row-major order. For a logical coordinate:
+第一步,按行优先顺序展平逻辑坐标。对于逻辑坐标:
 
 ```text
 x = (x0, x1, ..., xr-1)
 ```
 
-inside a logical shape:
+在逻辑形状:
 
 ```text
 (S0, S1, ..., Sr-1)
 ```
 
-the flat index is:
+内,扁平索引是:
 
 ```text
 flat = x0 * S1 * S2 * ... * Sr-1
@@ -301,35 +301,35 @@ flat = x0 * S1 * S2 * ... * Sr-1
      + xr-1
 ```
 
-Second, split that flat index across the shard extents. If the shard extents are:
+第二步,按分片 extent 切分该扁平索引。如果分片 extent 是:
 
 ```text
 (e0, e1, ..., en-1)
 ```
 
-then the split produces components:
+那么切分得到的分量是:
 
 ```text
 c0, c1, ..., cn-1
 ```
 
-using the same row-major order over the shard extents.
+对分片 extent 使用同样的行优先顺序。
 
-Third, accumulate each component onto its axis using its stride. If shard iter `k` has extent `ek`, stride `sk`, and axis `ak`, then component `ck` contributes:
+第三步,用每个分量的步幅把它累加到对应轴上。如果分片 iter `k` 的 extent 为 `ek`、步幅为 `sk`、轴为 `ak`,那么分量 `ck` 贡献:
 
 ```text
 ck * sk @ ak
 ```
 
-All contributions to the same axis are added together. The offset is then added.
+所有对同一轴的贡献都相加在一起,随后再加上偏移。
 
-Fourth, apply the replica iters. Each replica iter contributes an additional offset independent of the logical coordinate. If there are several replica iters, the layout enumerates all combinations.
+第四步,应用副本 iter。每个副本 iter 贡献一个与逻辑索引无关的额外偏移。如果有多个副本 iter,布局会枚举所有组合。
 
-One useful consequence of this rule is that the layout does not need to hard-code the input shape. What it needs is that the logical tile has the same total number of elements as the product of the shard extents. Once that holds, flattening and splitting define the mapping.
+这条规则的一个有用推论是:布局不需要硬编码输入形状。它需要的只是逻辑 tile 的元素总数等于各分片 extent 的乘积。只要这一点成立,展平和切分就定义了该映射。
 
-## Case Study: Tensor Core Register Tile
+## 案例:Tensor Core 寄存器 tile
 
-Consider a logical `(8, 16)` tile distributed across two warps of 32 lanes each. Each lane owns a small register fragment. The register slot is represented by the default memory axis `m`.
+考虑一个分布在两个各含 32 条 lane 的 warp 之间的逻辑 `(8, 16)` tile。每条 lane 拥有一个小的寄存器片段。寄存器槽位由默认内存轴 `m` 表示。
 
 ```python
 layout = TileLayout(
@@ -339,15 +339,15 @@ layout = TileLayout(
 )
 ```
 
-Take a logical element `(i, j)` from the `(8, 16)` tile.
+从 `(8, 16)` tile 中取一个逻辑元素 `(i, j)`。
 
-The row-major flat index is:
+行优先扁平索引是:
 
 ```text
 flat = 16 * i + j
 ```
 
-Splitting by the shard extents `(8, 2, 4, 2)` gives:
+按分片 extent `(8, 2, 4, 2)` 切分得到:
 
 ```text
 c0 = i
@@ -356,7 +356,7 @@ c2 = floor(j / 2) mod 4
 c3 = j mod 2
 ```
 
-The shard contributions are:
+分片贡献是:
 
 ```text
 laneid = 4 * c0 + c2
@@ -364,7 +364,7 @@ warpid = c1
 m      = c3
 ```
 
-After adding the offset `5@warpid`, this becomes:
+加上偏移 `5@warpid` 后,变为:
 
 ```text
 laneid = 4 * i + floor(j / 2) mod 4
@@ -372,13 +372,13 @@ warpid = floor(j / 8) + 5
 m      = j mod 2
 ```
 
-The replica term:
+副本项:
 
 ```python
 R[2 : 4@warpid]
 ```
 
-adds either `0` or `4` to `warpid`. So the full mapping is:
+要么给 `warpid` 加 `0`,要么加 `4`。所以完整映射是:
 
 ```text
 laneid = 4 * i + floor(j / 2) mod 4
@@ -386,17 +386,17 @@ warpid = floor(j / 8) + 5 + 4 * r, where r in {0, 1}
 m      = j mod 2
 ```
 
-The shard places the tile on warps 5 and 6. The replica then copies it to warps 9 and 10. The same logical element therefore appears in two warp positions.
+分片把 tile 放置在 warp 5 和 6 上。副本再把它复制到 warp 9 和 10。因此同一个逻辑元素出现在两个 warp 位置。
 
-This example shows why the model uses a set of physical coordinates. Replication is not naturally represented by a function from physical coordinate to logical coordinate. It is naturally represented by a function from one logical coordinate to several physical coordinates.
+本例说明了为什么模型要使用一组物理坐标。复制无法用「从物理坐标到逻辑坐标的函数」自然地表示,但可以用「从一个逻辑坐标到多个物理坐标的函数」自然地表示。
 
-## Case Study: Blackwell Tensor Memory
+## 案例:Blackwell 张量内存
 
-The same layout model works for memory placement. The axes do not have to be thread axes. They can be memory axes.
+同一个布局模型也适用于内存放置。轴不必是线程轴,也可以是内存轴。
 
-TMEM is addressed by hardware Lane and Col coordinates. In the TIRx layout notation, those axes are written as `TLane` and `TCol`.
+TMEM 由硬件的 Lane 和 Col 坐标寻址。在 TIRx 布局记法中,这两个轴写作 `TLane` 和 `TCol`。
 
-Consider this layout:
+考虑如下布局:
 
 ```python
 layout = TileLayout(
@@ -404,26 +404,26 @@ layout = TileLayout(
 )
 ```
 
-If the logical tile shape is `(2, 128, 112)`, the split components are just the logical coordinates themselves. For element `(a, l, c)`, the mapping is:
+如果逻辑 tile 形状是 `(2, 128, 112)`,那么切分分量就是逻辑坐标本身。对于元素 `(a, l, c)`,映射是:
 
 ```text
 TLane = l
 TCol  = 112 * a + c
 ```
 
-The extent-128 iter with stride `1@TLane` fills the 128 TMEM Lane rows. The extent-2 iter with stride `112@TCol` and the extent-112 iter with stride `1@TCol` together cover 224 columns:
+extent 为 128、步幅为 `1@TLane` 的 iter 填满 128 行 TMEM Lane。extent 为 2、步幅为 `112@TCol` 的 iter 与 extent 为 112、步幅为 `1@TCol` 的 iter 合起来覆盖 224 列:
 
 ```text
 TCol in [0, 224)
 ```
 
-The 224-column span is intentional. TMEM layouts do not have to be powers of two. A block-scaled FP8 GEMM may choose a 224-column accumulator because a full 256-column tile would not leave enough TMEM capacity for two accumulator stages plus scale factors. The layout API can express that shape directly.
+这个 224 列的跨度是有意为之的。TMEM 布局不必是 2 的幂。一个块缩放的 FP8 GEMM 可能会选择 224 列的累加器,因为一个完整的 256 列 tile 不会为两个累加器流水级加上缩放因子留下足够的 TMEM 容量。布局 API 能够直接表达这种形状。
 
-## Scale Factor Layouts
+## 缩放因子布局
 
-The accumulator layout above is a pure placement. Each logical accumulator element maps to one TMEM coordinate. Scale factors for block-scaled MMA are different because the same physical group may need to be visible across several warp windows. This is where replication becomes useful.
+上面的累加器布局是纯放置:每个逻辑累加器元素映射到一个 TMEM 坐标。块缩放 MMA 的缩放因子则不同,因为同一个物理组可能需要在多个 warp 窗口中都可见。这正是复制派上用场的地方。
 
-A compact scale-factor layout can be written as:
+一个紧凑的缩放因子布局可以写成:
 
 ```python
 scale = TileLayout(
@@ -432,95 +432,95 @@ scale = TileLayout(
 )
 ```
 
-The shard places a 32-row scale-factor group in TMEM:
+分片把一个 32 行的缩放因子组放置在 TMEM 中:
 
 ```text
 TLane = r
 TCol  = s
 ```
 
-for a logical scale coordinate `(r, s)`.
+这是对逻辑缩放坐标 `(r, s)` 而言。
 
-The replica term creates four copies separated by 32 lanes:
+副本项创建四个相隔 32 条 lane 的拷贝:
 
 ```text
 TLane = r + 32 * q, where q in {0, 1, 2, 3}
 TCol  = s
 ```
 
-So the 32-row group is visible at TMEM lanes 0 through 31, 32 through 63, 64 through 95, and 96 through 127. This is the `warpx4` broadcast pattern ({ref}`chap_layout_generations`). Each of the four warp-sized TMEM lane windows sees the same scale-factor group.
+于是这个 32 行的组在 TMEM lane 0 到 31、32 到 63、64 到 95、96 到 127 处都可见。这就是 `warpx4` 广播模式({ref}`chap_layout_generations`)。四个 warp 大小的 TMEM lane 窗口各自都能看到同一个缩放因子组。
 
-In the full block-scaled MMA layout, this atom is combined with outer iters over M rows and K scale-factor groups. Several scale factors may also be packed into one 32-bit `TCol` cell, depending on the scale-factor dtype. For example, fp8 scale factors can pack four values into one 32-bit column cell. Optional stride-zero reuse and pipeline-depth iters can then describe scale reuse across multiple MMAs and double buffering.
+在完整的块缩放 MMA 布局中,这个 atom 会与 M 行和 K 个缩放因子组上的外层 iter 组合在一起。依据缩放因子的 dtype,多个缩放因子也可能被打包进同一个 32 位 `TCol` 单元。例如,fp8 缩放因子可以把四个值打包进一个 32位列单元。可选的步幅为零复用和流水级深度的 iter 随后可以描述跨多个 MMA 的缩放因子复用以及双缓冲(double buffering)。
 
-The important part is that the same `TileLayout` model describes both cases. The accumulator is a single placement in TMEM. The scale factors are a replicated placement in the same TMEM address space.
+关键之处在于,同一个 `TileLayout` 模型描述了这两种情形:累加器是 TMEM 中的单一放置,而缩放因子是同一 TMEM 地址空间中的复制放置。
 
-## Ready-Made Layouts
+## 现成布局
 
-Most kernels do not hand-write every hardware layout. TIRx provides constructors for the layouts that appear often.
+大多数内核并不逐一手写每一个硬件布局。TIRx 为常见布局提供了构造器。
 
 ```python
 tmem_datapath_layout(datapath, rows, cols)
 ```
 
-returns the TMEM accumulator layout written by `tcgen05.mma`. The `datapath` argument selects the row placement pattern. For example, `"D"` corresponds to the `M = 128` identity-style placement, while `"F"` corresponds to the `M = 64` scattered placement.
+返回由 `tcgen05.mma` 写入的 TMEM 累加器布局。`datapath` 参数选择行放置模式。例如,`"D"` 对应 `M = 128` 的恒等式风格放置,而 `"F"` 对应 `M = 64` 的分散式放置。
 
 ```python
 tcgen05_atom_layout(instr_shape, tensor_shape, dtype)
 ```
 
-returns the register tile layout moved by a `tcgen05.ld` or `tcgen05.st` atom. Examples of instruction shapes include `.32x32b`, `.16x64b`, `.16x128b`, and related forms. At the DSL level this is a warpgroup-distributed tile. During lowering it becomes four warp-collective `tcgen05.ld` or `tcgen05.st` instructions, one per warp, with each warp handling its own 32 TMEM lanes.
+返回由一个 `tcgen05.ld` 或 `tcgen05.st` atom 搬运的寄存器 tile 布局。指令形状的例子包括 `.32x32b`、`.16x64b`、`.16x128b` 及相关形式。在 DSL 层面这是一个 warpgroup 分布式 tile。在降级(lowering)过程中它会变成四条 warp 协作的 `tcgen05.ld` 或 `tcgen05.st` 指令,每条 warp 一条,各自处理自己的 32 条 TMEM lane。
 
 ```python
 wg_local_layout(cols, rows=128)
 ```
 
-returns a warpgroup-local register tile, usually with one row per thread on `tid_in_wg`.
+返回一个 warpgroup 本地寄存器 tile,通常在 `tid_in_wg` 上每个线程一行。
 
-These helpers are there to avoid rewriting common hardware mappings by hand. They do not hide the model. Each helper returns an ordinary `TileLayout` built from the same `S` and `R` pieces described above.
+这些辅助函数是为了避免手写重复的常见硬件映射。它们并不隐藏模型:每个辅助函数返回的都是一个由上述同样的 `S` 和 `R` 构造的普通 `TileLayout`。
 
-## SwizzleLayout and ComposeLayout
+## SwizzleLayout 与 ComposeLayout
 
-A `TileLayout` is affine. It can express strides, replication, and offsets over named axes. That is enough for many placements, including thread fragments, TMEM tiles, and compact scale-factor layouts.
+`TileLayout` 是仿射的,它能表达命名轴上的步幅、复制和偏移。这对许多放置已足够,包括线程片段、TMEM tile 以及紧凑的缩放因子布局。
 
-Shared memory swizzles need something else. The swizzle used to avoid bank conflicts is not an affine stride pattern. It is an XOR-based permutation of the linear shared-memory address.
+共享内存的 swizzle 却需要别的东西。用于避免 bank 冲突的 swizzle 并不是仿射步幅模式,而是对线性共享内存地址的一次基于 XOR 的置换。
 
-TIRx therefore keeps swizzling as a separate layout object:
+因此 TIRx 把 swizzle 保留为一个独立的布局对象:
 
 ```python
 SwizzleLayout(...)
 ```
 
-and composes it with the tile layout:
+并把它与 tile 布局组合:
 
 ```python
 ComposeLayout(swizzle, tile)
 ```
 
-The tile layout first produces a linear memory address. The swizzle then permutes that address. Keeping these two layers separate is cleaner than forcing the XOR permutation into the affine layout model.
+tile 布局先产生一个线性内存地址,swizzle 再对该地址做置换。把这两层保持分离,比把 XOR 置换硬塞进仿射布局模型更清晰。
 
-## Why Swizzle
+## 为什么要 swizzle
 
-Shared memory is divided into 32 banks, with each bank word holding 4 bytes. When the lanes of one access touch different addresses in the same bank, the access is serialized by a bank conflict.
+共享内存被划分为 32 个 bank,每个 bank 字(word)占 4 字节。当一次访问的各 lane 触及同一 bank 内的不同地址时,这次访问会因 bank 冲突而被串行化。
 
-A plain row-major tile can create this conflict structurally. Consider an `(8, 64)` float16 tile with row-major layout:
+一个普通的行优先 tile 在结构上就可能制造这种冲突。考虑一个采用行优先布局的 `(8, 64)` float16 tile:
 
 ```python
 TileLayout(S[(8, 64) : (64@m, 1@m)])
 ```
 
-The logical element `(i, j)` has linear element address:
+逻辑元素 `(i, j)` 的线性元素地址是:
 
 ```text
 m = 64 * i + j
 ```
 
-Each row is 64 float16 values, or 128 bytes. That is exactly one full shared memory bank line. If a warp reads down a column with fixed `j`, each row step advances by one full 128-byte line. The bank index repeats, so the column read collapses onto the same bank across rows.
+每一行是 64 个 float16 值,即 128 字节,正好是一整条共享内存 bank 线。如果某个 warp 固定 `j` 沿一列向下读,每前进一行就跨过整整一条 128 字节的线。bank 索引随之重复,于是该列读会跨行塌缩到同一个 bank 上。
 
-The swizzle changes this by making the low address bits depend on higher row bits. A column that would otherwise land repeatedly on the same bank is scattered across different banks.
+swizzle 通过让低位地址比特依赖于更高的行比特来改变这一点。原本会反复落在同一个 bank 上的一列,会被分散到不同 bank 上。
 
-## The Swizzle Transform
+## Swizzle 变换
 
-A `SwizzleLayout` is controlled by three integer parameters:
+一个 `SwizzleLayout` 由三个整数参数控制:
 
 ```text
 per_element = M
@@ -528,17 +528,17 @@ swizzle_len = B
 atom_len    = S
 ```
 
-The input is a linear element address `m`.
+输入是一个线性元素地址 `m`。
 
-The low `M` bits of `m` are left unchanged. This preserves a small contiguous group of elements. The higher bits are shifted down into a temporary value:
+`m` 的低 `M` 位保持不变,以此保留一小段连续的元素组。较高位则被右移进一个临时值:
 
 ```text
 x = m >> M
 ```
 
-Then the bit group at positions `[S, S + B)` of `x` is XORed into the bit group `[0, B)` of `x`. The swizzled address is then formed by putting the unchanged low `M` bits back.
+随后,`x` 中位于 `[S, S + B)` 的比特组会被异或进 `x` 的 `[0, B)` 比特组。把保持不变的低 `M` 位放回去,就得到 swizzle 后的地址。
 
-Equivalently:
+等价地:
 
 ```text
 mask = (1 << B) - 1
@@ -550,31 +550,31 @@ x2   = x ^ ((x >> S) & mask)
 addr = (x2 << M) | low
 ```
 
-For the layout to be well formed, `S` must be at least `B`.
+为使布局良构,`S` 至少要等于 `B`。
 
-The point of the transform is not to change which logical elements are in the tile. It changes where those elements land in shared memory. The MMA still reads the same logical tile. The swizzle makes the physical bank pattern better.
+这个变换的要点不在于改变 tile 中包含哪些逻辑元素,而在于改变这些元素落在共享内存中的何处。MMA 仍然读同一个逻辑 tile,swizzle 只是让物理 bank 模式更优。
 
-## Choosing Swizzle Parameters
+## 选择 swizzle 参数
 
-In normal use, the swizzle parameters are chosen from the dtype and the shared-memory swizzle mode. The common modes are 32-byte, 64-byte, and 128-byte swizzles.
+在常规使用中,swizzle 参数依据 dtype 和共享内存 swizzle 模式选定。常见模式有 32 字节、64 字节和 128 字节 swizzle。
 
-The `per_element` parameter is chosen so that a small vector-sized group stays contiguous. For float16, a 16-byte vector contains 8 elements, so:
+`per_element` 参数的选择要让一小段向量大小的组保持连续。对 float16 而言,一个 16 字节向量含 8 个元素,故:
 
 ```text
 M = log2(8) = 3
 ```
 
-With a 128-byte swizzle, the layout uses:
+采用 128 字节 swizzle 时,布局使用:
 
 ```python
 SwizzleLayout(per_element=3, swizzle_len=3, atom_len=3)
 ```
 
-This keeps the 16-byte vector group intact while still permuting the larger shared-memory address pattern enough to break the column bank conflict.
+这既保持了 16 字节向量组完整,又足以置换较大的共享内存地址模式,从而打破列上的 bank 冲突。
 
-Most code should not derive these parameters by hand. The dtype and descriptor mode usually determine them. What matters for the programmer is that the swizzle in the TIRx layout, the TMA descriptor, and the MMA expectation all match.
+大多数代码不应手工推导这些参数。dtype 和描述符模式通常会决定它们。对程序员而言重要的是:TIRx 布局里的 swizzle、TMA 描述符和 MMA 的期望三者必须匹配。
 
-A swizzled shared memory allocation therefore looks like:
+因此,一个 swizzle 过的共享内存分配看起来是这样的:
 
 ```python
 tile = TileLayout(S[(8, 64) : (64@m, 1@m)])
@@ -583,91 +583,91 @@ swizzle = SwizzleLayout(per_element=3, swizzle_len=3, atom_len=3)
 layout = ComposeLayout(swizzle, tile)
 ```
 
-The composed layout is what gets attached to the shared memory buffer.
+组合后的布局才是附加到共享内存 buffer 上的那个。
 
-## Bank and Line of an Element
+## 元素的 bank 与 line
 
-To see whether a swizzle helps, translate the swizzled element address back into a shared memory bank.
+要判断一个 swizzle 是否有帮助,可把 swizzle 后的元素地址换算回共享内存的 bank。
 
-Let `addr` be the swizzled element address, and let `b` be the element size in bytes. The byte address is:
+设 `addr` 为 swizzle 后的元素地址,`b` 为元素大小(字节)。字节地址是:
 
 ```text
 byte = addr * b
 ```
 
-The bank is:
+bank 是:
 
 ```text
 bank = floor(byte / 4) mod 32
 ```
 
-The 128-byte bank line is:
+128 字节的 bank 线是:
 
 ```text
 line = floor(byte / 128)
 ```
 
-For float16, `b = 2`, so the bank formula becomes:
+对 float16,`b = 2`,所以 bank 公式变为:
 
 ```text
 bank = floor(addr / 2) mod 32
 ```
 
-This is the formula used in the worked example below.
+这就是下面计算示例所用的公式。
 
-## Worked Example: 128B Swizzle on an `(8, 64)` float16 Tile
+## 计算示例:在 `(8, 64)` float16 tile 上的 128B swizzle
 
-Return to the row-major float16 tile:
+回到行优先的 float16 tile:
 
 ```text
 m = 64 * i + j
 ```
 
-Use:
+使用:
 
 ```python
 SwizzleLayout(per_element=3, swizzle_len=3, atom_len=3)
 ```
 
-The transform becomes:
+变换变为:
 
 ```text
 x    = m >> 3
 addr = ((x ^ ((x >> 3) & 7)) << 3) | (m & 7)
 ```
 
-Since:
+由于:
 
 ```text
 m = 64 * i + j
 ```
 
-we can write:
+我们可以写:
 
 ```text
 q = floor(j / 8)
 r = j mod 8
 ```
 
-and the swizzled address is:
+而 swizzle 后的地址是:
 
 ```text
 addr = 64 * i + 8 * (q xor i) + r
 ```
 
-Now look at column `j = 0`. Then `q = 0` and `r = 0`, so:
+现在看列 `j = 0`。此时 `q = 0` 且 `r = 0`,故:
 
 ```text
 addr = 72 * i
 ```
 
-For float16, the bank is:
+对 float16,bank 是:
 
 ```text
 bank = floor(addr / 2) mod 32
 ```
 
-So the eight rows map to:
+所以这八行映射到:
 
 ```text
 i = 0: bank 0
@@ -680,32 +680,32 @@ i = 6: bank 24
 i = 7: bank 28
 ```
 
-The column now touches eight distinct banks. The conflict is gone.
+该列现在触及八个不同的 bank,冲突消失了。
 
-Without swizzling, the same column has address:
+若不 swizzle,同一列的地址是:
 
 ```text
 m = 64 * i
 ```
 
-and therefore:
+因此:
 
 ```text
 bank = floor(64 * i / 2) mod 32 = 0
 ```
 
-Every row lands on bank 0, so the access is serialized. The swizzle changes only the physical placement, but that is enough to turn the column access into a conflict-free one.
+每一行都落在 bank 0 上,于是该访问被串行化。swizzle 只改变了物理放置,但这已经足够把列访问变成无冲突访问。
 
-This guarantee depends on using the swizzle in the way it was designed. The dtype, swizzle width, and access shape have to match the TMA and MMA descriptor modes. A 128-byte float16 swizzle is designed around the relevant 16-byte row chunks and Tensor Core access pattern. It is not a promise that arbitrary shared memory accesses become conflict free. The demo at the top of this chapter makes this visible: choose a dtype and swizzle mode, and watch a column collapse onto one bank with no swizzle, then scatter across the bank view once the matching swizzle is applied.
+这一保证依赖于按其设计意图使用 swizzle。dtype、swizzle 宽度和访问形状必须与 TMA 和 MMA 描述符模式匹配。128 字节 float16 swizzle 是围绕相关的 16 字节行块与 Tensor Core 访问模式设计的,它并不承诺任意共享内存访问都能无冲突。本章顶部的演示把这一点可视化:选择一个 dtype 和 swizzle 模式,观察一列在不加 swizzle 时塌缩到同一个 bank 上,再在施加匹配的 swizzle 后于 bank 视图中散开。
 
-## Design Rationale
+## 设计依据
 
-The layout API follows three design choices.
+布局 API 遵循三个设计取舍。
 
-First, it supports general shapes. Hardware tiles are not always powers of two. Global tensors, shared memory stages, TMEM accumulators, and scale-factor buffers often have shapes that come from capacity limits or algorithm choices. The layout model treats those shapes as normal.
+第一,它支持一般形状。硬件 tile 并不总是 2 的幂。全局张量、共享内存的各流水级、TMEM 累加器和缩放因子 buffer,常常具有源自容量限制或算法选择的形状。布局模型把这些形状当作正常情况对待。
 
-Second, the mapping goes from logical coordinates to physical coordinates. This direction is important because replication is common. One logical element may live in several physical places. A logical-to-physical map represents that directly as a set of coordinates.
+第二,映射方向是从逻辑坐标到物理坐标。这一方向很重要,因为复制很常见:一个逻辑元素可能存在于多个物理位置。逻辑到物理的映射能直接用一组坐标表示这一点。
 
-Third, hardware axes are explicit. The layout does not use anonymous dimensions and rely on context to explain them later. The difference between `tx`, `tid_in_wg`, `laneid`, `warpid`, `TLane`, and `TCol` is written into the layout itself.
+第三,硬件轴是显式的。布局不使用匿名维度、再依赖上下文事后解释。`tx`、`tid_in_wg`、`laneid`、`warpid`、`TLane` 与 `TCol` 之间的区别,被直接写进布局本身。
 
-Legality and feasibility checks are not the job of the layout object alone. A layout can say where data is placed. Higher-level tile primitives decide whether a given operation can legally and efficiently use that placement. This separation keeps the layout API small while still giving the compiler enough information to dispatch real hardware operations.
+合法性与可行性检查并不只由布局对象负责。布局能说明数据放在何处,更高层的 tile 原语决定某次操作能否合法且高效地使用该放置。这种分离使布局 API 保持精简,同时仍给编译器足够信息来派发真实的硬件操作。

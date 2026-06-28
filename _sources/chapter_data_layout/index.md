@@ -1,49 +1,33 @@
 (chap_data_layout)=
-# Data Layout and Its Notation
+# 数据布局及其记法
 
 :::{admonition} Overview
 :class: overview
 
-- A *data layout* maps a tensor's logical indices to physical locations, and it decides coalescing, bank conflicts, and whether an engine can read a tile.
-- The book writes layouts in one notation: `S[(shape) : (strides)]`, with named axes (`@laneid`, `@TLane`, …) and a replication term `R[...]` for broadcast or copied data.
-- Swizzle is an XOR remapping of addresses that removes shared-memory bank conflicts.
+- *数据布局* 将一个张量的逻辑索引映射到物理位置,它决定了访存的合并性、bank 冲突,以及某个引擎能否读取一个分块。
+- 本书用一种记法来书写布局:`S[(shape) : (strides)]`,并带有具名轴(`@laneid`、`@TLane`,……)以及一个用于广播或复制数据的复制项 `R[...]`。
+- Swizzle 是一种对地址的 XOR(异或)重映射,用于消除共享内存的 bank 冲突。
 :::
 
-The same numbers, written into memory in a different physical arrangement, can run an order of
-magnitude apart on the same GPU.
+同样的一组数字,以不同的物理排布写入内存,在同一块 GPU 上的运行速度可能相差一个数量级。
 
-The reason is that a tensor's logical indices say nothing about where its bytes actually sit. The
-hardware is highly sensitive to that placement: it determines whether 32 lanes' loads coalesce into
-one transaction or scatter into 32, whether their addresses land in distinct memory banks or collide
-and serialize, and even whether a tile matches the byte arrangement a Tensor Core can read at all.
+原因在于,一个张量的逻辑索引丝毫不能说明它的字节实际存放在哪里。硬件对这种存放位置极为敏感:它决定了 32 个 lane 的访存是合并成一次事务,还是分散成 32 次;这些地址是落到不同的内存 bank 上,还是会发生冲突并被串行化;它甚至决定了一个分块的字节排布是否与 Tensor Core(张量核)能读取的格式相符。
 
-Machine learning programs usually describe tensors by their logical shape. A **data layout** adds the
-missing physical part: it says where an element with logical indices `(i, j, …)` lives, whether in
-memory, in registers, or in some other hardware storage.
+机器学习程序通常用张量的逻辑形状来描述它们。一个**数据布局**补上了缺失的物理部分:它说明具有逻辑索引 `(i, j, …)` 的某个元素到底存放在哪里——是在内存中、在寄存器中,还是在某种其他硬件存储里。
 
-This chapter introduces the main layouts that arise in modern GPU programming. To keep the discussion
-tractable, we develop one compact **notation** that describes them across the situations a machine
-learning system runs into. We close with **swizzling**, the mechanism that makes both row-wise and
-column-wise access to a tile efficient at the same time.
+本章介绍现代 GPU 编程中出现的几种主要布局。为了让讨论易于展开,我们发展出一套紧凑的**记法**,用以统一描述机器学习系统在各种情形下遇到的布局。最后我们以 **swizzling** 收尾,这种机制能同时让对一个分块的行向访问和列向访问都变得高效。
 
-## The Shape–Stride Model
+## 形状-步长模型
 
-Before we reach the GPU-specific layouts, it is worth starting from the simplest possible one, because
-everything else in the chapter is built on top of it. At its core, a layout is just two things: a
-**shape** and a matching set of **strides**. We write the pair as `S[(shape) : (strides)]`, and to
-find where a logical index lives we take the dot product of that index with the strides. A row-major
-4×4 matrix, for instance, looks like this:
+在进入 GPU 专有的布局之前,值得从最简单的布局讲起,因为本章其余所有内容都建立在它之上。布局的核心其实只有两样东西:一个**形状**和一组与之匹配的**步长**。我们把这对值写成 `S[(shape) : (strides)]`,要找到某个逻辑索引对应的位置,我们取该索引与步长的点积。例如,一个行主序的 4×4 矩阵看起来是这样的:
 
 ```text
 S[(4, 4) : (4, 1)]        addr(i, j) = i·4 + j·1
 ```
 
-This is nothing more than the classic shape/stride model, written compactly (a row-major
-simplification of CuTe's notation), and everything that follows is built from it.
+这无非就是经典的形状/步长模型,只是写得紧凑了一些(是 CuTe 记法的行主序简化版),后续所有内容都由它构建而成。
 
-In fact, you have almost certainly used this model already. Anyone who has written PyTorch or NumPy
-has, because a tensor in those libraries *is* precisely a shape together with a stride over a flat
-storage buffer:
+事实上,你几乎肯定已经用过这个模型了。凡是写过 PyTorch 或 NumPy 的人都用过,因为在这些库里,一个张量*本身就是*一个形状加上在一个平坦存储缓冲区上的一组步长:
 
 ```python
 import torch
@@ -52,234 +36,133 @@ t.shape        # torch.Size([3, 4])
 t.stride()     # (4, 1)        ← exactly S[(3, 4) : (4, 1)]
 ```
 
-Once you see a tensor this way, it becomes clear why so many "reshaping" operations never touch the
-data at all. They simply rewrite the strides and hand back a **view** over the same storage, and the
-clearest example is transpose, or permute:
+一旦你以这种方式看待张量,就会明白为什么有那么多"重塑"操作根本不碰数据。它们只是改写步长,然后返回一个指向同一份存储的**视图**,最清晰的例子就是转置,或者说 permute:
 
 ```python
-tt = t.permute(1, 0)               # or t.T
+tt = t.permute(1, 0)               # 或 t.T
 tt.shape                           # torch.Size([4, 3])
 tt.stride()                        # (1, 4)        ← strides swapped, no data moved
-tt.data_ptr() == t.data_ptr()      # True, same bytes
+tt.data_ptr() == t.data_ptr()      # True,同一批字节
 ```
 
-Here `t.permute(1, 0)` is `S[(4, 3) : (1, 4)]` over the *same* memory: the transpose is purely a
-change of strides, with not a single byte moved. The story is the same for `reshape` or `view` on a
-contiguous tensor: a new shape and new strides over the old storage. (NumPy behaves identically; the
-only difference is that its `.strides` are counted in bytes rather than elements.)
+这里 `t.permute(1, 0)` 是在*同一块*内存上的 `S[(4, 3) : (1, 4)]`:转置纯粹是一次步长的改变,没有搬动一个字节。对连续张量做 `reshape` 或 `view` 的情形也一样:在旧存储上换一组新的形状和新的步长。(NumPy 的行为完全一致;唯一的区别是它的 `.strides` 以字节而非元素来计数。)
 
-This is exactly how layouts work on a GPU, and the rest of the chapter is really a series of
-variations on one idea: a tile's mapping (whether into memory, or, through the named axes we
-introduce shortly, into lanes and registers) is a stride rule over a fixed buffer, so rearranging a
-tile is usually a change of *layout* rather than a copy. We should be careful about the boundaries of
-this reasoning, though. The zero-copy story holds cleanly for a logical view over a single linear
-address space; on a GPU it applies only when the new view is compatible with the existing byte and
-ownership arrangement. The moment you change which thread or register owns an element, or change the
-SMEM swizzle, you generally need real data movement: loads, stores, shuffles, `ldmatrix`,
-transposes.
+GPU 上的布局也正是这样工作的,本章余下部分其实都是围绕同一个想法展开的一系列变体:一个分块的映射(无论映射到内存,还是通过我们马上引入的具名轴映射到 lane 和寄存器)都是一条作用在固定缓冲区上的步长规则,所以重排一个分块通常只是改变*布局*,而不是一次拷贝。不过,我们要小心这种推理的边界。零拷贝的故事只对一个线性地址空间之上的逻辑视图才干净成立;在 GPU 上,它只有在新的视图与既有的字节排布和归属关系相容时才适用。一旦你改变了哪个线程或哪个寄存器拥有某个元素,或者改动了 SMEM(共享内存)的 swizzle,通常就需要真正的数据搬动:load、store、shuffle、`ldmatrix`、转置。
 
-## Tile Layout
+## 分块布局
 
-So far we have described layouts for whole tensors. GPU kernels, however, rarely operate on an
-entire matrix at once; they work on smaller tiles, which are loaded, transformed, and computed on by
-different parts of the hardware. The good news is that tiling asks for nothing new. It is still
-just a layout, only now written with a few more dimensions. Cut an 8×8 matrix into 2×4 tiles and we
-get a 4-D layout, with coordinates `(tile_row, row_in_tile, tile_col, col_in_tile)` and strides
-chosen so that each tile stays contiguous:
+到目前为止,我们描述的都是整张张量的布局。然而 GPU 的内核很少一次性处理整张矩阵;它们处理的是更小的分块,这些分块被硬件的不同部分加载、变换、计算。好消息是,分块化并不需要任何新东西。它仍然只是一个布局,只不过现在写出来多了几个维度。把一个 8×8 矩阵切成 2×4 的分块,我们就得到一个 4 维布局,其坐标为 `(tile_row, row_in_tile, tile_col, col_in_tile)`,步长则被选成让每个分块保持连续:
 
 ```text
 S[(4, 2, 2, 4) : (16, 4, 8, 1)]
 ```
 
-A logical `(i, j)` first becomes `(i//2, i%2, j//4, j%4)` and then runs through the strides. What is
-worth noticing is that the notation expresses tiling without any special "tile" concept at all: it is
-the same shape–stride model as before, with the index merely split into outer and inner coordinates.
+一个逻辑坐标 `(i, j)` 先变成 `(i//2, i%2, j//4, j%4)`,再经过这些步长计算。值得注意的是,这套记法在表达分块化时根本用不到任何特殊的"分块"概念:它就是和之前一样的形状-步长模型,只是索引被拆成了外层和内层坐标。
 
-The interactive visualization below shows how a logical matrix index is decomposed into tile
-coordinates and then mapped to a physical address.
+下方的交互式可视化展示了逻辑矩阵索引是如何被分解成分块坐标,再映射到物理地址的。
 
 ```{raw} html
 <iframe src="../demo/tiled_layout.html" title="Tile layout: interactive address computation" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: click a cell to see its tiled index and address.*
+*交互:点击某个单元格,查看它的分块化索引和地址。*
 
-## Named Axes
+## 具名轴
 
-Up to this point every stride in `S[...]` has named an offset into linear memory, and we have treated
-an address as a location there. On a GPU, though, data can live in more than one place: besides
-memory, a tile may be spread across warp lanes, across thread registers, or across TMEM lanes and
-columns. To describe all of these uniformly, we extend the notation with **named axes**. The idea is to let each stride coefficient carry an axis tag that
-says which space it moves through: `@m` for ordinary memory, `@laneid` for warp lanes, `@reg` for
-registers, `@warpid` for warps, and `@TLane` / `@TCol` for TMEM coordinates. With the tags in hand, a
-single layout can describe not only where data sits in memory but also how it is distributed across
-the hardware resources that operate on it.
+到目前为止,`S[...]` 中的每一条步长都指向线性内存里的某个偏移,我们也把地址当作内存里的某个位置来看待。但在 GPU 上,数据可以存放在不止一个地方:除了内存,一个分块还可以分布在 warp(线程束)的 lane 之间、线程的寄存器之间,或者 TMEM(张量内存)的 lane 和列之间。为了统一描述所有这些情形,我们用**具名轴**来扩展这套记法。其想法是让每个步长系数带上一枚轴标签,说明它是在哪个空间里移动的:`@m` 表示普通内存,`@laneid` 表示 warp 的 lane,`@reg` 表示寄存器,`@warpid` 表示 warp,`@TLane` / `@TCol` 表示 TMEM 坐标。有了这些标签,一个布局就不仅能描述数据在内存中的位置,还能描述数据是如何分布在操作它的那些硬件资源之上的。
 
-Once the memory tags are made explicit, a row-major 8×16 tile in memory is simply
+一旦内存标签被明确写出来,内存中一个行主序的 8×16 分块就简单地写成
 
 ```text
 S[(8, 16) : (16@m, 1@m)]
 ```
 
-The tags start to earn their keep when a layout describes data *spread across threads* rather than
-laid out in memory. Take `S[(8, 4, 2) : (4@laneid, 1@laneid, 1@reg)]`: instead of pointing into
-linear memory, it maps rows and columns onto lane IDs and a per-lane register. Here `laneid` means
-the warp lane index within a warp, `thread_index % warp_size`. This is exactly the
-tensor-core register fragment you will meet in {ref}`chap_layout_generations`.
+当一个布局描述的是*分散在线程之间*而非铺在内存里的数据时,这些标签才真正派上用场。以 `S[(8, 4, 2) : (4@laneid, 1@laneid, 1@reg)]` 为例:它不再指向线性内存,而是把行和列映射到 lane ID 和每个 lane 的一个寄存器上。这里的 `laneid` 指 warp 内的 lane 索引,即 `thread_index % warp_size`。这正是你将在 {ref}`chap_layout_generations` 中遇到的 Tensor Core 寄存器片段。
 
-The interactive visualization below shows how a layout can distribute tensor elements across warp
-lanes and per-lane registers, rather than placing them in linear memory.
+下方的交互式可视化展示了布局如何把张量元素分散到 warp 的 lane 和每个 lane 的寄存器上,而不是放到线性内存中。
 
 ```{raw} html
 <iframe src="../demo/thread_register.html" title="Thread + register layout via named axes" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: a layout over `@laneid` and `@reg`; click a cell to see which lane/register holds it.*
+*交互:建立在 `@laneid` 和 `@reg` 之上的布局;点击某个单元格,查看哪个 lane / 寄存器持有它。*
 
-## Distributed Layout
+## 分布式布局
 
-What makes named axes so useful is that they let us describe placement uniformly across many levels
-of the system, including placement *across whole devices*. We have just used them for lanes and
-registers inside a single GPU, but the very same idea reaches outward: axes such as `@gpuid_x` and
-`@gpuid_y` can say where data lives in a GPU mesh, and with them the notation captures the sharding
-patterns that show up in distributed training and inference. One thing the axes do not yet capture
-is *replication*, data that is copied to more than one place, so we add the notation `R[n : stride]`,
-where `R` marks the replicated dimension. For example, `R[2 : 1@gpuid_x]` describes replication along
-the `@gpuid_x` axis. Putting the two together, a single expression can both shard a tensor across a
-2×2 GPU mesh and replicate it along one axis:
+具名轴之所以如此有用,在于它让我们能统一地描述系统多个层级上的数据放置,包括*跨整台设备*的放置。我们刚刚把它用在单个 GPU 内部的 lane 和寄存器上,但同样的想法也能向外延伸:`@gpuid_x`、`@gpuid_y` 这样的轴可以说明数据位于 GPU 阵列中的何处,有了它们,这套记法就能刻画分布式训练和推理中出现的分片模式。轴尚未刻画的一件事是*复制*,即被拷贝到不止一个地方的数据,为此我们加入记法 `R[n : stride]`,其中 `R` 标记被复制的维度。例如,`R[2 : 1@gpuid_x]` 描述沿 `@gpuid_x` 轴的复制。把两者合在一起,一个表达式就能既把张量分片到一个 2×2 的 GPU 阵列上,又沿其中一根轴复制它:
 
 ```text
 S[(2, 4, 8) : (1@gpuid_y, 8@m, 1@m)] + R[2 : 1@gpuid_x]
 ```
 
-The demo below shows that combined partition-and-replication pattern on a small GPU mesh. Click any
-cell to see which device holds it, and watch how the `@gpuid_x` replication places an identical copy
-on the paired device; the buttons switch between the fully-sharded, shard + replica, and shard +
-offset layouts.
+下方的演示在一个小的 GPU 阵列上展示了这种"分片加复制"的组合模式。点击任意单元格,查看它由哪个设备持有,并观察 `@gpuid_x` 复制是如何在配对设备上放置一份完全相同的副本的;按钮可以在"全分片"、"分片 + 副本"和"分片 + 偏移"三种布局之间切换。
 
 ```{raw} html
 <iframe src="../demo/tile_distributed.html" title="Distributed layout across a GPU mesh" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: a layout distributed over a 2×2 GPU mesh; click a cell to see which device(s) hold it.*
+*交互:分布在 2×2 GPU 阵列上的布局;点击某个单元格,查看哪些设备持有它。*
 
-### Intra-Kernel Replication Pattern: Scale Factors in TMEM
+### 内核内的复制模式:TMEM 中的缩放因子
 
-The replication dimension `R[...]` we just introduced for the GPU mesh is not only about multiple
-devices. The same construct turns out to describe something that happens entirely inside a single
-kernel as well: data that the hardware *broadcasts across lanes*. Blackwell's block-scaled MMA
-({ref}`chap_layout_generations`) is a good example. Its scale factors live in TMEM, where a 128-row
-scale vector is stored in only **32 TMEM lanes**, where logical row `r` goes to TMEM lane `r % 32`, with
-`r // 32` running along the columns. Those 32 stored TMEM lanes are then **replicated along the TMEM
-`TLane` axis**, from 32 up to 128 TMEM lanes, so that each of the four warps in the reading warpgroup
-finds a copy in its own 32-lane TMEM window. This is a `warpx4` broadcast, and we write it with a
-replication dimension. The reads themselves are carried out by those warps' threads:
+我们刚刚为 GPU 阵列引入的复制维度 `R[...]` 并不只是关于多台设备。同样的构造恰好也能描述完全发生在单个内核内部的一件事:*跨 lane 广播*的数据。Blackwell(架构代号)的块缩放 MMA(矩阵乘加)({ref}`chap_layout_generations`)就是一个好例子。它的缩放因子存放在 TMEM 里,一个 128 行的缩放向量只存在 **32 个 TMEM lane** 中:逻辑行 `r` 落到 TMEM lane `r % 32` 上,而 `r // 32` 则沿列方向延伸。这 32 个被存储的 TMEM lane 随后**沿 TMEM 的 `TLane` 轴被复制**,从 32 扩展到 128 个 TMEM lane,这样发起读取的 warpgroup(线程束组)中的四个 warp 就都能在各自那 32-lane 的 TMEM 窗口里找到一份副本。这是一次 `warpx4` 广播,我们用复制维度来书写它。这些读取本身则由这些 warp 的线程来完成:
 
 ```text
 S[(32, …) : (1@TLane, …)] + R[4 : 32@TLane]
 ```
 
-That gives four replicas at a stride of 32 TMEM lanes: TMEM lanes `l`, `l+32`, `l+64`, and `l+96` all
-hold the same scale. As before, the replication dimension carries no new data; it simply says "the
-same value, sitting in four TMEM-lane positions," in just the way `@gpuid_x` broadcast a row across
-the GPU mesh a moment ago.
+于是得到四份副本,间隔为 32 个 TMEM lane:TMEM lane `l`、`l+32`、`l+64`、`l+96` 都持有同一个缩放值。如前所述,复制维度并不携带新数据;它只是说明"同一个值,出现在四个 TMEM-lane 位置上",其方式与刚才 `@gpuid_x` 在 GPU 阵列上广播一行完全相同。
 
-The interactive demo below shows both steps together: compact packing into 32 TMEM lanes, then the
-`warpx4` broadcast out to the 128 reading lanes.
+下方的交互式演示把两步合在一起展示:先紧凑地打包进 32 个 TMEM lane,再 `warpx4` 广播到 128 个读取 lane。
 
 ```{raw} html
 <iframe src="../demo/sf_tmem.html" title="Scale factors in TMEM: packing and warpx4 replication" loading="lazy"
         style="width:100%; min-width:1040px; height:560px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: click a scale factor `SFA[m, sf]`; it packs into TMEM at lane `m mod 32`, column `(m // 32)·4 + sf`, and is then broadcast `warpx4` across the `TLane` axis to the four lane copies (`l`, `l+32`, `l+64`, `l+96`), one per warp's 32-lane window.*
+*交互:点击某个缩放因子 `SFA[m, sf]`;它会打包进 TMEM 中 lane 为 `m mod 32`、列号为 `(m // 32)·4 + sf` 的位置,然后沿 `TLane` 轴 `warpx4` 广播到四个 lane 副本(`l`、`l+32`、`l+64`、`l+96`),每个 warp 的 32-lane 窗口各得一份。*
 
-The byte packing inside each column (the `scale_vec` 1X/2X/4X modes) and the `cta_group::2` split are
-covered in {ref}`chap_layout_generations`.
+每一列内部的字节打包(`scale_vec` 的 1X/2X/4X 模式)以及 `cta_group::2` 的拆分,在 {ref}`chap_layout_generations` 中介绍。
 
-Readers who already know CuTe can think of the notation in this chapter as a row-major variant of it,
-extended with explicit hardware-named axes and a dedicated replication structure.
+已经熟悉 CuTe 的读者,可以把本章这套记法看作 CuTe 的一个行主序变体,只是额外加上了显式的硬件具名轴和一套专门的复制结构。
 
-## Swizzle Layout
+## Swizzle 布局
 
-The final layout in this chapter exists to solve one specific hardware problem. Shared memory on a
-GPU is organized into memory banks, and accesses run fastest when different lanes land on different
-banks. When several lanes instead reach different addresses within the *same* bank, the hardware has
-no choice but to serialize them, and we pay the cost of a **bank conflict**.
+本章的最后一种布局是为了解决一个具体的硬件问题而存在的。GPU 的共享内存被组织成多个内存 bank,当不同的 lane 落到不同的 bank 上时,访存速度最快。当若干 lane 反而落到*同一个* bank 内的不同地址时,硬件别无选择,只能把它们串行化,于是我们就要为一次 **bank 冲突**付出代价。
 
-In tensor programs this is hard to avoid, because memory is not accessed in a purely linear order.
-Working with matrices, we routinely need to read both row slices and column slices of the same tile,
-and that creates a genuine tension: a layout that is efficient for row-wise access tends to produce
-bank conflicts for column-wise access, while one that favors columns hurts rows. **Swizzling** is the
-technique designed to break this tension.
+在张量程序中这一点很难避免,因为内存并非按纯线性的顺序访问。在处理矩阵时,我们常常需要同时读取同一分块的行切片和列切片,这造成了一种实实在在的张力:一种对行向访问高效的布局往往会在列向访问时引发 bank 冲突,而偏向列的布局又会损害行向访问。**Swizzling** 正是用来打破这种张力的技术。
 
-The idea behind swizzle is to permute the address mapping, typically by XOR-ing the column index
-with the row, so that *both* row and column accesses end up spread across banks. The conflict-free
-guarantee it provides is specific: it holds for the matching element width, swizzle mode, and access
-pattern (the one an engine's descriptor expects), and not for arbitrary element widths or alignments.
+swizzle 背后的想法是对地址映射做置换,通常是把列索引与行索引做 XOR(异或),使得行访问和列访问*同时*都被分散到各个 bank 上。它所提供的无冲突保证是具体的:它只对匹配的元素位宽、swizzle 模式和访问模式(也就是某个引擎的描述符所期望的那种)成立,而对任意的元素位宽或对齐方式并不成立。
 
-The first interactive demo below makes this concrete. Click a column index and watch which bank each
-element lands in: in the plain row-major tile on the left, a column funnels all eight elements into a
-single bank, so the read serializes into eight cycles; in the XOR-swizzled layout on the right, that
-same column is spread across eight distinct banks and reads in a single cycle.
+下方的第一个交互式演示把它讲得很具体。点击某个列索引,观察每个元素落到哪个 bank:左侧纯行主序的分块里,一列会让全部八个元素落入同一个 bank,于是这次读取被串行化成八个周期;而右侧经过 XOR swizzle 的布局里,同一列被分散到八个不同的 bank,一个周期就能读完。
 
 ```{raw} html
 <iframe src="../demo/swizzle_8x8.html" title="8x8 XOR swizzle" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: an 8×8 tile, bank-conflicted by column in plain row-major, conflict-free after the XOR swizzle.*
+*交互:一个 8×8 分块,纯行主序下列方向存在 bank 冲突,经 XOR swizzle 后变为无冲突。*
 
-The little 8×8 example captures the core idea, but real GPU memories have many more banks than that
-toy picture suggests. To make swizzling work at full scale, we do not treat the whole tile as one
-monolithic object. Instead, we cut memory into small segments and apply the swizzle pattern within
-each segment. The most common case in practice is `SWIZZLE_128B`, organized around 128-byte segments
-so the same row/column-remapping trick fits naturally into a 32-bank memory system.
+这个小小的 8×8 例子抓住了核心想法,但真实 GPU 的内存 bank 数远比这个示意要多。要让 swizzle 在全规模下生效,我们并不把整个分块当作一个整体来对待,而是把内存切成一个个小段,并在每一段内部套用 swizzle 模式。实践中最常见的情况是 `SWIZZLE_128B`,它围绕 128 字节的段来组织,这样同一套行/列重映射技巧就能很自然地嵌入到 32-bank 的内存系统中。
 
-The interactive demo below shows that one concrete hardware swizzle, `SWIZZLE_128B`, so the repeating
-segment-by-segment pattern is visible before we generalize across formats.
+下方的交互式演示展示了那个具体的硬件 swizzle——`SWIZZLE_128B`,在我们推广到各种格式之前,先把这种逐段重复的模式看清楚。
 
 ```{raw} html
 <iframe src="../demo/swizzle_128B.html" title="SWIZZLE_128B layout" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: the `SWIZZLE_128B` pattern within 128-byte segments; step through the read cycles to see `physical_sector = logical_sector XOR row` spread each column across distinct banks.*
+*交互:128 字节段内的 `SWIZZLE_128B` 模式;逐步走过各个读取周期,可以看到 `physical_sector = logical_sector XOR row` 把每一列都分散到不同的 bank 上。*
 
-The same idea extends beyond this 128-byte case. To simplify the visualization, we will now use a
-single color block to refer to one segment, instead of drawing individual banks. In general,
-hardware defines a small repeating **atom** on which the permutation is applied, and different
-swizzle modes choose different atom sizes. `SWIZZLE_128B` uses an 8 × 128 B atom, `SWIZZLE_64B` an
-8 × 64 B atom, and `SWIZZLE_32B` an 8 × 32 B atom; the whole tile is then tiled by whichever atom
-is in use.
+同样的想法可以推广到这种 128 字节情形之外。为了简化可视化,接下来我们用一个色块来表示一个段,而不再逐个画出 bank。一般而言,硬件会定义一个小的、可重复的**原子单元**,置换就在其上施加,不同的 swizzle 模式选择不同的原子大小。`SWIZZLE_128B` 使用 8 × 128 B 的原子,`SWIZZLE_64B` 使用 8 × 64 B 的原子,`SWIZZLE_32B` 使用 8 × 32 B 的原子;然后整个分块就由当时所用原子来分块化铺满。
 
-The final interactive demo lets you switch between these formats (including a 16 B interleaved
-mode), pick a data type, and hover any cell to inspect the element arrangement inside one atom
-directly, which is the right level of detail for reasoning about which swizzle a load/store
-instruction expects.
+最后一个交互式演示让你在这些格式(包括一种 16 B 交错模式)之间切换、选择数据类型,并把鼠标悬停在任意单元格上来直接查看一个原子内部的元素排布——这正是讨论某条 load/store 指令期望哪种 swizzle 时所需要的细节粒度。
 
 ```{raw} html
 <iframe src="../demo/swizzle_atom_general.html" title="Swizzle atom layout per format (128B/64B/32B)" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--pst-color-border, #d0d0d0); border-radius:6px;"></iframe>
 ```
-*Interactive: pick a swizzle format (and data type) to see its atom shape (8 × N B); hover a cell to see how its elements are permuted.*
+*交互:选择一种 swizzle 格式(和数据类型),查看它的原子形状(8 × N B);悬停某个单元格,查看其内部元素是如何被置换的。*
 
-Which mode should you pick? The rule of thumb is to prefer the *largest* atom the tile can fill. An
-N-byte atom needs the tile's contiguous dimension to be at least N bytes, and a multiple of it, so
-`SWIZZLE_128B` applies only when a row spans at least 128 bytes, or 64 `float16` elements. When it
-fits, it is the default choice, because its 8 × 128 B atom covers a full 128-byte bank line and so
-scatters a column across all 32 banks at once, giving conflict-free access to 8 rows and 8 columns at
-a time in fp16. When the problem's shape forces the contiguous dimension to be small, though, the
-tile can no longer fill a 128 B atom, and you step down to `SWIZZLE_64B` or `SWIZZLE_32B`, the
-largest atom the row can still cover.
+该选哪种模式呢?经验法则是优先选用分块所能填满的*最大*原子。一个 N 字节的原子要求分块的连续维度至少有 N 字节、并且是它的整数倍,所以 `SWIZZLE_128B` 仅在一行至少跨 128 字节、即 64 个 `float16` 元素时才适用。一旦能用,它就是默认选择,因为它的 8 × 128 B 原子正好覆盖完整的一条 128 字节 bank 线,从而能一次把一列分散到全部 32 个 bank 上,在 fp16 下同时对 8 行和 8 列提供无冲突访问。而当问题的形状迫使连续维度变小时,分块就填不满 128 B 原子,这时你就退到 `SWIZZLE_64B` 或 `SWIZZLE_32B`,即这一行仍能覆盖的最大原子。
 
-You never work out these permuted addresses by hand, and it is worth being precise about how swizzle
-relates to the `S[...]` notation: it is *not* part of that affine map. It is a separate, non-affine
-layer composed on top of it. The `S[...]` layout places an element at a linear memory (`@m`) address,
-and the swizzle then permutes that address, written, in the TIRx layout API, as
-`ComposeLayout(swizzle, tile)` ({ref}`chap_tirx_layout_api`). Your job is only to pick one consistent
-mode across every op that touches the tile and let the composed layout do the rest.
+你绝不需要手工算出这些置换后的地址,这里值得把 swizzle 与 `S[...]` 记法的关系说精确:它*不是*那条仿射映射的一部分。它是叠加在其上的一层独立的、非仿射的层。`S[...]` 布局把一个元素放到一个线性内存(`@m`)地址,swizzle 则置换这个地址,在 TIRx(Python DSL)的布局 API 中写作 `ComposeLayout(swizzle, tile)`({ref}`chap_tirx_layout_api`)。你要做的只是为涉及该分块的每一个 op 都选定一个一致的模式,剩下的交给这个复合布局即可。
 
-That same composed layout is also what the hardware fills, and this is where swizzling and tiling
-come together. A TMA descriptor is multi-dimensional, so a single three-dimensional box can describe
-both the atom tiling of the tile and the swizzle within each atom; one TMA load then lays the tile
-out atom by atom and swizzles it as it writes shared memory ({ref}`chap_tma`), with no separate
-swizzling pass. *Which* swizzle each engine demands is generation-specific, and that is the subject
-of the next chapter.
+这个复合布局也正是硬件要填充的东西,swizzling 和分块化也正是在这里走到一起。一个 TMA(张量内存加速器)描述符是多维的,所以一个单一的三维方框就能同时描述分块的原子分块化,以及每个原子内部的 swizzle;一次 TMA 加载就会逐个原子地把分块铺开,并在写共享内存的同时完成 swizzle({ref}`chap_tma`),不需要单独的 swizzle 步骤。至于每种引擎*需要哪种* swizzle,则因架构代际而异,这正是下一章的主题。

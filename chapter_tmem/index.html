@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Special Memory: TMEM &#8212; Modern GPU Programming For MLSys</title>
+    <title>特殊内存:TMEM &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -53,8 +53,8 @@
     <link rel="icon" href="../_static/mlc-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Async Coordination: mbarriers" href="../chapter_async_barriers/index.html" />
-    <link rel="prev" title="Tensor Cores: tcgen05" href="../chapter_tensor_cores/index.html" />
+    <link rel="next" title="异步协调:mbarriers" href="../chapter_async_barriers/index.html" />
+    <link rel="prev" title="Tensor Core:tcgen05" href="../chapter_tensor_cores/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_data_layout/index.html">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_async/index.html">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/arch/index.html">编译器内部实现</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/arch/lowering_pipeline.html">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx Language Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">Control flow</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tirx_guide/language_reference/index.html">TIRx 语言参考</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/parser_utils.html">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/control_flow.html">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tirx_guide/language_reference/cuda/threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Special Memory: TMEM</h1>
+    <h1>特殊内存:TMEM</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -338,9 +338,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-2d-address-space">A 2D Address Space</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#allocation">Allocation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-writing-tmem">Reading and Writing TMEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">二维地址空间</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">分配</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">读写 TMEM</a></li>
 </ul>
             </nav>
         </div>
@@ -352,56 +352,56 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="special-memory-tmem">
-<span id="chap-tmem"></span><h1>Special Memory: TMEM<a class="headerlink" href="#special-memory-tmem" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="tmem">
+<span id="chap-tmem"></span><h1>特殊内存:TMEM<a class="headerlink" href="#tmem" title="Link to this heading">#</a></h1>
 <div class="overview admonition">
 <p class="admonition-title">Overview</p>
 <ul class="simple">
-<li><p>TMEM is a Blackwell-only memory space used by <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code>. It is a two-dimensional scratchpad on each SM, with 128 Lane rows and up to 512 Col columns.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes its accumulator into TMEM. Block-scaled MMA also uses TMEM for scale factors.</p></li>
-<li><p>TMEM is addressed by Lane and Col. In the TIRx layout notation, these two hardware axes are written as <code class="docutils literal notranslate"><span class="pre">TLane</span></code> and <code class="docutils literal notranslate"><span class="pre">TCol</span></code>.</p></li>
-<li><p>TMEM is not assigned like registers. A kernel must allocate it and free it explicitly, in units of 32 columns.</p></li>
-<li><p>Ordinary shared-memory loads and stores cannot access TMEM. Data moves between TMEM, registers, and shared memory through dedicated asynchronous <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions.</p></li>
+<li><p>TMEM(张量内存)是一种仅 Blackwell 才有的内存空间,由 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 使用。它是每个 SM(流式多处理器)上的二维便笺存储,有 128 个 Lane 行、最多 512 个 Col 列。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> 将其累加器写入 TMEM。块缩放 MMA 还使用 TMEM 存放缩放因子。</p></li>
+<li><p>TMEM 通过 Lane 和 Col 来寻址。在 TIRx 的布局记法中,这两条硬件坐标轴写作 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 和 <code class="docutils literal notranslate"><span class="pre">TCol</span></code>。</p></li>
+<li><p>TMEM 不像寄存器那样被分配。内核必须自行分配并显式释放,分配单位为 32 列。</p></li>
+<li><p>普通的共享内存加载与存储无法访问 TMEM。数据在 TMEM、寄存器与共享内存之间通过专用的异步 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 指令流动。</p></li>
 </ul>
 </div>
-<p>On Hopper and earlier GPUs, the Tensor Core (<a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Cores: tcgen05</span></a>) accumulator lives in registers. That model is easy to reason about. The MMA instruction produces a register fragment, the kernel keeps that fragment live through the compute phase, and the epilogue later reads it, converts it, and stores the result.</p>
-<p>The problem is register pressure. Registers are a fixed per-thread resource. As MMA tiles get larger, the accumulator fragment gets larger too. At some point the accumulator starts to crowd out the other values the thread needs to hold. Larger tiles are good for Tensor Core throughput, but keeping the whole accumulator in registers makes those larger tiles harder to use.</p>
-<p>Blackwell changes this part of the data path. The accumulator for <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> does not have to stay in registers for the whole compute phase. Instead, <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes the accumulator into Tensor Memory, or TMEM. TMEM is a memory space that earlier NVIDIA GPUs do not have. It is a two-dimensional scratchpad on the SM, shaped as 128 Lane rows by up to 512 Col columns, and it is scoped to the CTA using it.</p>
-<p>That extra memory space lets Blackwell support larger Tensor Core tiles without forcing the entire accumulator into per-thread registers. But TMEM is not automatic in the way registers are. The compiler does not simply hand it out as ordinary register storage. The kernel has to allocate TMEM, address it with the right layout, move data in and out with the right instructions, and free it when the CTA is done.</p>
-<section id="a-2d-address-space">
-<h2>A 2D Address Space<a class="headerlink" href="#a-2d-address-space" title="Link to this heading">#</a></h2>
-<p>TMEM is not a flat byte array. It is a two-dimensional address space. The hardware names its two coordinates Lane and Col. There are 128 Lane rows and up to 512 Col columns. Each Col is a 32-bit column.</p>
-<p>That shape matters because <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> writes its accumulator into TMEM using this two-dimensional structure. A TMEM location is described by a Lane coordinate and a Col coordinate, not by a single shared-memory-style byte offset.</p>
-<p>When a kernel declares a TMEM buffer in TIRx, it gives the buffer a layout over these two hardware coordinates. In the layout notation (<a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">Data Layout and Its Notation</span></a>), we write the TMEM Lane axis as <code class="docutils literal notranslate"><span class="pre">TLane</span></code> and the TMEM Col axis as <code class="docutils literal notranslate"><span class="pre">TCol</span></code>. The names are not meant to replace the official hardware terminology. They are layout axis names that make the TMEM dimensions explicit inside the DSL.</p>
-<p>For example, an accumulator tile can be written as:</p>
+<p>在 Hopper 及更早的 GPU 上,Tensor Core(张量核,见 <a class="reference internal" href="../chapter_tensor_cores/index.html#chap-tensor-cores"><span class="std std-ref">Tensor Core:tcgen05</span></a>)的累加器位于寄存器中。这种模型很容易推理:MMA(矩阵乘加)指令产生一个寄存器片段,内核在计算阶段保持该片段有效,收尾阶段随后读取它、做类型转换并存储结果。</p>
+<p>问题在于寄存器压力。寄存器是按线程固定的资源。随着 MMA 分块变大,累加器片段也随之变大。到一定程度后,累加器会挤占该线程需要持有的其它值。更大的分块有利于 Tensor Core 的吞吐量,但把整个累加器都留在寄存器中,会让这些更大的分块更难使用。</p>
+<p>Blackwell 改变了数据通路上的这一环节。<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 的累加器不必在整个计算阶段都留在寄存器中。相反,<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> 将累加器写入张量内存,即 TMEM。TMEM 是一种早期 NVIDIA GPU 不具备的内存空间。它是 SM 上的一个二维便笺存储,形状为 128 个 Lane 行乘最多 512 个 Col 列,作用域限定在使用它的 CTA(协作线程阵列)内。</p>
+<p>这一额外的内存空间让 Blackwell 能够支持更大的 Tensor Core 分块,而不必把整个累加器放进每线程的寄存器中。但 TMEM 并不像寄存器那样是自动的。编译器不会简单地把它当作普通寄存器存储来发放。内核必须分配 TMEM、用正确的布局对其寻址、用正确的指令搬入搬出数据,并在 CTA 完成时释放它。</p>
+<section id="id1">
+<h2>二维地址空间<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>TMEM 不是一维的字节数组。它是一个二维地址空间。硬件将这两个坐标命名为 Lane 和 Col。共有 128 个 Lane 行、最多 512 个 Col 列。每个 Col 是一个 32 位的列。</p>
+<p>这个形状很重要,因为 <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> 正是按照这种二维结构把累加器写入 TMEM 的。一个 TMEM 位置由一个 Lane 坐标和一个 Col 坐标共同描述,而不是像共享内存那样用一个字节偏移量描述。</p>
+<p>当内核在 TIRx 中声明一个 TMEM 缓冲区时,它会为该缓冲区在这两条硬件坐标上指定一个布局。在布局记法(见 <a class="reference internal" href="../chapter_data_layout/index.html#chap-data-layout"><span class="std std-ref">数据布局及其记法</span></a>)中,我们把 TMEM 的 Lane 轴写作 <code class="docutils literal notranslate"><span class="pre">TLane</span></code>,把 TMEM 的 Col 轴写作 <code class="docutils literal notranslate"><span class="pre">TCol</span></code>。这些命名并不旨在取代官方硬件术语。它们只是布局轴的名称,用以在 DSL(领域特定语言)内部把 TMEM 的各维度显式化。</p>
+<p>例如,一个累加器分块可以写作:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>S[(128, N) : (1@TLane, 1@TCol)]
 </pre></div>
 </div>
-<p>This says that the tile has 128 rows along the hardware Lane dimension and <code class="docutils literal notranslate"><span class="pre">N</span></code> columns along the hardware Col dimension. In the layout notation, those two dimensions appear as <code class="docutils literal notranslate"><span class="pre">TLane</span></code> and <code class="docutils literal notranslate"><span class="pre">TCol</span></code>. The layout is direct: adjacent rows move along <code class="docutils literal notranslate"><span class="pre">TLane</span></code>, and adjacent columns move along <code class="docutils literal notranslate"><span class="pre">TCol</span></code>. The figure below shows that grid, with hardware Lane running down the 128 rows and hardware Col across the columns.</p>
-<p><img alt="TMEM as a 2D grid: TLane rows × TCol columns" src="../_images/tmem_grid.png" /></p>
-<p>The main point is that TMEM is part of the tile layout story. It is not just a hidden backing store for the Tensor Core. The kernel has to name the memory, allocate columns from it, and use a layout that matches how <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions read and write that memory.</p>
+<p>这表示该分块沿硬件 Lane 维度有 128 行,沿硬件 Col 维度有 <code class="docutils literal notranslate"><span class="pre">N</span></code> 列。在布局记法中,这两个维度表现为 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 和 <code class="docutils literal notranslate"><span class="pre">TCol</span></code>。该布局是直接的:相邻行沿 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 推进,相邻列沿 <code class="docutils literal notranslate"><span class="pre">TCol</span></code> 推进。下图展示了这一网格,硬件 Lane 沿 128 行向下排列,硬件 Col 沿各列横向排列。</p>
+<p><img alt="TMEM 作为一个二维网格:TLane 行 × TCol 列" src="../_images/tmem_grid.png" /></p>
+<p>要点在于:TMEM 是分块布局叙事的一部分。它不仅仅是 Tensor Core 的一个隐藏后备存储。内核必须为这块内存命名、从中分配列,并使用一种与 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 指令读写该内存方式相匹配的布局。</p>
 </section>
-<section id="allocation">
-<h2>Allocation<a class="headerlink" href="#allocation" title="Link to this heading">#</a></h2>
-<p>Before a kernel can use TMEM, it has to reserve space in it. This is different from registers. Registers are assigned by the compiler. TMEM is allocated explicitly by the kernel.</p>
-<p>Allocation is done per CTA. One warp in the CTA requests a range of TMEM columns. The request is made in units of 32 columns, and the requested column count is rounded up according to the hardware allocation rules. After allocation, the CTA receives a base TMEM address. Later <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions use that base address to access the reserved region.</p>
-<p>It is useful to think of TMEM as a budgeted CTA resource, much like shared memory. The CTA owns the TMEM columns it has allocated. The kernel decides how many columns it needs for accumulators, scale factors, or temporary staging. When the CTA is done, it must free the allocation.</p>
-<p>This makes TMEM part of kernel resource planning. A larger accumulator tile may improve Tensor Core throughput, but it consumes more TMEM columns. Block-scaled MMA may need additional TMEM space for scale factors. The kernel has to fit those uses within the available TMEM budget, just as it has to fit shared-memory buffers within the SMEM budget.</p>
+<section id="id2">
+<h2>分配<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>内核在使用 TMEM 之前,必须先在其中预留空间。这与寄存器不同。寄存器由编译器分配,而 TMEM 由内核显式分配。</p>
+<p>分配以 CTA 为单位进行。CTA 中的某一个 warp 申请一段 TMEM 列。申请以 32 列为单位,且请求的列数会按硬件分配规则向上取整。分配之后,该 CTA 会获得一个 TMEM 基地址。随后的 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 指令用该基地址访问已预留的区域。</p>
+<p>把 TMEM 看作一种按预算分配的 CTA 资源是很有益的,这与共享内存很相似。CTA 拥有它所分配到的 TMEM 列。内核自行决定它需要多少列用于累加器、缩放因子或临时中转。当该 CTA 完成时,必须释放所分配的区域。</p>
+<p>这使得 TMEM 成为内核资源规划的一部分。更大的累加器分块或许能提升 Tensor Core 吞吐量,但会消耗更多 TMEM 列。块缩放 MMA 可能还需要额外的 TMEM 空间存放缩放因子。内核必须把这些用途安置在可用的 TMEM 预算之内,正如它必须把共享内存缓冲区安置在 SMEM 预算之内一样。</p>
 </section>
-<section id="reading-and-writing-tmem">
-<h2>Reading and Writing TMEM<a class="headerlink" href="#reading-and-writing-tmem" title="Link to this heading">#</a></h2>
-<p>Ordinary <code class="docutils literal notranslate"><span class="pre">ld.shared</span></code> and <code class="docutils literal notranslate"><span class="pre">st.shared</span></code> instructions cannot access TMEM. TMEM is a separate address space, so data moves through dedicated <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> instructions.</p>
-<p>There are three main paths.</p>
-<p>The first path is <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>, which loads data from TMEM into registers. This is the path the epilogue uses after the MMA phase. The accumulator has been produced in TMEM, but the epilogue usually wants a register fragment so it can cast, apply elementwise operations, and store the final result.</p>
-<p>At the DSL level, a TMEM load is distributed across a warpgroup. It lowers to four warp-level <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> operations, one per warp. Each warp handles 32 of the 128 TMEM Lane rows, so the four warps together cover the full Lane dimension. In the layout notation, that full dimension is the <code class="docutils literal notranslate"><span class="pre">TLane</span></code> axis.</p>
-<p>The instruction itself comes from a family of load shapes, such as <code class="docutils literal notranslate"><span class="pre">.16x64b</span></code>, <code class="docutils literal notranslate"><span class="pre">.16x128b</span></code>, <code class="docutils literal notranslate"><span class="pre">.16x256b</span></code>, <code class="docutils literal notranslate"><span class="pre">.32x32b</span></code>, and <code class="docutils literal notranslate"><span class="pre">.16x32bx2</span></code>, with repeat factors from <code class="docutils literal notranslate"><span class="pre">.x1</span></code> up to <code class="docutils literal notranslate"><span class="pre">.x128</span></code>. The chosen shape determines how many TMEM columns are read and how many registers each thread receives.</p>
-<p>The important result is the register fragment layout. For the common epilogue path, lane <code class="docutils literal notranslate"><span class="pre">l</span></code> receives values from TMEM row <code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">/</span> <span class="pre">4</span></code> and two columns. This produces the same kind of per-lane accumulator fragment that earlier generations exposed directly from MMA (<a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">Tensor Core Operand Layouts Across GPU Generations</span></a>). That continuity matters. It means the Blackwell epilogue can reuse the same register-level cast and store structure that was already used for Ampere <code class="docutils literal notranslate"><span class="pre">mma</span></code> or Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code>, even though the accumulator lived in TMEM during the compute phase.</p>
-<p><img alt="tcgen05.ld / st move the TMEM accumulator to and from registers in the m8n8 fragment (lane l → row l/4, two columns)" src="../_images/tcgen05_ldst.svg" /></p>
-<p>The second path is <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code>, which stores data from registers back into TMEM. This is the reverse direction of <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>. It is used when a thread already holds a register fragment and needs to place it into TMEM. For example, some operands or intermediate values may be staged through registers before being written into TMEM for a later <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> operation.</p>
-<p>The third path is <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code>, which copies data from shared memory into TMEM. This is a bulk copy path, commonly used for scale factors in block-scaled MMA. In that case, TMA or ordinary thread code first prepares the scale data in shared memory, and <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> moves it into the TMEM layout expected by the Tensor Core.</p>
-<p>All three paths are asynchronous. A <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>, <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code>, or <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> instruction can return before the data movement has completed. A kernel must therefore use the right completion mechanism before consuming the result or reusing the storage (<a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">Async Coordination: mbarriers</span></a>).</p>
-<p>The wait path depends on the instruction. A <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> completes through <code class="docutils literal notranslate"><span class="pre">tcgen05.wait::ld</span></code>. A <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> completes through <code class="docutils literal notranslate"><span class="pre">tcgen05.wait::st</span></code>. A <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code>, like <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code>, completes through a commit group and an <code class="docutils literal notranslate"><span class="pre">mbarrier</span></code>. If the data is handed from one set of threads to another, the kernel may also need fences so the receiving threads see the completed writes in the intended order.</p>
-<p>TMEM sits in the middle of the Blackwell Tensor Core data path. TMA stages operands into shared memory. <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> reads its operands and accumulates into TMEM. For block-scaled MMA, scale factors can also be staged into TMEM. After the compute phase, <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> brings the accumulator back into registers, and the epilogue converts and stores the final output.</p>
+<section id="id3">
+<h2>读写 TMEM<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>普通的 <code class="docutils literal notranslate"><span class="pre">ld.shared</span></code> 和 <code class="docutils literal notranslate"><span class="pre">st.shared</span></code> 指令无法访问 TMEM。TMEM 是一个独立的地址空间,因此数据通过专用的 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 指令流动。</p>
+<p>共有三条主要通路。</p>
+<p>第一条通路是 <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>,它把数据从 TMEM 加载到寄存器。这是收尾阶段在 MMA 阶段之后使用的通路。累加器已经在 TMEM 中产出,但收尾阶段通常需要一个寄存器片段,以便做类型转换、施加逐元素运算并存储最终结果。</p>
+<p>在 DSL 层面,一次 TMEM 加载会分布到一个 warpgroup 上,并降级为四个 warp 级别的 <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> 操作,每个 warp 一个。每个 warp 处理 128 个 TMEM Lane 行中的 32 行,因此四个 warp 合起来覆盖完整的 Lane 维度。在布局记法中,这一完整维度就是 <code class="docutils literal notranslate"><span class="pre">TLane</span></code> 轴。</p>
+<p>该指令本身来自一组加载形状族,例如 <code class="docutils literal notranslate"><span class="pre">.16x64b</span></code>、<code class="docutils literal notranslate"><span class="pre">.16x128b</span></code>、<code class="docutils literal notranslate"><span class="pre">.16x256b</span></code>、<code class="docutils literal notranslate"><span class="pre">.32x32b</span></code> 和 <code class="docutils literal notranslate"><span class="pre">.16x32bx2</span></code>,重复因子从 <code class="docutils literal notranslate"><span class="pre">.x1</span></code> 到 <code class="docutils literal notranslate"><span class="pre">.x128</span></code>。所选形状决定了读取多少 TMEM 列,以及每个线程收到多少寄存器。</p>
+<p>重要的结果是寄存器片段布局。对于常见的收尾通路,lane <code class="docutils literal notranslate"><span class="pre">l</span></code> 接收来自 TMEM 第 <code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">/</span> <span class="pre">4</span></code> 行以及两列的值。这会产生与早期几代从 MMA 直接暴露出来的那种每 lane 累加器片段相同的结构(见 <a class="reference internal" href="../chapter_layout_generations/index.html#chap-layout-generations"><span class="std std-ref">跨 GPU 世代的 Tensor Core 操作数布局</span></a>)。这种延续性很重要。它意味着 Blackwell 的收尾阶段可以复用此前已用于 Ampere <code class="docutils literal notranslate"><span class="pre">mma</span></code> 或 Hopper <code class="docutils literal notranslate"><span class="pre">wgmma</span></code> 的同一种寄存器级类型转换与存储结构,即便累加器在计算阶段是存放在 TMEM 中的。</p>
+<p><img alt="tcgen05.ld / st 在 m8n8 片段中将 TMEM 累加器在寄存器之间搬入搬出(lane l → 第 l/4 行,两列)" src="../_images/tcgen05_ldst.svg" /></p>
+<p>第二条通路是 <code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code>,它把数据从寄存器存回 TMEM。这是 <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> 的反方向。它用于某个线程已经持有一个寄存器片段、并需要将其放入 TMEM 的情形。例如,某些操作数或中间值可能先经过寄存器中转,再写入 TMEM 以供后续的 <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code> 操作使用。</p>
+<p>第三条通路是 <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code>,它把数据从共享内存拷贝进 TMEM。这是一条批量拷贝通路,常用于块缩放 MMA 中的缩放因子。在此情形下,TMA(张量内存加速器)或普通线程代码先把缩放数据准备到共享内存中,然后 <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> 将其搬入 Tensor Core 所期望的 TMEM 布局。</p>
+<p>这三条通路都是异步的。一条 <code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code>、<code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> 或 <code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> 指令可以在数据搬运尚未完成时就返回。因此,内核在消费结果或复用存储之前,必须使用正确的完成机制(见 <a class="reference internal" href="../chapter_async_barriers/index.html#chap-async-barriers"><span class="std std-ref">异步协调:mbarriers</span></a>)。</p>
+<p>等待通路依指令而定。<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> 通过 <code class="docutils literal notranslate"><span class="pre">tcgen05.wait::ld</span></code> 完成。<code class="docutils literal notranslate"><span class="pre">tcgen05.st</span></code> 通过 <code class="docutils literal notranslate"><span class="pre">tcgen05.wait::st</span></code> 完成。<code class="docutils literal notranslate"><span class="pre">tcgen05.cp</span></code> 与 <code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> 一样,通过一个 commit group 和一个 mbarrier(内存屏障)完成。如果数据从一组线程传递给另一组线程,内核可能还需要加入栅栏(fence),以便接收方线程按预期顺序看到已完成的写入。</p>
+<p>TMEM 位于 Blackwell Tensor Core 数据通路的中间。TMA 把操作数搬入共享内存。<code class="docutils literal notranslate"><span class="pre">tcgen05.mma</span></code> 读取其操作数并累加进 TMEM。对于块缩放 MMA,缩放因子也可以被搬入 TMEM。计算阶段结束后,<code class="docutils literal notranslate"><span class="pre">tcgen05.ld</span></code> 把累加器带回寄存器,收尾阶段再做类型转换并存储最终输出。</p>
 </section>
 </section>
 
@@ -422,7 +422,7 @@
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></p>
+        <p class="prev-next-title">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></p>
       </div>
     </a>
     <a class="right-next"
@@ -430,7 +430,7 @@
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Async Coordination: mbarriers</p>
+        <p class="prev-next-title">异步协调:mbarriers</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -452,9 +452,9 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-2d-address-space">A 2D Address Space</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#allocation">Allocation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-writing-tmem">Reading and Writing TMEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">二维地址空间</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">分配</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">读写 TMEM</a></li>
 </ul>
   </nav></div>
 

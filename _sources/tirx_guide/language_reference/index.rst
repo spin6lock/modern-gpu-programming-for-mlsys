@@ -17,13 +17,10 @@
 
 .. _chap_language_reference:
 
-TIRx Language Reference
-=======================
+TIRx 语言参考
+=============
 
-The full language-feature set for writing TIRx device kernels, factored out of the
-:ref:`chap_tirx_primer` walkthrough: parser utilities, data types and expressions,
-buffers and memory, control flow, and thread synchronization. Reach for these pages
-when you need the precise spelling or semantics of a feature.
+编写 TIRx 设备内核所需的完整语言特性集合,从 :ref:`chap_tirx_primer` 演练中抽离而来:解析器工具、数据类型与表达式、buffer 与内存、控制流,以及线程同步。当你需要某个特性的精确拼写或语义时,请查阅这些页面。
 
 .. toctree::
    :maxdepth: 1

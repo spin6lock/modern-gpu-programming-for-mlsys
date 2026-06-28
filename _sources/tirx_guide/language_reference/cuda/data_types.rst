@@ -15,19 +15,15 @@
     specific language governing permissions and limitations
     under the License.
 
-Data types and expressions
-==========================
+数据类型与表达式
+================
 
-Every TIRx expression carries a low-level **dtype** and a high-level **type**.
+每个 TIRx 表达式都携带一个底层 **dtype** 和一个高层 **type**。
 
-Expression dtypes
------------------
+表达式 dtype
+------------
 
-A ``PrimExpr``'s ``.dtype`` is its scalar (or vector) element type — ``float32``,
-``float16``, ``bfloat16``, ``int32``, ``uint8``, ``bool``, the low-precision
-``float8_e4m3fn`` / ``float4_e2m1fn`` …, ``handle`` (a pointer), and vector forms
-such as ``float32x4``. Each prints to the matching CUDA type. Allocating local and
-shared buffers across several dtypes, plus a vectorized ``float32x4`` load/store:
+一个 ``PrimExpr`` 的 ``.dtype`` 是它的标量(或向量)元素类型——``float32``、``float16``、``bfloat16``、``int32``、``uint8``、``bool``、低精度的 ``float8_e4m3fn`` / ``float4_e2m1fn`` ……、``handle``(指针),以及诸如 ``float32x4`` 的向量形式。每种都打印为对应的 CUDA 类型。跨若干 dtype 分配 local 和 shared buffer,外加一次向量化的 ``float32x4`` 加载 / 存储:
 
 .. code-block:: python
 
@@ -36,18 +32,18 @@ shared buffers across several dtypes, plus a vectorized ``float32x4`` load/store
         A = T.match_buffer(A_ptr, (256,), "float32")
         O = T.match_buffer(O_ptr, (256,), "float32")
         T.device_entry(); bx = T.cta_id([1]); tx = T.thread_id([64])
-        f16  = T.alloc_local((1,), "float16")        # register scalars ...
+        f16  = T.alloc_local((1,), "float16")        # 寄存器标量
         bf16 = T.alloc_local((1,), "bfloat16")
         i32  = T.alloc_local((1,), "int32")
         u8   = T.alloc_local((1,), "uint8")
         b1   = T.alloc_local((1,), "bool")
-        sm   = T.alloc_shared((64,), "float16")      # ... and a shared tile
-        v    = T.alloc_local((1,), "float32x4")      # a vector-dtype register (float4)
-        v[0] = A.vload([tx * 4], dtype="float32x4")  # vectorized load
-        O.vstore([tx * 4], v[0])                     # vectorized store
-        # ... (use f16/bf16/i32/u8/b1/sm) ...
+        sm   = T.alloc_shared((64,), "float16")      # 以及一个 shared 分块
+        v    = T.alloc_local((1,), "float32x4")      # 一个向量 dtype 寄存器(float4)
+        v[0] = A.vload([tx * 4], dtype="float32x4")  # 向量化加载
+        O.vstore([tx * 4], v[0])                     # 向量化存储
+        # ... (使用 f16/bf16/i32/u8/b1/sm) ...
 
-lowers to (generated CUDA, elided):
+降级为(生成的 CUDA,已省略):
 
 .. code-block:: c++
 
@@ -57,16 +53,13 @@ lowers to (generated CUDA, elided):
     uchar         u8_ptr[1];                // uint8
     signed char   b1_ptr[1];                // bool
     __shared__ alignas(64) half sm_ptr[64]; // shared float16
-    float4        v_ptr[1];                 // float32x4  (vector)
-    v_ptr[0]                  = *(float4*)(A_ptr + tx * 4);   // vectorized load
-    *(float4*)(O_ptr + tx * 4) = v_ptr[0];                   // vectorized store
+    float4        v_ptr[1];                 // float32x4  (向量)
+    v_ptr[0]                  = *(float4*)(A_ptr + tx * 4);   // 向量化加载
+    *(float4*)(O_ptr + tx * 4) = v_ptr[0];                   // 向量化存储
 
-A buffer's dtype can itself be a **vector type**: ``T.alloc_local((1,), "float32x4")``
-declares a ``float4`` register directly (you index it as ``v[0]``), and a
-``float32x4`` ``vload`` / ``vstore`` then moves it as one 16-byte access. The vector
-dtype is not tied to ``vload`` — any buffer or scalar can carry it.
+一个 buffer 的 dtype 本身就可以是**向量类型**:``T.alloc_local((1,), "float32x4")`` 直接声明一个 ``float4`` 寄存器(你以 ``v[0]`` 索引它),而一次 ``float32x4`` 的 ``vload`` / ``vstore`` 随后把它作为一次 16 字节访问来移动。向量 dtype 并不与 ``vload`` 绑定——任何 buffer 或标量都可以携带它。
 
-so the dtype → CUDA mapping is:
+所以 dtype → CUDA 的映射是:
 
 .. list-table::
    :header-rows: 1
@@ -82,30 +75,22 @@ so the dtype → CUDA mapping is:
      - ``uint8`` → ``uchar``
      - ``bool`` → ``signed char``
    * - ``float32x4`` → ``float4``
-     - ``handle`` → ``T*`` (pointer)
-     - (vector dtypes → CUDA vector types)
+     - ``handle`` → ``T*`` (指针)
+     - (向量 dtype → CUDA 向量类型)
 
 dtype vs type
 -------------
 
-The ``dtype`` is *low-level* — it says "what bits". Separately, a value has a
-high-level **type**: ``PrimType(dtype)`` for a scalar, or
-``PointerType(PrimType(dtype), scope)`` for a pointer. Most expressions are scalars
-(``PrimType``); the type system matters mainly for **pointers**.
+``dtype`` 是*底层*的——它说的是「什么比特」。另外,一个值还有一个高层 **type**:标量是 ``PrimType(dtype)``,指针是 ``PointerType(PrimType(dtype), scope)``。大多数表达式都是标量(``PrimType``);类型系统主要对**指针**有意义。
 
-Pointers (``handle``)
----------------------
+指针(``handle``)
+-----------------
 
-A buffer's ``data`` — its pointer — is a ``Var`` of pointer type, and it is
-**immutable** (a pointer is never reassigned). That shapes how you obtain one:
+一个 buffer 的 ``data``——即它的指针——是一个指针类型的 ``Var``,且它是**不可变**的(指针不会被重新赋值)。这决定了你如何获得一个指针:
 
-- ``T.alloc_buffer(...)`` allocates storage **and** defines its ``data`` pointer.
-- ``T.decl_buffer(..., data=ptr)`` declares a buffer over an existing pointer
-  ``Var`` ``ptr``.
-- To back a buffer with a pointer **expression** — e.g. ``T.ptx.map_shared_rank``
-  (PTX ``mapa``) giving another cluster CTA's shared address — you must first bind
-  that expression to a pointer ``Var`` (``data`` must be a ``Var``, not an
-  expression), using a ``T.let`` of ``PointerType``:
+- ``T.alloc_buffer(...)`` 分配存储**并**定义它的 ``data`` 指针。
+- ``T.decl_buffer(..., data=ptr)`` 在一个已有指针 ``Var`` ``ptr`` 之上声明一个 buffer。
+- 若要用一个指针**表达式**来支撑一个 buffer——例如 ``T.ptx.map_shared_rank``(PTX ``mapa``)给出另一个集群 CTA 的共享地址——你必须先把该表达式绑定到一个指针 ``Var``(``data`` 必须是一个 ``Var``,不能是表达式),使用一个 ``PointerType`` 的 ``T.let``:
 
   .. code-block:: python
 

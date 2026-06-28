@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Control flow &#8212; Modern GPU Programming For MLSys</title>
+    <title>控制流 &#8212; Modern GPU Programming For MLSys</title>
   
   
   
@@ -54,7 +54,7 @@
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="CUDA C++/PTX intrinsics" href="threads_sync.html" />
-    <link rel="prev" title="Buffers and memory" href="buffers.html" />
+    <link rel="prev" title="Buffer 与内存" href="buffers.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,46 +150,46 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Part I, Understanding the GPU</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">第一部分,理解 GPU</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_background/index.html">GPU Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_performance/index.html">What Makes a Kernel Fast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_data_layout/index.html">Data Layout and Its Notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_layout_generations/index.html">Tensor Core Operand Layouts Across GPU Generations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tma/index.html">Async Data Movement: TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tensor_cores/index.html">Tensor Cores: <code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tmem/index.html">Special Memory: TMEM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_async_barriers/index.html">Async Coordination: mbarriers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_clc/index.html">Advanced: Cluster Launch Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_background/index.html">GPU 执行模型</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_performance/index.html">是什么让内核变快</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_data_layout/index.html">数据布局及其记法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_layout_generations/index.html">跨 GPU 世代的 Tensor Core 操作数布局</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tma/index.html">异步数据搬运:TMA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tensor_cores/index.html">Tensor Core:<code class="docutils literal notranslate"><span class="pre">tcgen05</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tmem/index.html">特殊内存:TMEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_async_barriers/index.html">异步协调:mbarriers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_clc/index.html">进阶:Cluster Launch Control</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part II, TIRx Overview</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第二部分,TIRx 概览</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_intro_tirx/index.html">Introduction to TIRx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tirx_layout_api/index.html">TIRx Layout API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_intro_tirx/index.html">TIRx 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_tirx_layout_api/index.html">TIRx 布局 API</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part III, GEMM: Tiled to SOTA</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第三部分,GEMM:从分块到 SOTA</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_basics/index.html">Building a Tiled GEMM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_async/index.html">Pipelining GEMM with TMA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_advanced/index.html">Scaling GEMM with Warp Specialization and Clusters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_basics/index.html">构建分块 GEMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_async/index.html">用 TMA 为 GEMM 建立流水线</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chapter_gemm_advanced/index.html">用线程束特化与集群扩展 GEMM</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Part IV, Flash Attention 4</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">第四部分,FlashAttention 4</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../chapter_flash_attention/index.html">Flash Attention 4</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">参考</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../appendix/debugging_warp_specialized.html">Debugging Warp-Specialized Kernels</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../arch/index.html">Compiler Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../arch/lowering_pipeline.html">TIRx lowering pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../appendix/debugging_warp_specialized.html">调试线程束特化内核</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../arch/index.html">编译器内部实现</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../arch/lowering_pipeline.html">TIRx 降级流水线</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">TIRx Language Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="parser_utils.html">Parser utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_types.html">Data types and expressions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="buffers.html">Buffers and memory</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Control flow</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">TIRx 语言参考</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parser_utils.html">解析器工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_types.html">数据类型与表达式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buffers.html">Buffer 与内存</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">控制流</a></li>
 <li class="toctree-l2"><a class="reference internal" href="threads_sync.html">CUDA C++/PTX intrinsics</a></li>
 </ul>
 </details></li>
@@ -328,7 +328,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Control flow</h1>
+    <h1>控制流</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -339,7 +339,7 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if">if</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#uniform-vs-divergent-control-flow">Uniform vs. divergent control flow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">一致 vs 发散的控制流</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loop">loop</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while">while</a></li>
 </ul>
@@ -353,22 +353,19 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="control-flow">
-<h1>Control flow<a class="headerlink" href="#control-flow" title="Link to this heading">#</a></h1>
-<p>Control flow is <code class="docutils literal notranslate"><span class="pre">if</span></code>, the loop family, and <code class="docutils literal notranslate"><span class="pre">while</span></code> — each maps to the obvious
-CUDA.</p>
+  <section id="id1">
+<h1>控制流<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>控制流就是 <code class="docutils literal notranslate"><span class="pre">if</span></code>、循环族,以及 <code class="docutils literal notranslate"><span class="pre">while</span></code>——每一种都映射到显而易见的 CUDA。</p>
 <section id="if">
 <h2>if<a class="headerlink" href="#if" title="Link to this heading">#</a></h2>
-<p>A Python <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code> becomes a CUDA <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code>. Guard work by a
-thread/lane comparison, or elect a single issuing thread with
-<code class="docutils literal notranslate"><span class="pre">T.ptx.elect_sync()</span></code>:</p>
+<p>Python 的 <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code> 变成 CUDA 的 <code class="docutils literal notranslate"><span class="pre">if</span></code> / <code class="docutils literal notranslate"><span class="pre">else</span></code>。用一个线程 / lane 比较来守卫工作,或者用 <code class="docutils literal notranslate"><span class="pre">T.ptx.elect_sync()</span></code> 选出一个单独的发令线程:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">tx</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
     <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">*</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span> <span class="o">+</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">T</span><span class="o">.</span><span class="n">ptx</span><span class="o">.</span><span class="n">elect_sync</span><span class="p">():</span>
-    <span class="o">...</span>                              <span class="c1"># one elected lane (e.g. to issue TMA/MMA)</span>
+    <span class="o">...</span>                              <span class="c1"># 单个被选中的 lane(例如用于发出 TMA/MMA)</span>
 </pre></div>
 </div>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(((</span><span class="kt">int</span><span class="p">)</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">128</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -378,37 +375,27 @@ thread/lane comparison, or elect a single issuing thread with
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>For an expression-level choice (no branch), use <code class="docutils literal notranslate"><span class="pre">T.if_then_else(cond,</span> <span class="pre">a,</span> <span class="pre">b)</span></code>. It
-lowers to a ternary, so it introduces no control-flow divergence:</p>
+<p>若要做表达式级的选择(无分支),用 <code class="docutils literal notranslate"><span class="pre">T.if_then_else(cond,</span> <span class="pre">a,</span> <span class="pre">b)</span></code>。它降级为一个三元表达式,因此不引入任何控制流发散:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">O_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">A_ptr</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
 </pre></div>
 </div>
 </section>
-<section id="uniform-vs-divergent-control-flow">
-<h2>Uniform vs. divergent control flow<a class="headerlink" href="#uniform-vs-divergent-control-flow" title="Link to this heading">#</a></h2>
-<p>Per-thread guards such as <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">tx</span> <span class="pre">&lt;</span> <span class="pre">128</span></code> are fine for ordinary work, but
-<strong>collective</strong> operations must be reached <em>uniformly</em> by every thread they
-synchronize.</p>
-<p>For example, <code class="docutils literal notranslate"><span class="pre">T.cuda.cta_sync()</span></code> maps to <code class="docutils literal notranslate"><span class="pre">__syncthreads()</span></code>, which requires all
-threads in the thread block. It must never sit inside a thread- or
-warpgroup-divergent branch: if placed inside <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">0:</span></code>, the other
-warpgroups will never arrive and the kernel will deadlock. When only one warpgroup
-needs to synchronize, use a warpgroup-scoped <code class="docutils literal notranslate"><span class="pre">T.cuda.warpgroup_sync(id)</span></code> (see
-<a class="reference internal" href="../../../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">Scaling GEMM with Warp Specialization and Clusters</span></a> and <a class="reference internal" href="threads_sync.html"><span class="doc">CUDA C++/PTX intrinsics</span></a>).</p>
-<p>The same caution applies to barrier setup. An <code class="docutils literal notranslate"><span class="pre">mbarrier</span></code> <code class="docutils literal notranslate"><span class="pre">.init()</span></code> lowers to a
-single-thread guard (<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(threadIdx.x</span> <span class="pre">&lt;</span> <span class="pre">1)</span></code>). Nesting it inside another divergent
-branch can leave the barrier uninitialized, leading to unspecified launch failures.</p>
+<section id="vs">
+<h2>一致 vs 发散的控制流<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
+<p>像 <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">tx</span> <span class="pre">&lt;</span> <span class="pre">128</span></code> 这种逐线程守卫,对普通工作没问题,但**集体** 操作必须被它所要同步的每一个线程*一致地*到达。</p>
+<p>例如,``T.cuda.cta_sync()`` 映射为 <code class="docutils literal notranslate"><span class="pre">__syncthreads()</span></code>,后者要求 thread block 中的所有线程到达。它绝不能位于一个线程或 warpgroup 发散的分支内:若放在 <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">wg_id</span> <span class="pre">==</span> <span class="pre">0:</span></code> 之内,其他 warpgroup 永远不会到达,内核将死锁。当只需要一个 warpgroup 同步时,使用 warpgroup 作用域的 <code class="docutils literal notranslate"><span class="pre">T.cuda.warpgroup_sync(id)</span></code> (见 <a class="reference internal" href="../../../chapter_gemm_advanced/index.html#chap-gemm-advanced"><span class="std std-ref">用线程束特化与集群扩展 GEMM</span></a> 与 <a class="reference internal" href="threads_sync.html"><span class="doc">CUDA C++/PTX intrinsics</span></a>)。</p>
+<p>同样的谨慎也适用于 barrier 的初始化。一个 <code class="docutils literal notranslate"><span class="pre">mbarrier</span></code> 的 <code class="docutils literal notranslate"><span class="pre">.init()</span></code> 降级为单线程守卫(<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(threadIdx.x</span> <span class="pre">&lt;</span> <span class="pre">1)</span></code>)。把它嵌套在另一个发散分支内,可能让 barrier 处于未初始化状态,导致未指明的启动失败。</p>
 </section>
 <section id="loop">
 <h2>loop<a class="headerlink" href="#loop" title="Link to this heading">#</a></h2>
-<p>Loops come in four flavors; a plain Python <code class="docutils literal notranslate"><span class="pre">range</span></code> becomes <code class="docutils literal notranslate"><span class="pre">T.serial</span></code>:</p>
+<p>循环有四种形式;普通的 Python <code class="docutils literal notranslate"><span class="pre">range</span></code> 变成 <code class="docutils literal notranslate"><span class="pre">T.serial</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">T.serial(n)</span></code> — a sequential loop (ptxas may still unroll it).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">T.unroll(n)</span></code> — fully unrolled (expanded to straight-line statements).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">T.vectorized(n)</span></code> — a vectorized loop.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">T.grid(*extents)</span></code> — a nested loop nest.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.serial(n)</span></code> —— 顺序循环(ptxas 仍可能展开它)。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.unroll(n)</span></code> —— 完全展开(扩展为直线语句)。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.vectorized(n)</span></code> —— 向量化循环。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T.grid(*extents)</span></code> —— 嵌套循环族。</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">break</span></code> / <code class="docutils literal notranslate"><span class="pre">continue</span></code> work inside loops.</p>
+<p><code class="docutils literal notranslate"><span class="pre">break</span></code> / <code class="docutils literal notranslate"><span class="pre">continue</span></code> 在循环内可用。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">T</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
     <span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
 </pre></div>
@@ -418,20 +405,18 @@ branch can leave the barrier uninitialized, leading to unspecified launch failur
 <span class="w">    </span><span class="n">B_ptr</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">max</span><span class="p">(</span><span class="n">A_ptr</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="p">],</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">T.unroll(4)</span></code> instead expands to four straight-line statements with no loop.</p>
+<p><code class="docutils literal notranslate"><span class="pre">T.unroll(4)</span></code> 则展开为四条没有循环的直线语句。</p>
 </section>
 <section id="while">
 <h2>while<a class="headerlink" href="#while" title="Link to this heading">#</a></h2>
-<p>A <code class="docutils literal notranslate"><span class="pre">while</span></code> loop runs until its condition is false. Use a mutable scalar counter
-(see <a class="reference internal" href="buffers.html"><span class="doc">Buffers and memory</span></a>):</p>
+<p><code class="docutils literal notranslate"><span class="pre">while</span></code> 循环一直运行到其条件为假为止。使用一个可变标量计数器(见 <a class="reference internal" href="buffers.html"><span class="doc">Buffer 与内存</span></a>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">i</span><span class="p">:</span> <span class="n">T</span><span class="o">.</span><span class="n">int32</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">:</span>
     <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">T</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p>It lowers to a <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">(1)</span></code> with an early-exit <code class="docutils literal notranslate"><span class="pre">break</span></code> (the counter is a
-one-element register buffer):</p>
+<p>它降级为带提前退出 <code class="docutils literal notranslate"><span class="pre">break</span></code> 的 <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">(1)</span></code> (计数器是一个单元素寄存器 buffer):</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">i_ptr</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
 <span class="n">i_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -461,7 +446,7 @@ one-element register buffer):</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Buffers and memory</p>
+        <p class="prev-next-title">Buffer 与内存</p>
       </div>
     </a>
     <a class="right-next"
@@ -492,7 +477,7 @@ one-element register buffer):</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if">if</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#uniform-vs-divergent-control-flow">Uniform vs. divergent control flow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">一致 vs 发散的控制流</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loop">loop</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while">while</a></li>
 </ul>

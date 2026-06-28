@@ -1,72 +1,72 @@
 (chap_clc)=
-# Advanced: Cluster Launch Control
+# 进阶:Cluster Launch Control
 
 :::{admonition} Overview
 :class: overview
 
-- A persistent kernel keeps a fixed set of CTAs or CTA clusters resident (often sized so there is roughly one active work owner per SM, though not relying on a guaranteed 1:1 mapping) and has them loop over many output tiles instead of launching one CTA per tile.
-- Cluster Launch Control is the Blackwell hardware mechanism that lets a resident cluster ask for another tile at runtime. It is a hardware work-stealing path built around two PTX instructions: one instruction requests work, and the other reads back whether the request succeeded.
-- The main benefit is better tail behavior. When tiles have uneven cost, or when the number of tiles does not divide evenly across the available SMs, CTAs that finish early can pull more work instead of sitting idle.
+- 持久化内核会让一组固定数量的 CTA(协作线程阵列)或 CTA 集群常驻(规模通常按每个 SM 大致对应一个活跃的工作属主来设置,但并不依赖严格的 1:1 映射保证),让它们循环处理多个输出分块,而不是为每个分块派发一个 CTA。
+- Cluster Launch Control 是 Blackwell(架构代号)的硬件机制,允许常驻集群在运行时再申请一个分块。它是一条硬件 work-stealing 路径,围绕两条 PTX 指令构建:一条指令申请工作,另一条指令读回申请是否成功。
+- 主要收益是更好的尾部行为。当各分块开销不均,或分块数无法在可用 SM 之间均分时,提前完成的 CTA 可以拉取更多工作,而不是空等。
 :::
 
-A persistent GEMM does not treat the CUDA grid as a fixed one-CTA-per-output-tile launch. Instead, it launches a smaller set of long-lived CTAs or CTA clusters. Each one computes a tile, advances to another tile, computes again, and keeps going until the output space is finished. This is the execution pattern built up in {ref}`chap_gemm_advanced`.
+持久化 GEMM(通用矩阵乘)并不把 CUDA grid 当作「每个输出分块对应一个 CTA」的固定派发。相反,它派发一组数量更少、生命周期更长的 CTA 或 CTA 集群。每个 CTA 或集群计算一个分块、推进到下一个分块、再计算,如此反复直到整个输出空间完成。这就是 {ref}`chap_gemm_advanced` 中逐步构建起来的执行模式。
 
-Once the kernel is persistent, the main scheduling question becomes simple: after a CTA or cluster finishes its current tile, where does the next tile come from?
+一旦内核成为持久化内核,主要的调度问题就变得简单:在一个 CTA 或集群完成当前分块之后,下一个分块从哪里来?
 
-The simplest answer is a static formula. For example, the kernel can compute the tile coordinate from the CTA id, then advance by a grid stride. That is easy to implement, and it works well when all tiles have roughly the same cost and the tile count is evenly distributed across the GPU. But the schedule is decided before the work actually runs. If a few tiles take longer, or if the last few tiles are unevenly assigned, some SMs finish their share early while others are still working through the tail.
+最简单的答案是静态公式。例如,内核可以根据 CTA id 算出分块坐标,然后按 grid 步长推进。这种做法实现简单,在所有分块开销大致相同且分块数能在 GPU 上均匀分布时效果良好。但调度是在工作真正运行之前就决定好的。如果少数分块耗时更长,或最后几个分块分配不均,某些 SM 会提前完成自己的份额,而其他 SM 仍在处理尾部。
 
-Cluster Launch Control, or CLC, changes that scheduling model. Instead of deciding the whole assignment up front, a persistent cluster can ask the hardware grid scheduler for another not-yet-launched cluster's work. If the request succeeds, the current cluster takes over that cluster coordinate and computes the corresponding tile. If the request fails, there is no more work to steal, and the loop exits.
+Cluster Launch Control,即 CLC,改变了这种调度模型。它不再预先决定整个分配,而是允许持久化集群向硬件 grid 调度器申请另一个尚未派发的集群的工作。如果申请成功,当前集群就接管那个集群坐标并计算对应的分块。如果申请失败,说明已经没有可窃取的工作,循环退出。
 
-This is not the same thing as thread block clusters themselves. Thread block clusters (CTAs launched together, with cluster-level synchronization and access to distributed shared memory) were introduced with Hopper ({ref}`chap_background`). CLC is the Blackwell addition that makes scheduling over those cluster coordinates dynamic. The cluster is already the unit of launch; CLC lets an already-running cluster cancel a pending launch and inherit its coordinates.
+这与 thread block cluster 本身并不是一回事。Thread block cluster(一起派发的 CTA,具备集群级别的同步和对分布式共享内存的访问)是在 Hopper 上引入的({ref}`chap_background`)。CLC 是 Blackwell 上的新增机制,它让在这些集群坐标之上的调度变得动态化。集群本身就是派发单元;CLC 让一个已经在运行的集群可以取消一个待派发的集群,并继承其坐标。
 
-## The Two Instructions
+## 两条指令
 
-Cluster Launch Control is exposed through two PTX instructions. The first instruction sends an asynchronous request to the grid scheduler. The second instruction reads the response.
+Cluster Launch Control 通过两条 PTX 指令暴露出来。第一条指令向 grid 调度器发送一个异步请求。第二条指令读取响应。
 
-The request instruction is `clusterlaunchcontrol.try_cancel.async`.
+请求指令是 `clusterlaunchcontrol.try_cancel.async`。
 
-A `try_cancel` asks the scheduler to cancel the launch of a pending cluster and return that cluster's coordinates to the caller. The response is written to shared memory as a 16-byte record. Since the request is asynchronous, the instruction does not wait for the response to arrive. Instead, completion is reported through an `mbarrier`, using the same barrier-and-phase model used by TMA.
+`try_cancel` 请求调度器取消一个待派发集群的启动,并把该集群的坐标返回给调用者。响应以一条 16 字节的记录写入共享内存。由于请求是异步的,指令不会等待响应到达。相反,完成事件通过一个 `mbarrier`(内存屏障)上报,使用的是与 TMA(张量内存加速器)相同的屏障与相位模型。
 
-This is an important detail because it means CLC does not introduce a new waiting model. The kernel issues the request, associates it with a barrier, and later waits on the barrier before reading the response. The response arrival is signaled through the barrier with byte-count completion, in the same general style as other asynchronous hardware operations (see {ref}`chap_async_barriers`).
+这是一个重要细节,因为它意味着 CLC 并不引入新的等待模型。内核发出请求,把它与一个屏障关联,之后再在该屏障上等待,然后才读取响应。响应到达通过屏障以字节计数完成的方式发出信号,总体风格与其他异步硬件操作一致(见 {ref}`chap_async_barriers`)。
 
-Once the barrier has fired, the kernel uses the query instructions.
+一旦屏障触发,内核就使用查询指令。
 
-The first query is `clusterlaunchcontrol.query_cancel.is_canceled`. It returns a predicate telling the kernel whether the cancellation succeeded. A true predicate means the scheduler found a pending cluster launch, canceled it, and returned its coordinate. A false predicate means there was no pending work left to take.
+第一条查询是 `clusterlaunchcontrol.query_cancel.is_canceled`。它返回一个谓词,告诉内核取消是否成功。谓词为真表示调度器找到了一个待派发的集群启动,取消了它,并返回了其坐标。谓词为假表示已经没有剩余的待处理工作可取。
 
-Only when `is_canceled` is true should the kernel read the coordinate. It does that with `clusterlaunchcontrol.query_cancel.get_first_ctaid`, which extracts the first CTA id of the canceled cluster. That CTA id is a coordinate vector, usually read as `(x, y, z)`, and the kernel decodes it into the output tile it should compute next.
+只有当 `is_canceled` 为真时,内核才应读取坐标。这通过 `clusterlaunchcontrol.query_cancel.get_first_ctaid` 完成,它提取被取消集群的第一个 CTA id。该 CTA id 是一个坐标向量,通常按 `(x, y, z)` 读取,内核把它解码为接下来应当计算的输出分块。
 
-There is no numeric sentinel tile id in this protocol. The kernel branches on the predicate. If the predicate is true, the coordinate is valid. If the predicate is false, the work-stealing loop is done.
+这个协议里没有数值型的哨兵分块 id。内核根据谓词分支。如果谓词为真,坐标有效。如果谓词为假,work-stealing 循环结束。
 
-Under the hood, this shape follows directly from what CLC is doing. The hardware is not allocating an abstract task from a software queue. It is canceling a cluster launch that has not happened yet. A successful response therefore contains a real cluster coordinate. A failed response simply means the launch queue has been exhausted.
+在底层,这种形态直接来自 CLC 实际在做的事情。硬件并不是从软件队列中分配一个抽象任务。它是在取消一个尚未发生的集群启动。因此,成功的响应包含一个真实的集群坐标。失败的响应仅仅表示派发队列已经被耗尽。
 
-## The Work-Stealing Loop
+## Work-Stealing 循环
 
-With those two instructions, the persistent scheduler becomes a short loop.
+有了这两条指令,持久化调度器就变成一个简短的循环。
 
-At any point in the loop, the cluster has one tile it is responsible for computing. Before it starts that tile, it sends a `try_cancel` request for the next one. The request runs asynchronously. While the scheduler is working on that request, the cluster computes its current tile.
+在循环中的任何时刻,集群都有一个负责计算的分块。在开始该分块之前,它先为下一个分块发送一个 `try_cancel` 请求。请求异步执行。当调度器在处理该请求时,集群计算自己的当前分块。
 
-After the current tile is finished, the cluster waits on the `mbarrier` associated with the `try_cancel` response. Once the response is ready, it calls `query_cancel.is_canceled`. If the predicate is true, it calls `query_cancel.get_first_ctaid`, decodes the returned coordinate, and uses that as the next tile. If the predicate is false, there is no more work left, and the cluster exits.
+当前分块完成后,集群在与 `try_cancel` 响应关联的 `mbarrier` 上等待。一旦响应就绪,它调用 `query_cancel.is_canceled`。如果谓词为真,它调用 `query_cancel.get_first_ctaid`,解码返回的坐标,并把它用作下一个分块。如果谓词为假,说明已经没有剩余工作,集群退出。
 
-In code shape, the loop is:
+在代码形态上,该循环是:
 
-1. issue `try_cancel` for a possible next tile;
-2. compute the current tile while the request is in flight;
-3. wait for the response barrier;
-4. query whether the cancellation succeeded;
-5. either continue with the returned coordinate or exit.
+1. 为可能的下一个分块发出 `try_cancel`;
+2. 在请求在途时计算当前分块;
+3. 等待响应屏障;
+4. 查询取消是否成功;
+5. 要么带着返回的坐标继续,要么退出。
 
-The placement of the request is what makes the loop useful. The cluster does not wait until it has finished the current tile before asking for more work. It asks first, then computes. That overlaps the scheduler request with useful work. By the time the current tile is done, the answer for the next tile is often already available.
+请求的放置位置正是让这个循环有用的关键。集群不会等到当前分块完成之后才去申请更多工作。它先申请,再计算。这样就把调度器请求与有用的工作重叠起来。到当前分块完成时,下一个分块的答案往往已经就绪。
 
-This is the same basic reason persistent kernels use asynchronous copies and tensor-core barriers elsewhere. The kernel avoids putting a long-latency operation directly on the critical path. CLC applies the same idea to tile scheduling: ask for the next unit of work early, compute the current unit, then consume the scheduling result when it is needed.
+这与持久化内核在其他地方使用异步拷贝和 tensor-core 屏障是出于同样的基本原因。内核避免把一个长延迟操作直接放在关键路径上。CLC 把同样的思路应用到分块调度上:尽早申请下一个工作单元,计算当前单元,然后在需要时再消费调度结果。
 
-## Relation to Persistent GEMM
+## 与持久化 GEMM 的关系
 
-The persistent GEMM in {ref}`chap_gemm_advanced` uses a static scheduler for the main walkthrough. A static scheduler is easier to explain because the next tile can be computed directly from loop state. For example, a scheduler such as `ClusterPersistentScheduler2D` can assign tiles using a grid-stride pattern over the output tile space.
+{ref}`chap_gemm_advanced` 中的持久化 GEMM 在主线讲解中使用静态调度器。静态调度器更容易讲解,因为下一个分块可以直接从循环状态计算出来。例如,`ClusterPersistentScheduler2D` 这样的调度器可以在输出分块空间上按 grid 步长模式分配分块。
 
-CLC is the dynamic replacement for that static assignment. The outer loop stays the same: each resident cluster repeatedly computes one output tile and then advances to another. What changes is where the next tile comes from. With the static scheduler, the next tile is computed by a formula. With CLC, the next tile is returned by hardware work stealing.
+CLC 是对那种静态分配的动态替代。外层循环保持不变:每个常驻集群反复计算一个输出分块,然后推进到另一个。变化的是下一个分块从哪里来。使用静态调度器时,下一个分块由公式计算。使用 CLC 时,下一个分块由硬件 work stealing 返回。
 
-That difference matters most near the tail of the launch. In a static schedule, the remaining work may not be evenly distributed. Some SMs may run out of assigned tiles while others still have several left. With CLC, the cluster that finishes early asks for another pending cluster coordinate. As long as there is work left in the launch queue, early finishers keep pulling more tiles.
+这种差异在派发的尾部附近最为重要。在静态调度中,剩余工作可能分布不均。某些 SM 可能已经用完了分配到的分块,而其他 SM 还剩好几个。有了 CLC,提前完成的集群会申请另一个待派发的集群坐标。只要派发队列里还有工作,提前完成者就会持续拉取更多分块。
 
-It also matters when tile cost is not uniform. Some GEMM tiles may take different paths because of boundaries, masking, sparsity, grouped scheduling, or fused work around the main matrix multiply. A static schedule assumes the tile assignment is good enough before any of those costs are observed. CLC does not need that assumption. It assigns more work only after a cluster becomes available.
+当分块开销不均匀时,这同样重要。某些 GEMM 分块可能因为边界、掩码、稀疏性、分组调度或围绕主矩阵乘的融合工作而走不同的路径。静态调度假设分块分配在任何这些开销被观察到之前就已经足够好。CLC 不需要这个假设。它只在一个集群变为可用之后才分配更多工作。
 
-In TIRx, CLC can therefore be exposed as a dynamic tile scheduler. The programming model does not need to change the computation of a tile. The tile body is the same persistent GEMM body used by the static scheduler. The scheduler changes from "compute my next tile coordinate from a formula" to "ask hardware for the next available cluster coordinate." The result is the same persistent loop, but with hardware-driven work distribution instead of a fixed launch-time schedule.
+因此在 TIRx 中,CLC 可以作为一个动态分块调度器暴露出来。编程模型不需要改变一个分块的计算。分块体与静态调度器使用的持久化 GEMM 体相同。调度器从「用公式计算我的下一个分块坐标」变为「向硬件询问下一个可用的集群坐标」。结果是同样的持久化循环,但采用硬件驱动的工作分配,而非固定的派发时调度。
