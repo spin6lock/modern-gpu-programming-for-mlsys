@@ -63,7 +63,7 @@ S[(128, N) : (1@TLane, 1@TCol)]
 
 重要的结果是寄存器片段布局。对于常见的收尾通路,lane `l` 接收来自 TMEM 第 `l / 4` 行以及两列的值。这会产生与早期几代从 MMA 直接暴露出来的那种每 lane 累加器片段相同的结构(见 {ref}`chap_layout_generations`)。这种延续性很重要。它意味着 Blackwell 的收尾阶段可以复用此前已用于 Ampere `mma` 或 Hopper `wgmma` 的同一种寄存器级类型转换与存储结构,即便累加器在计算阶段是存放在 TMEM 中的。
 
-![tcgen05.ld / st 在 m8n8 片段中将 TMEM 累加器在寄存器之间搬入搬出(lane l → 第 l/4 行,两列)](../img/tcgen05_ldst.svg)
+![tcgen05.ld / st 在 m8n8 片段中将 TMEM 累加器在寄存器之间搬入搬出(lane l → 第 l/4 行,两列)](../img/zh/tcgen05_ldst.svg)
 
 第二条通路是 `tcgen05.st`,它把数据从寄存器存回 TMEM。这是 `tcgen05.ld` 的反方向。它用于某个线程已经持有一个寄存器片段、并需要将其放入 TMEM 的情形。例如,某些操作数或中间值可能先经过寄存器中转,再写入 TMEM 以供后续的 `tcgen05` 操作使用。
 
