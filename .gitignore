@@ -9,7 +9,8 @@ data/
 *egg-info*
 dist/*
 /_build/
-build/
+_build/
+.venv/
 .idea
 .vscode
 .pytest_cache
