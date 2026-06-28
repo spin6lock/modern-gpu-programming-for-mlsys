@@ -7,7 +7,12 @@ author = "MLC Community"
 copyright = "2026, MLC Community"
 release = "0.0.1"
 
-extensions = ["myst_parser", "sphinx_copybutton"]
+extensions = ["myst_parser", "sphinx_copybutton", "sphinx.ext.imgconverter"]
+
+# 把 imgconverter 默认的 ImageMagick 改用 rsvg-convert(对 SVG 渲染更好)
+import os as _os
+image_converter = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "rsvg-imgconv")
+image_converter_args = []
 
 # Markdown (MyST) is the primary source format.
 source_suffix = {".md": "markdown", ".rst": "restructuredtext"}
@@ -66,3 +71,28 @@ html_theme_options = {
     "use_download_button": False,
     "use_fullscreen_button": False,
 }
+
+# --- LaTeX / PDF (Chinese via xelatex + Noto CJK) ---
+latex_engine = "xelatex"
+latex_elements = {
+    "papersize": "a4paper",
+    "pointsize": "11pt",
+    "fontpkg": r"""
+\usepackage{xeCJK}
+\setmainfont{Noto Serif}
+\setsansfont{Noto Sans}
+\setmonofont{DejaVu Sans Mono}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+\usepackage{textcomp}
+\usepackage{newunicodechar}
+\newunicodechar{→}{$\rightarrow$}
+\newunicodechar{←}{$\leftarrow$}
+\newunicodechar{␣}{\textvisiblespace}
+\newunicodechar{⋯}{$\cdots$}
+\newunicodechar{·}{\textperiodcentered}
+""",
+    "figure_align": "H",
+}
+latex_show_urls = "no"
