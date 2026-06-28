@@ -1,11 +1,11 @@
-# Build the Sphinx book and deploy it to GitHub Pages.
+# Build the Sphinx book (zh edition) and deploy it to GitHub Pages.
 name: Build and Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [zh-translation]
   pull_request:
-    branches: [main]
+    branches: [zh-translation]
   workflow_dispatch:
 
 # peaceiris pushes the built site to the gh-pages branch with GITHUB_TOKEN.
@@ -27,8 +27,8 @@ jobs:
       - name: Install doc dependencies
         run: pip install -r requirements-docs.txt
 
-      - name: Build (Sphinx, warnings as errors)
-        run: sphinx-build -b html . _build/html -W --keep-going
+      - name: Build (Sphinx zh edition, warnings as errors)
+        run: sphinx-build -b html zh _build/html -W --keep-going
 
       - name: Upload built site
         uses: actions/upload-artifact@v4
@@ -37,11 +37,11 @@ jobs:
           path: _build/html
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/zh-translation'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_build/html
           # No custom domain: the site serves at the org default,
-          # https://mlc.ai/modern-gpu-programming-for-mlsys/ . To use a custom domain, add a
+          # https://spin6lock.github.io/modern-gpu-programming-for-mlsys/ . To use a custom domain, add a
           # `cname:` line here and the matching DNS record.
